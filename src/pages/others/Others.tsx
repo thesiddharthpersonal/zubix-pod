@@ -8,11 +8,20 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Rocket, Upload, Send, Eye, CheckCircle, XCircle, MessageCircle } from 'lucide-react';
+import { Rocket, Upload, Send, MessageCircle, ChevronRight, ArrowLeft, Settings, HelpCircle, FileText, Users } from 'lucide-react';
 import { Pitch, STARTUP_STAGES, PITCH_STATUSES, SECTORS, StartupStage, PitchStatus } from '@/types';
 import TopNav from '@/components/layout/TopNav';
 import BottomNav from '@/components/layout/BottomNav';
 import { toast } from 'sonner';
+
+// Feature list for Others section
+const FEATURES = [
+  { id: 'pitch', name: 'Pitch', description: 'Submit your startup pitch to investors', icon: Rocket, available: true },
+  { id: 'resources', name: 'Resources', description: 'Access helpful startup resources', icon: FileText, available: false },
+  { id: 'mentors', name: 'Mentors', description: 'Connect with experienced mentors', icon: Users, available: false },
+  { id: 'support', name: 'Support', description: 'Get help and support', icon: HelpCircle, available: false },
+  { id: 'settings', name: 'Settings', description: 'Manage your preferences', icon: Settings, available: false },
+];
 
 const MOCK_PITCHES: Pitch[] = [
   { id: '1', podId: '1', founderId: 'user1', founder: { id: 'user1', fullName: 'Rahul Sharma', username: 'rahul', email: 'r@e.com', mobile: '', role: 'user', createdAt: new Date() }, startupName: 'TechFlow AI', summary: 'AI-powered workflow automation', sector: 'Technology', stage: 'MVP', ask: '$500K', operatingCity: 'Bangalore', contactEmail: 'r@e.com', contactPhone: '', status: 'New', createdAt: new Date() },
@@ -23,6 +32,7 @@ const Others = () => {
   const { user, joinedPods } = useAuth();
   const [pitches, setPitches] = useState(MOCK_PITCHES);
   const [activeTab, setActiveTab] = useState('submit');
+  const [selectedFeature, setSelectedFeature] = useState<string | null>(null);
   const [formData, setFormData] = useState({ startupName: '', summary: '', sector: '', stage: '' as StartupStage | '', ask: '', operatingCity: '', website: '', contactEmail: user?.email || '', contactPhone: user?.mobile || '', podId: '' });
 
   const isPodOwner = user?.role === 'pod_owner';
@@ -47,11 +57,63 @@ const Others = () => {
     }
   };
 
-  return (
-    <div className="min-h-screen bg-background pb-20">
-      <TopNav />
-      <main className="container mx-auto px-4 py-4 max-w-2xl">
-        <h1 className="text-2xl font-bold text-foreground mb-6">Pitch Module</h1>
+  // Feature List View
+  if (!selectedFeature) {
+    return (
+      <div className="min-h-screen bg-background pb-20">
+        <TopNav />
+        <main className="container mx-auto px-4 py-4 max-w-2xl">
+          <h1 className="text-2xl font-bold text-foreground mb-6">More</h1>
+          <div className="space-y-3">
+            {FEATURES.map((feature) => {
+              const Icon = feature.icon;
+              return (
+                <Card 
+                  key={feature.id} 
+                  className={`cursor-pointer transition-all ${feature.available ? 'card-hover' : 'opacity-50'}`}
+                  onClick={() => feature.available && setSelectedFeature(feature.id)}
+                >
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
+                        <Icon className="w-6 h-6" />
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          <h3 className="font-semibold text-foreground">{feature.name}</h3>
+                          {!feature.available && <Badge variant="secondary" className="text-xs">Coming Soon</Badge>}
+                        </div>
+                        <p className="text-sm text-muted-foreground">{feature.description}</p>
+                      </div>
+                      {feature.available && <ChevronRight className="w-5 h-5 text-muted-foreground" />}
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        </main>
+        <BottomNav />
+      </div>
+    );
+  }
+
+  // Pitch Module View
+  if (selectedFeature === 'pitch') {
+    return (
+      <div className="min-h-screen bg-background pb-20">
+        <TopNav />
+        <main className="container mx-auto px-4 py-4 max-w-2xl">
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="mb-4 -ml-2"
+            onClick={() => setSelectedFeature(null)}
+          >
+            <ArrowLeft className="w-4 h-4 mr-1" />
+            Back
+          </Button>
+          <h1 className="text-2xl font-bold text-foreground mb-6">Pitch Module</h1>
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="grid w-full grid-cols-2 mb-6">
             <TabsTrigger value="submit">Submit Pitch</TabsTrigger>
@@ -115,10 +177,13 @@ const Others = () => {
             </div>
           </TabsContent>
         </Tabs>
-      </main>
-      <BottomNav />
-    </div>
-  );
+        </main>
+        <BottomNav />
+      </div>
+    );
+  }
+
+  return null;
 };
 
 export default Others;

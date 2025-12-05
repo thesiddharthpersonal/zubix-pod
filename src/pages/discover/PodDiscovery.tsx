@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { POD_SUBCATEGORIES, Pod, PodSubcategory } from '@/types';
 import { Search, Building2, MapPin, Target, Users, ArrowRight } from 'lucide-react';
+import PodDetailsDialog from '@/components/PodDetailsDialog';
 
 // Mock data for pods
 const MOCK_PODS: Pod[] = [
@@ -125,6 +126,7 @@ const PodDiscovery = () => {
   const { joinPod, joinedPods } = useAuth();
   const [selectedSubcategory, setSelectedSubcategory] = useState<PodSubcategory | 'all'>('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedPodForDetails, setSelectedPodForDetails] = useState<Pod | null>(null);
 
   const filteredPods = MOCK_PODS.filter((pod) => {
     const matchesSubcategory = selectedSubcategory === 'all' || pod.subcategory === selectedSubcategory;
@@ -139,8 +141,8 @@ const PodDiscovery = () => {
     joinPod(pod);
   };
 
-  const handleViewPod = (podId: string) => {
-    navigate(`/pod/${podId}`);
+  const handleViewPod = (pod: Pod) => {
+    setSelectedPodForDetails(pod);
   };
 
   return (
@@ -205,7 +207,7 @@ const PodDiscovery = () => {
                 <Card
                   key={pod.id}
                   className="min-w-[200px] cursor-pointer card-hover"
-                  onClick={() => handleViewPod(pod.id)}
+                  onClick={() => handleViewPod(pod)}
                 >
                   <CardContent className="p-4">
                     <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center mb-3">
@@ -232,7 +234,7 @@ const PodDiscovery = () => {
               pod={pod}
               isJoined={isJoined(pod.id)}
               onJoin={() => handleJoinPod(pod)}
-              onView={() => handleViewPod(pod.id)}
+              onView={() => handleViewPod(pod)}
             />
           ))}
         </div>
@@ -260,6 +262,15 @@ const PodDiscovery = () => {
           </div>
         </div>
       )}
+
+      {/* Pod Details Dialog */}
+      <PodDetailsDialog
+        pod={selectedPodForDetails}
+        isOpen={!!selectedPodForDetails}
+        onClose={() => setSelectedPodForDetails(null)}
+        isJoined={selectedPodForDetails ? isJoined(selectedPodForDetails.id) : false}
+        onJoin={() => selectedPodForDetails && handleJoinPod(selectedPodForDetails)}
+      />
     </div>
   );
 };

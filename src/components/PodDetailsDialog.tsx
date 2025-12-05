@@ -1,0 +1,159 @@
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Pod } from '@/types';
+import { Building2, MapPin, Target, Users, Globe, Linkedin, Instagram, Facebook, Twitter, Youtube, DollarSign, Briefcase } from 'lucide-react';
+
+interface PodDetailsDialogProps {
+  pod: Pod | null;
+  isOpen: boolean;
+  onClose: () => void;
+  isJoined: boolean;
+  onJoin: () => void;
+}
+
+const PodDetailsDialog = ({ pod, isOpen, onClose, isJoined, onJoin }: PodDetailsDialogProps) => {
+  if (!pod) return null;
+
+  const handleJoin = () => {
+    onJoin();
+    onClose();
+  };
+
+  return (
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="sr-only">Pod Details</DialogTitle>
+        </DialogHeader>
+
+        <div className="space-y-6">
+          {/* Header */}
+          <div className="flex items-start gap-4">
+            <div className="w-16 h-16 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+              <Building2 className="w-8 h-8 text-primary" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <h2 className="text-xl font-bold text-foreground">{pod.name}</h2>
+              <p className="text-sm text-muted-foreground">{pod.organisationName}</p>
+              <div className="flex flex-wrap gap-2 mt-2">
+                <Badge variant="secondary">{pod.subcategory}</Badge>
+                <Badge variant="outline">{pod.organisationType}</Badge>
+              </div>
+            </div>
+          </div>
+
+          {/* Key Info */}
+          <div className="grid grid-cols-2 gap-3">
+            <div className="p-3 bg-muted/50 rounded-lg">
+              <div className="flex items-center gap-2 text-muted-foreground mb-1">
+                <MapPin className="w-4 h-4" />
+                <span className="text-xs">Location</span>
+              </div>
+              <p className="font-medium text-foreground text-sm">{pod.operatingCity}</p>
+            </div>
+            {pod.totalInvestmentSize && (
+              <div className="p-3 bg-muted/50 rounded-lg">
+                <div className="flex items-center gap-2 text-muted-foreground mb-1">
+                  <DollarSign className="w-4 h-4" />
+                  <span className="text-xs">Total Investment</span>
+                </div>
+                <p className="font-medium text-foreground text-sm">{pod.totalInvestmentSize}</p>
+              </div>
+            )}
+            {pod.numberOfInvestments && (
+              <div className="p-3 bg-muted/50 rounded-lg">
+                <div className="flex items-center gap-2 text-muted-foreground mb-1">
+                  <Briefcase className="w-4 h-4" />
+                  <span className="text-xs">Investments</span>
+                </div>
+                <p className="font-medium text-foreground text-sm">{pod.numberOfInvestments}</p>
+              </div>
+            )}
+            <div className="p-3 bg-muted/50 rounded-lg">
+              <div className="flex items-center gap-2 text-muted-foreground mb-1">
+                <Users className="w-4 h-4" />
+                <span className="text-xs">Members</span>
+              </div>
+              <p className="font-medium text-foreground text-sm">{pod.memberIds.length}</p>
+            </div>
+          </div>
+
+          {/* Focus Areas */}
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+              <Target className="w-4 h-4 text-muted-foreground" />
+              <span className="text-sm font-medium text-foreground">Focus Areas</span>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {pod.focusAreas.map((area) => (
+                <Badge key={area} variant="outline" className="text-xs">
+                  {area}
+                </Badge>
+              ))}
+            </div>
+          </div>
+
+          {/* About */}
+          {pod.briefAboutOrganisation && (
+            <div>
+              <h4 className="text-sm font-medium text-foreground mb-2">About</h4>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                {pod.briefAboutOrganisation}
+              </p>
+            </div>
+          )}
+
+          {/* Social Links */}
+          {Object.values(pod.socialLinks).some(Boolean) && (
+            <div>
+              <h4 className="text-sm font-medium text-foreground mb-2">Connect</h4>
+              <div className="flex gap-3">
+                {pod.socialLinks.linkedin && (
+                  <a href={pod.socialLinks.linkedin} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors">
+                    <Linkedin className="w-5 h-5" />
+                  </a>
+                )}
+                {pod.socialLinks.instagram && (
+                  <a href={pod.socialLinks.instagram} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors">
+                    <Instagram className="w-5 h-5" />
+                  </a>
+                )}
+                {pod.socialLinks.facebook && (
+                  <a href={pod.socialLinks.facebook} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors">
+                    <Facebook className="w-5 h-5" />
+                  </a>
+                )}
+                {pod.socialLinks.twitter && (
+                  <a href={pod.socialLinks.twitter} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors">
+                    <Twitter className="w-5 h-5" />
+                  </a>
+                )}
+                {pod.socialLinks.youtube && (
+                  <a href={pod.socialLinks.youtube} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors">
+                    <Youtube className="w-5 h-5" />
+                  </a>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Action */}
+          <div className="pt-2">
+            {isJoined ? (
+              <Button variant="secondary" className="w-full" disabled>
+                Already Joined
+              </Button>
+            ) : (
+              <Button variant="hero" className="w-full" onClick={handleJoin}>
+                Join Pod
+              </Button>
+            )}
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
+export default PodDetailsDialog;

@@ -6,11 +6,12 @@ import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Image, Video, Send, Heart, MessageCircle, Share2, MoreHorizontal, Plus } from 'lucide-react';
+import { Image, Video, Send, Heart, MessageCircle, Share2, MoreHorizontal, Plus, Info } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { Post, User } from '@/types';
+import { Post, User, Pod } from '@/types';
 import BottomNav from '@/components/layout/BottomNav';
 import TopNav from '@/components/layout/TopNav';
+import PodDetailsDialog from '@/components/PodDetailsDialog';
 
 // Mock data
 const MOCK_POSTS: Post[] = [
@@ -78,11 +79,12 @@ const MOCK_POSTS: Post[] = [
 
 const Home = () => {
   const navigate = useNavigate();
-  const { user, joinedPods } = useAuth();
+  const { user, joinedPods, joinPod } = useAuth();
   const [selectedPod, setSelectedPod] = useState<string>('all');
   const [updateFilter, setUpdateFilter] = useState<'all' | 'owner' | 'members'>('all');
   const [newPostContent, setNewPostContent] = useState('');
   const [posts, setPosts] = useState(MOCK_POSTS);
+  const [selectedPodForDetails, setSelectedPodForDetails] = useState<Pod | null>(null);
 
   const filteredPosts = posts.filter((post) => {
     const matchesPod = selectedPod === 'all' || post.podId === selectedPod;
@@ -144,14 +146,21 @@ const Home = () => {
             All Pods
           </Badge>
           {joinedPods.map((pod) => (
-            <Badge
-              key={pod.id}
-              variant={selectedPod === pod.id ? 'default' : 'outline'}
-              className="cursor-pointer whitespace-nowrap"
-              onClick={() => setSelectedPod(pod.id)}
-            >
-              {pod.name}
-            </Badge>
+            <div key={pod.id} className="flex items-center gap-1">
+              <Badge
+                variant={selectedPod === pod.id ? 'default' : 'outline'}
+                className="cursor-pointer whitespace-nowrap"
+                onClick={() => setSelectedPod(pod.id)}
+              >
+                {pod.name}
+              </Badge>
+              <button
+                onClick={() => setSelectedPodForDetails(pod)}
+                className="p-1 rounded-full hover:bg-muted transition-colors"
+              >
+                <Info className="w-3.5 h-3.5 text-muted-foreground hover:text-foreground" />
+              </button>
+            </div>
           ))}
           <Badge
             variant="outline"
@@ -231,6 +240,15 @@ const Home = () => {
       </main>
 
       <BottomNav />
+
+      {/* Pod Details Dialog */}
+      <PodDetailsDialog
+        pod={selectedPodForDetails}
+        isOpen={!!selectedPodForDetails}
+        onClose={() => setSelectedPodForDetails(null)}
+        isJoined={selectedPodForDetails ? joinedPods.some(p => p.id === selectedPodForDetails.id) : false}
+        onJoin={() => selectedPodForDetails && joinPod(selectedPodForDetails)}
+      />
     </div>
   );
 };

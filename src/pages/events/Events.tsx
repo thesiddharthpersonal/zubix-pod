@@ -8,16 +8,23 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Calendar, MapPin, Clock, Users, Plus, Video, Building2, Ticket } from 'lucide-react';
-import { PodEvent } from '@/types';
+import { Calendar, MapPin, Clock, Users, Plus, Video, Building2, Ticket, ClipboardList, Mail, Phone, User as UserIcon } from 'lucide-react';
+import { PodEvent, User } from '@/types';
 import TopNav from '@/components/layout/TopNav';
 import BottomNav from '@/components/layout/BottomNav';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 
+// Mock users for registration display
+const MOCK_USERS: User[] = [
+  { id: 'user1', fullName: 'Rahul Sharma', email: 'rahul@startup.com', mobile: '+91 98765 43210', username: 'rahulsharma', role: 'user', createdAt: new Date() },
+  { id: 'user2', fullName: 'Priya Patel', email: 'priya@techventure.in', mobile: '+91 87654 32109', username: 'priyapatel', role: 'user', createdAt: new Date() },
+  { id: 'user3', fullName: 'Amit Kumar', email: 'amit@innovate.co', mobile: '+91 76543 21098', username: 'amitkumar', role: 'user', createdAt: new Date() },
+];
+
 const MOCK_EVENTS: PodEvent[] = [
   { id: '1', podId: '1', name: 'Demo Day 2024', type: 'offline', date: new Date(2024, 11, 15), time: '10:00 AM', location: 'Bangalore Tech Park', description: '10 startups pitch to top VCs', registeredUserIds: ['user1'], createdBy: 'owner1', createdAt: new Date() },
-  { id: '2', podId: '1', name: 'Founder Fireside Chat', type: 'online', date: new Date(2024, 11, 10), time: '6:00 PM', description: 'AMA with successful founders', registeredUserIds: [], createdBy: 'owner1', createdAt: new Date() },
+  { id: '2', podId: '1', name: 'Founder Fireside Chat', type: 'online', date: new Date(2024, 11, 10), time: '6:00 PM', description: 'AMA with successful founders', registeredUserIds: ['user1', 'user2', 'user3'], createdBy: 'owner1', createdAt: new Date() },
   { id: '3', podId: '2', name: 'Investor Office Hours', type: 'online', date: new Date(2024, 11, 10), time: '3:00 PM', description: '1-on-1 sessions with angel investors', registeredUserIds: ['user1', 'user2'], createdBy: 'owner2', createdAt: new Date() },
   { id: '4', podId: '1', name: 'Startup Networking', type: 'offline', date: new Date(2024, 11, 20), time: '5:00 PM', location: 'WeWork HSR', description: 'Meet fellow founders', registeredUserIds: [], createdBy: 'owner1', createdAt: new Date() },
   { id: '5', podId: '2', name: 'Pitch Practice', type: 'online', date: new Date(2024, 11, 15), time: '2:00 PM', description: 'Practice your pitch with mentors', registeredUserIds: ['user1'], createdBy: 'owner2', createdAt: new Date() },
@@ -28,9 +35,19 @@ const Events = () => {
   const [events, setEvents] = useState(MOCK_EVENTS);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [newEvent, setNewEvent] = useState({ name: '', type: 'online' as 'online' | 'offline', date: '', time: '', location: '', description: '', helpline: '', podId: '' });
+  const [selectedEvent, setSelectedEvent] = useState<PodEvent | null>(null);
 
   const isPodOwner = user?.role === 'pod_owner';
-  const [activeTab, setActiveTab] = useState<'all' | 'registered'>('all');
+  const [activeTab, setActiveTab] = useState<'all' | 'registered' | 'registrations'>('all');
+
+  // Get owner's events with registrations
+  const ownerEvents = useMemo(() => {
+    return events.filter((e) => e.createdBy === 'owner1'); // Mock: assuming current pod owner is owner1
+  }, [events]);
+
+  const getRegisteredUsers = (userIds: string[]): User[] => {
+    return MOCK_USERS.filter((u) => userIds.includes(u.id));
+  };
 
   // Get registered events
   const registeredEvents = useMemo(() => {
@@ -94,7 +111,7 @@ const Events = () => {
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-2 mb-6">
+        <div className="flex gap-2 mb-6 flex-wrap">
           <Badge
             variant={activeTab === 'all' ? 'default' : 'outline'}
             className="cursor-pointer px-4 py-2"
@@ -110,6 +127,16 @@ const Events = () => {
             <Ticket className="w-3.5 h-3.5" />
             My Registrations ({registeredEvents.length})
           </Badge>
+          {isPodOwner && (
+            <Badge
+              variant={activeTab === 'registrations' ? 'default' : 'outline'}
+              className="cursor-pointer px-4 py-2 flex items-center gap-1"
+              onClick={() => setActiveTab('registrations')}
+            >
+              <ClipboardList className="w-3.5 h-3.5" />
+              Event Registrations
+            </Badge>
+          )}
         </div>
 
         {/* My Registered Events */}
@@ -208,6 +235,123 @@ const Events = () => {
               </div>
             )}
           </>
+        )}
+
+        {/* Event Registrations for Pod Owners */}
+        {activeTab === 'registrations' && isPodOwner && (
+          <div className="space-y-4">
+            {selectedEvent ? (
+              // Show registrations for selected event
+              <div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setSelectedEvent(null)}
+                  className="mb-4"
+                >
+                  ← Back to Events
+                </Button>
+                <Card className="mb-4">
+                  <CardContent className="p-4">
+                    <div className="flex items-start gap-3">
+                      <div className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 ${selectedEvent.type === 'online' ? 'bg-info/10 text-info' : 'bg-accent/10 text-accent'}`}>
+                        {selectedEvent.type === 'online' ? <Video className="w-5 h-5" /> : <Building2 className="w-5 h-5" />}
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="font-semibold text-foreground">{selectedEvent.name}</h3>
+                        <div className="flex flex-wrap gap-3 mt-1 text-sm text-muted-foreground">
+                          <span className="flex items-center gap-1"><Calendar className="w-3.5 h-3.5" />{format(selectedEvent.date, 'MMM d, yyyy')}</span>
+                          <span className="flex items-center gap-1"><Clock className="w-3.5 h-3.5" />{selectedEvent.time}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <h4 className="font-semibold mb-3 flex items-center gap-2">
+                  <Users className="w-4 h-4" />
+                  Registered Users ({selectedEvent.registeredUserIds.length})
+                </h4>
+
+                {selectedEvent.registeredUserIds.length === 0 ? (
+                  <div className="text-center py-8 bg-muted/20 rounded-lg">
+                    <Users className="w-10 h-10 mx-auto text-muted-foreground mb-2" />
+                    <p className="text-muted-foreground">No registrations yet</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {getRegisteredUsers(selectedEvent.registeredUserIds).map((regUser) => (
+                      <Card key={regUser.id} className="card-hover">
+                        <CardContent className="p-4">
+                          <div className="flex items-start gap-3">
+                            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                              <UserIcon className="w-5 h-5 text-primary" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <h4 className="font-semibold text-foreground">{regUser.fullName}</h4>
+                              <p className="text-sm text-muted-foreground">@{regUser.username}</p>
+                              <div className="flex flex-wrap gap-3 mt-2 text-sm text-muted-foreground">
+                                <span className="flex items-center gap-1">
+                                  <Mail className="w-3.5 h-3.5" />
+                                  {regUser.email}
+                                </span>
+                                <span className="flex items-center gap-1">
+                                  <Phone className="w-3.5 h-3.5" />
+                                  {regUser.mobile}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ) : (
+              // Show list of owner's events
+              <div>
+                <p className="text-sm text-muted-foreground mb-4">View registrations for events you've created</p>
+                {ownerEvents.length === 0 ? (
+                  <div className="text-center py-12">
+                    <ClipboardList className="w-12 h-12 mx-auto text-muted-foreground mb-3" />
+                    <p className="text-muted-foreground">You haven't created any events yet</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {ownerEvents.map((event) => (
+                      <Card
+                        key={event.id}
+                        className="card-hover cursor-pointer"
+                        onClick={() => setSelectedEvent(event)}
+                      >
+                        <CardContent className="p-4">
+                          <div className="flex items-start gap-3">
+                            <div className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 ${event.type === 'online' ? 'bg-info/10 text-info' : 'bg-accent/10 text-accent'}`}>
+                              {event.type === 'online' ? <Video className="w-5 h-5" /> : <Building2 className="w-5 h-5" />}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-start justify-between gap-2">
+                                <h3 className="font-semibold text-foreground">{event.name}</h3>
+                                <Badge variant="secondary" className="shrink-0">
+                                  <Users className="w-3 h-3 mr-1" />
+                                  {event.registeredUserIds.length}
+                                </Badge>
+                              </div>
+                              <div className="flex flex-wrap gap-3 mt-1 text-sm text-muted-foreground">
+                                <span className="flex items-center gap-1"><Calendar className="w-3.5 h-3.5" />{format(event.date, 'MMM d, yyyy')}</span>
+                                <span className="flex items-center gap-1"><Clock className="w-3.5 h-3.5" />{event.time}</span>
+                              </div>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
         )}
       </main>
       <BottomNav />

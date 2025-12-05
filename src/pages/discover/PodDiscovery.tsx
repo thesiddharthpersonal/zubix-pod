@@ -148,7 +148,18 @@ const PodDiscovery = () => {
       {/* Header */}
       <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border">
         <div className="container mx-auto px-4 py-4">
-          <h1 className="text-2xl font-bold text-foreground mb-4">Discover Pods</h1>
+          <div className="flex items-center justify-between mb-4">
+            <h1 className="text-2xl font-bold text-foreground">Discover Pods</h1>
+            <Button 
+              variant="ghost" 
+              size="sm"
+              onClick={() => navigate('/home')}
+              className="text-muted-foreground hover:text-foreground"
+            >
+              Skip
+              <ArrowRight className="w-4 h-4 ml-1" />
+            </Button>
+          </div>
           
           {/* Search */}
           <div className="relative mb-4">

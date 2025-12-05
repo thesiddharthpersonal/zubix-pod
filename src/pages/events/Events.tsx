@@ -39,9 +39,37 @@ const Events = () => {
   const [newEvent, setNewEvent] = useState({ name: '', type: 'online' as 'online' | 'offline', date: '', time: '', location: '', description: '', helpline: '', podId: '' });
   const [selectedEvent, setSelectedEvent] = useState<PodEvent | null>(null);
   const [selectedPod, setSelectedPod] = useState<string>('all');
+  const [isRegisterOpen, setIsRegisterOpen] = useState(false);
+  const [registeringEvent, setRegisteringEvent] = useState<PodEvent | null>(null);
+  const [registrationForm, setRegistrationForm] = useState({
+    name: '',
+    mobile: '',
+    email: '',
+    startupName: '',
+  });
 
   const isPodOwner = user?.role === 'pod_owner';
   const [activeTab, setActiveTab] = useState<'all' | 'registered' | 'registrations'>('all');
+
+  const openRegisterDialog = (event: PodEvent) => {
+    setRegisteringEvent(event);
+    setRegistrationForm({
+      name: user?.fullName || '',
+      mobile: user?.mobile || '',
+      email: user?.email || '',
+      startupName: user?.organisationName || user?.brandName || '',
+    });
+    setIsRegisterOpen(true);
+  };
+
+  const handleConfirmRegister = () => {
+    if (registeringEvent) {
+      setEvents(events.map((e) => e.id === registeringEvent.id ? { ...e, registeredUserIds: [...e.registeredUserIds, user?.id || ''] } : e));
+      toast.success('Registered successfully!');
+      setIsRegisterOpen(false);
+      setRegisteringEvent(null);
+    }
+  };
 
   // Get owner's events with registrations
   const ownerEvents = useMemo(() => {
@@ -84,11 +112,6 @@ const Events = () => {
       events,
     }));
   }, [filteredEvents]);
-
-  const handleRegister = (eventId: string) => {
-    setEvents(events.map((e) => e.id === eventId ? { ...e, registeredUserIds: [...e.registeredUserIds, user?.id || ''] } : e));
-    toast.success('Registered successfully!');
-  };
 
   const handleCreate = () => {
     setIsCreateOpen(false);
@@ -254,7 +277,7 @@ const Events = () => {
                                   <span className="flex items-center gap-1"><Users className="w-3.5 h-3.5" />{event.registeredUserIds.length}</span>
                                 </div>
                                 <div className="mt-3">
-                                  {isRegistered ? <Button variant="secondary" size="sm" disabled>Registered</Button> : <Button variant="hero" size="sm" onClick={() => handleRegister(event.id)}>Register</Button>}
+                                  {isRegistered ? <Button variant="secondary" size="sm" disabled>Registered</Button> : <Button variant="hero" size="sm" onClick={() => openRegisterDialog(event)}>Register</Button>}
                                 </div>
                               </div>
                             </div>
@@ -391,6 +414,61 @@ const Events = () => {
             )}
           </div>
         )}
+        {/* Registration Dialog */}
+        <Dialog open={isRegisterOpen} onOpenChange={setIsRegisterOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Register for Event</DialogTitle>
+            </DialogHeader>
+            {registeringEvent && (
+              <div className="space-y-4 mt-4">
+                <div className="p-3 bg-muted/50 rounded-lg">
+                  <h4 className="font-medium text-foreground">{registeringEvent.name}</h4>
+                  <div className="flex flex-wrap gap-3 mt-1 text-sm text-muted-foreground">
+                    <span className="flex items-center gap-1"><Calendar className="w-3.5 h-3.5" />{format(registeringEvent.date, 'MMM d, yyyy')}</span>
+                    <span className="flex items-center gap-1"><Clock className="w-3.5 h-3.5" />{registeringEvent.time}</span>
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  <div className="space-y-2">
+                    <Label>Full Name</Label>
+                    <Input 
+                      value={registrationForm.name} 
+                      onChange={(e) => setRegistrationForm({ ...registrationForm, name: e.target.value })} 
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Mobile Number</Label>
+                    <Input 
+                      value={registrationForm.mobile} 
+                      onChange={(e) => setRegistrationForm({ ...registrationForm, mobile: e.target.value })} 
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Email</Label>
+                    <Input 
+                      type="email"
+                      value={registrationForm.email} 
+                      onChange={(e) => setRegistrationForm({ ...registrationForm, email: e.target.value })} 
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Startup Name</Label>
+                    <Input 
+                      value={registrationForm.startupName} 
+                      onChange={(e) => setRegistrationForm({ ...registrationForm, startupName: e.target.value })} 
+                    />
+                  </div>
+                </div>
+
+                <Button variant="hero" className="w-full" onClick={handleConfirmRegister}>
+                  Register
+                </Button>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
       </main>
       <BottomNav />
     </div>

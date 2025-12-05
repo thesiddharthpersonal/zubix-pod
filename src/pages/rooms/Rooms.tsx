@@ -201,9 +201,17 @@ const Rooms = () => {
 
         {/* Rooms List */}
         <div className="space-y-3">
-          {filteredRooms.map((room) => (
-            <RoomCard key={room.id} room={room} onClick={() => handleRoomClick(room)} />
-          ))}
+          {filteredRooms.map((room) => {
+            const pod = joinedPods.find(p => p.id === room.podId);
+            return (
+              <RoomCard 
+                key={room.id} 
+                room={room} 
+                podName={selectedPod === 'all' ? pod?.name : undefined}
+                onClick={() => handleRoomClick(room)} 
+              />
+            );
+          })}
         </div>
 
         {filteredRooms.length === 0 && (
@@ -218,7 +226,7 @@ const Rooms = () => {
   );
 };
 
-const RoomCard = ({ room, onClick }: { room: Room; onClick: () => void }) => (
+const RoomCard = ({ room, podName, onClick }: { room: Room; podName?: string; onClick: () => void }) => (
   <Card className="cursor-pointer card-hover" onClick={onClick}>
     <CardContent className="p-4">
       <div className="flex items-center gap-4">
@@ -237,6 +245,9 @@ const RoomCard = ({ room, onClick }: { room: Room; onClick: () => void }) => (
             )}
           </div>
           <div className="flex items-center gap-3 mt-1">
+            {podName && (
+              <Badge variant="outline" className="text-xs">{podName}</Badge>
+            )}
             <Badge variant="secondary" className="text-xs">{room.type === 'qa' ? 'Q&A' : 'Chat'}</Badge>
             <span className="flex items-center gap-1 text-sm text-muted-foreground">
               <Users className="w-4 h-4" />

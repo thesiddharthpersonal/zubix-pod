@@ -9,6 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Calendar, MapPin, Clock, Users, Plus, Video, Building2, Ticket, ClipboardList, Mail, Phone, User as UserIcon } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { PodEvent, User } from '@/types';
 import TopNav from '@/components/layout/TopNav';
 import BottomNav from '@/components/layout/BottomNav';
@@ -31,11 +32,13 @@ const MOCK_EVENTS: PodEvent[] = [
 ];
 
 const Events = () => {
+  const navigate = useNavigate();
   const { user, joinedPods } = useAuth();
   const [events, setEvents] = useState(MOCK_EVENTS);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [newEvent, setNewEvent] = useState({ name: '', type: 'online' as 'online' | 'offline', date: '', time: '', location: '', description: '', helpline: '', podId: '' });
   const [selectedEvent, setSelectedEvent] = useState<PodEvent | null>(null);
+  const [selectedPod, setSelectedPod] = useState<string>('all');
 
   const isPodOwner = user?.role === 'pod_owner';
   const [activeTab, setActiveTab] = useState<'all' | 'registered' | 'registrations'>('all');
@@ -56,9 +59,15 @@ const Events = () => {
       .sort((a, b) => a.date.getTime() - b.date.getTime());
   }, [events, user?.id]);
 
+  // Filter events by selected pod
+  const filteredEvents = useMemo(() => {
+    if (selectedPod === 'all') return events;
+    return events.filter((e) => e.podId === selectedPod);
+  }, [events, selectedPod]);
+
   // Group events by date and sort in ascending order
   const groupedEvents = useMemo(() => {
-    const sorted = [...events].sort((a, b) => a.date.getTime() - b.date.getTime());
+    const sorted = [...filteredEvents].sort((a, b) => a.date.getTime() - b.date.getTime());
     const groups: { [key: string]: PodEvent[] } = {};
     
     sorted.forEach((event) => {
@@ -74,7 +83,7 @@ const Events = () => {
       dateKey,
       events,
     }));
-  }, [events]);
+  }, [filteredEvents]);
 
   const handleRegister = (eventId: string) => {
     setEvents(events.map((e) => e.id === eventId ? { ...e, registeredUserIds: [...e.registeredUserIds, user?.id || ''] } : e));
@@ -108,6 +117,35 @@ const Events = () => {
               </DialogContent>
             </Dialog>
           )}
+        </div>
+
+        {/* Pod Filter */}
+        <div className="flex gap-2 overflow-x-auto pb-2 mb-4 scrollbar-hide">
+          <Badge
+            variant={selectedPod === 'all' ? 'default' : 'outline'}
+            className="cursor-pointer whitespace-nowrap"
+            onClick={() => setSelectedPod('all')}
+          >
+            All Pods
+          </Badge>
+          {joinedPods.map((pod) => (
+            <Badge
+              key={pod.id}
+              variant={selectedPod === pod.id ? 'default' : 'outline'}
+              className="cursor-pointer whitespace-nowrap"
+              onClick={() => setSelectedPod(pod.id)}
+            >
+              {pod.name}
+            </Badge>
+          ))}
+          <Badge
+            variant="outline"
+            className="cursor-pointer whitespace-nowrap text-primary border-primary hover:bg-primary/10"
+            onClick={() => navigate('/discover')}
+          >
+            <Plus className="w-3 h-3 mr-1" />
+            Explore More
+          </Badge>
         </div>
 
         {/* Tabs */}

@@ -6,7 +6,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Image, Video, Send, Heart, MessageCircle, Share2, MoreHorizontal } from 'lucide-react';
+import { Image, Video, Send, Heart, MessageCircle, Share2, MoreHorizontal, Plus } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { Post, User } from '@/types';
 import BottomNav from '@/components/layout/BottomNav';
 import TopNav from '@/components/layout/TopNav';
@@ -76,6 +77,7 @@ const MOCK_POSTS: Post[] = [
 ];
 
 const Home = () => {
+  const navigate = useNavigate();
   const { user, joinedPods } = useAuth();
   const [selectedPod, setSelectedPod] = useState<string>('all');
   const [updateFilter, setUpdateFilter] = useState<'all' | 'owner' | 'members'>('all');
@@ -151,6 +153,14 @@ const Home = () => {
               {pod.name}
             </Badge>
           ))}
+          <Badge
+            variant="outline"
+            className="cursor-pointer whitespace-nowrap text-primary border-primary hover:bg-primary/10"
+            onClick={() => navigate('/discover')}
+          >
+            <Plus className="w-3 h-3 mr-1" />
+            Explore More
+          </Badge>
         </div>
 
         {/* Update Type Tabs */}

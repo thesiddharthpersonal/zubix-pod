@@ -22,6 +22,7 @@ import Events from "@/pages/events/Events";
 import Others from "@/pages/others/Others";
 import Chat from "@/pages/chat/Chat";
 import MessageRequests from "@/pages/chat/MessageRequests";
+import BookCall from "@/pages/calls/BookCall";
 import Profile from "@/pages/profile/Profile";
 import Search from "@/pages/Search";
 import Notifications from "@/pages/Notifications";
@@ -66,6 +67,7 @@ const AppRoutes = () => {
       <Route path="/others" element={<ProtectedRoute><Others /></ProtectedRoute>} />
       <Route path="/chat" element={<ProtectedRoute><Chat /></ProtectedRoute>} />
       <Route path="/message-requests" element={<ProtectedRoute><MessageRequests /></ProtectedRoute>} />
+      <Route path="/book-call" element={<ProtectedRoute><BookCall /></ProtectedRoute>} />
       <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
       <Route path="/search" element={<ProtectedRoute><Search /></ProtectedRoute>} />
       <Route path="/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />

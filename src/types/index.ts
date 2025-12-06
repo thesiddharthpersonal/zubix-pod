@@ -221,6 +221,27 @@ export interface MessageRequest {
   respondedAt?: Date;
 }
 
+// Call Booking Types
+export type CallBookingStatus = 'pending' | 'accepted' | 'rejected';
+
+export interface CallBooking {
+  id: string;
+  podId: string;
+  podName: string;
+  requesterId: string;
+  requester: User;
+  targetUserId: string;
+  targetUser: User;
+  targetRole: 'owner' | 'co-owner';
+  purpose: string;
+  preferredDate?: Date;
+  preferredTime?: string;
+  status: CallBookingStatus;
+  remark?: string;
+  createdAt: Date;
+  respondedAt?: Date;
+}
+
 // Notification Types
 export interface Notification {
   id: string;

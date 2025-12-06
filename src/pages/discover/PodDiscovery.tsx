@@ -5,9 +5,10 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { POD_SUBCATEGORIES, Pod, PodSubcategory } from '@/types';
+import { POD_SUBCATEGORIES, Pod, PodSubcategory, User } from '@/types';
 import { Search, Building2, MapPin, Target, Users, ArrowRight } from 'lucide-react';
 import PodDetailsDialog from '@/components/PodDetailsDialog';
+import UserProfileDialog from '@/components/UserProfileDialog';
 
 // Mock data for pods
 const MOCK_PODS: Pod[] = [
@@ -181,6 +182,7 @@ const PodDiscovery = () => {
   const [selectedSubcategory, setSelectedSubcategory] = useState<PodSubcategory | 'all'>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedPodForDetails, setSelectedPodForDetails] = useState<Pod | null>(null);
+  const [selectedUserForProfile, setSelectedUserForProfile] = useState<User | null>(null);
 
   const filteredPods = MOCK_PODS.filter((pod) => {
     const matchesSubcategory = selectedSubcategory === 'all' || pod.subcategory === selectedSubcategory;
@@ -325,6 +327,17 @@ const PodDiscovery = () => {
         isJoined={selectedPodForDetails ? isJoined(selectedPodForDetails.id) : false}
         onJoin={() => selectedPodForDetails && handleJoinPod(selectedPodForDetails)}
         onLeave={() => selectedPodForDetails && leavePod(selectedPodForDetails.id)}
+        onUserClick={(user) => {
+          setSelectedPodForDetails(null);
+          setSelectedUserForProfile(user);
+        }}
+      />
+
+      {/* User Profile Dialog */}
+      <UserProfileDialog
+        user={selectedUserForProfile}
+        isOpen={!!selectedUserForProfile}
+        onClose={() => setSelectedUserForProfile(null)}
       />
     </div>
   );

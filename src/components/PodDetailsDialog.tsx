@@ -2,7 +2,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Pod } from '@/types';
+import { Pod, User } from '@/types';
 import { Building2, MapPin, Target, Users, Linkedin, Instagram, Facebook, Twitter, Youtube, DollarSign, Briefcase, Crown } from 'lucide-react';
 
 interface PodDetailsDialogProps {
@@ -12,9 +12,10 @@ interface PodDetailsDialogProps {
   isJoined: boolean;
   onJoin: () => void;
   onLeave?: () => void;
+  onUserClick?: (user: User) => void;
 }
 
-const PodDetailsDialog = ({ pod, isOpen, onClose, isJoined, onJoin, onLeave }: PodDetailsDialogProps) => {
+const PodDetailsDialog = ({ pod, isOpen, onClose, isJoined, onJoin, onLeave, onUserClick }: PodDetailsDialogProps) => {
   if (!pod) return null;
 
   const handleJoin = () => {
@@ -118,7 +119,10 @@ const PodDetailsDialog = ({ pod, isOpen, onClose, isJoined, onJoin, onLeave }: P
                 <Crown className="w-4 h-4 text-amber-500" />
                 <span className="text-sm font-medium text-foreground">Pod Owner</span>
               </div>
-              <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
+              <div 
+                className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg cursor-pointer hover:bg-muted transition-colors"
+                onClick={() => pod.owner && onUserClick?.(pod.owner)}
+              >
                 <Avatar className="w-12 h-12">
                   <AvatarImage src={pod.owner.profilePhoto} />
                   <AvatarFallback className="bg-primary/10 text-primary font-semibold">
@@ -126,7 +130,7 @@ const PodDetailsDialog = ({ pod, isOpen, onClose, isJoined, onJoin, onLeave }: P
                   </AvatarFallback>
                 </Avatar>
                 <div className="min-w-0 flex-1">
-                  <p className="font-medium text-foreground truncate">{pod.owner.fullName}</p>
+                  <p className="font-medium text-foreground truncate hover:text-primary transition-colors">{pod.owner.fullName}</p>
                   <p className="text-sm text-muted-foreground truncate">@{pod.owner.username}</p>
                 </div>
               </div>

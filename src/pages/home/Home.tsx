@@ -12,6 +12,7 @@ import { Post, User, Pod } from '@/types';
 import BottomNav from '@/components/layout/BottomNav';
 import TopNav from '@/components/layout/TopNav';
 import PodDetailsDialog from '@/components/PodDetailsDialog';
+import UserProfileDialog from '@/components/UserProfileDialog';
 
 // Mock data
 const MOCK_POSTS: Post[] = [
@@ -85,6 +86,7 @@ const Home = () => {
   const [newPostContent, setNewPostContent] = useState('');
   const [posts, setPosts] = useState(MOCK_POSTS);
   const [selectedPodForDetails, setSelectedPodForDetails] = useState<Pod | null>(null);
+  const [selectedUserForProfile, setSelectedUserForProfile] = useState<User | null>(null);
 
   const filteredPosts = posts.filter((post) => {
     const matchesPod = selectedPod === 'all' || post.podId === selectedPod;
@@ -228,6 +230,7 @@ const Home = () => {
               post={post}
               onLike={() => handleLike(post.id)}
               isLiked={post.likes.includes(user?.id || '')}
+              onUserClick={(user) => setSelectedUserForProfile(user)}
             />
           ))}
         </div>
@@ -249,6 +252,17 @@ const Home = () => {
         isJoined={selectedPodForDetails ? joinedPods.some(p => p.id === selectedPodForDetails.id) : false}
         onJoin={() => selectedPodForDetails && joinPod(selectedPodForDetails)}
         onLeave={() => selectedPodForDetails && leavePod(selectedPodForDetails.id)}
+        onUserClick={(user) => {
+          setSelectedPodForDetails(null);
+          setSelectedUserForProfile(user);
+        }}
+      />
+
+      {/* User Profile Dialog */}
+      <UserProfileDialog
+        user={selectedUserForProfile}
+        isOpen={!!selectedUserForProfile}
+        onClose={() => setSelectedUserForProfile(null)}
       />
     </div>
   );
@@ -258,10 +272,12 @@ const PostCard = ({
   post,
   onLike,
   isLiked,
+  onUserClick,
 }: {
   post: Post;
   onLike: () => void;
   isLiked: boolean;
+  onUserClick: (user: User) => void;
 }) => {
   const timeAgo = getTimeAgo(post.createdAt);
 
@@ -269,18 +285,34 @@ const PostCard = ({
     <Card>
       <CardContent className="p-4">
         <div className="flex items-start gap-3">
-          <Avatar className="w-10 h-10">
+          <Avatar 
+            className="w-10 h-10 cursor-pointer hover:ring-2 hover:ring-primary/50 transition-all"
+            onClick={() => onUserClick(post.author)}
+          >
             <AvatarImage src={post.author.profilePhoto} />
             <AvatarFallback>{post.author.fullName.charAt(0)}</AvatarFallback>
           </Avatar>
           <div className="flex-1 min-w-0">
             <div className="flex items-center justify-between">
               <div>
-                <span className="font-medium text-foreground">{post.author.fullName}</span>
+                <span 
+                  className="font-medium text-foreground cursor-pointer hover:text-primary hover:underline transition-colors"
+                  onClick={() => onUserClick(post.author)}
+                >
+                  {post.author.fullName}
+                </span>
                 {post.isOwnerPost && (
                   <Badge variant="secondary" className="ml-2 text-xs">Owner</Badge>
                 )}
-                <p className="text-sm text-muted-foreground">@{post.author.username} · {timeAgo}</p>
+                <p className="text-sm text-muted-foreground">
+                  <span 
+                    className="cursor-pointer hover:text-primary transition-colors"
+                    onClick={() => onUserClick(post.author)}
+                  >
+                    @{post.author.username}
+                  </span>
+                  {' '}· {timeAgo}
+                </p>
               </div>
               <Button variant="ghost" size="icon-sm">
                 <MoreHorizontal className="w-4 h-4" />

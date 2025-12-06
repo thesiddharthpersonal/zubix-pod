@@ -263,6 +263,12 @@ const Home = () => {
         user={selectedUserForProfile}
         isOpen={!!selectedUserForProfile}
         onClose={() => setSelectedUserForProfile(null)}
+        onMessage={() => {
+          if (selectedUserForProfile) {
+            navigate('/chat', { state: { targetUser: selectedUserForProfile } });
+            setSelectedUserForProfile(null);
+          }
+        }}
       />
     </div>
   );

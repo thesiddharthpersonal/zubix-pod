@@ -1,10 +1,10 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ArrowLeft, Search, Send } from 'lucide-react';
 import { Chat as ChatType, Message, User } from '@/types';
 
@@ -15,6 +15,7 @@ const MOCK_CHATS: ChatType[] = [
 
 const Chat = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user } = useAuth();
   const [selectedChat, setSelectedChat] = useState<ChatType | null>(null);
   const [messages, setMessages] = useState<Message[]>([
@@ -23,6 +24,31 @@ const Chat = () => {
     { id: '3', chatId: '1', senderId: 'user2', sender: { fullName: 'Priya Patel' } as User, content: 'Thanks for connecting!', createdAt: new Date(Date.now() - 3600000) },
   ]);
   const [newMessage, setNewMessage] = useState('');
+
+  // Handle direct message from user profile
+  useEffect(() => {
+    const targetUser = location.state?.targetUser as User | undefined;
+    if (targetUser) {
+      // Create or find existing chat with this user
+      const existingChat = MOCK_CHATS.find(chat => 
+        chat.participants.some(p => p.id === targetUser.id)
+      );
+      
+      if (existingChat) {
+        setSelectedChat(existingChat);
+      } else {
+        // Create new chat
+        const newChat: ChatType = {
+          id: crypto.randomUUID(),
+          participantIds: [user?.id || '', targetUser.id],
+          participants: [targetUser],
+          updatedAt: new Date(),
+        };
+        setSelectedChat(newChat);
+        setMessages([]);
+      }
+    }
+  }, [location.state, user?.id]);
 
   const handleSend = () => {
     if (!newMessage.trim()) return;

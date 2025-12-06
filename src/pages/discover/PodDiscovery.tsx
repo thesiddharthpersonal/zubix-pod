@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -9,178 +9,8 @@ import { POD_SUBCATEGORIES, Pod, PodSubcategory, User } from '@/types';
 import { Search, Building2, MapPin, Target, Users, ArrowRight, BadgeCheck } from 'lucide-react';
 import PodDetailsDialog from '@/components/PodDetailsDialog';
 import UserProfileDialog from '@/components/UserProfileDialog';
-
-// Mock data for pods
-const MOCK_PODS: Pod[] = [
-  {
-    id: '1',
-    name: 'TechStars Bangalore',
-    logo: '',
-    subcategory: 'Accelerator',
-    focusAreas: ['Seed', 'FinTech', 'SaaS'],
-    organisationName: 'TechStars',
-    organisationType: 'Private',
-    operatingCity: 'Bangalore',
-    totalInvestmentSize: '$50M',
-    numberOfInvestments: 120,
-    briefAboutOrganisation: 'A leading startup accelerator program',
-    socialLinks: { linkedin: 'https://linkedin.com' },
-    ownerId: 'owner1',
-    owner: {
-      id: 'owner1',
-      fullName: 'Rajesh Mehta',
-      email: 'rajesh@techstars.com',
-      mobile: '+91 9876543210',
-      username: 'rajeshmehta',
-      role: 'pod_owner',
-      createdAt: new Date(),
-    },
-    coOwnerIds: [],
-    memberIds: [],
-    isApproved: true,
-    isVerified: true,
-    createdAt: new Date(),
-  },
-  {
-    id: '2',
-    name: 'Indian Angel Network',
-    logo: '',
-    subcategory: 'Angel Network',
-    focusAreas: ['Pre-Seed', 'Seed', 'DeepTech'],
-    organisationName: 'IAN',
-    organisationType: 'Private',
-    operatingCity: 'Delhi',
-    totalInvestmentSize: '$100M',
-    numberOfInvestments: 200,
-    briefAboutOrganisation: 'India\'s largest angel investor network',
-    socialLinks: { linkedin: 'https://linkedin.com' },
-    ownerId: 'owner2',
-    owner: {
-      id: 'owner2',
-      fullName: 'Saurabh Srivastava',
-      email: 'saurabh@ian.com',
-      mobile: '+91 9876543211',
-      username: 'saurabhsri',
-      role: 'pod_owner',
-      createdAt: new Date(),
-    },
-    coOwnerIds: [],
-    memberIds: [],
-    isApproved: true,
-    isVerified: true,
-    createdAt: new Date(),
-  },
-  {
-    id: '3',
-    name: 'NASSCOM 10000 Startups',
-    logo: '',
-    subcategory: 'Incubation',
-    focusAreas: ['Pre-Seed', 'HealthTech', 'CleanTech'],
-    organisationName: 'NASSCOM',
-    organisationType: 'Private',
-    operatingCity: 'Multiple Cities',
-    briefAboutOrganisation: 'India\'s biggest startup incubation program',
-    socialLinks: { linkedin: 'https://linkedin.com' },
-    ownerId: 'owner3',
-    owner: {
-      id: 'owner3',
-      fullName: 'Debjani Ghosh',
-      email: 'debjani@nasscom.com',
-      mobile: '+91 9876543212',
-      username: 'debjanighosh',
-      role: 'pod_owner',
-      createdAt: new Date(),
-    },
-    coOwnerIds: [],
-    memberIds: [],
-    isApproved: true,
-    isVerified: true,
-    createdAt: new Date(),
-  },
-  {
-    id: '4',
-    name: 'Startup India Hub',
-    logo: '',
-    subcategory: 'Government Program',
-    focusAreas: ['Pre-Seed', 'Seed', 'Social Impact'],
-    organisationName: 'Startup India',
-    organisationType: 'Government',
-    operatingCity: 'Pan India',
-    briefAboutOrganisation: 'Government initiative to support startups',
-    socialLinks: { linkedin: 'https://linkedin.com' },
-    ownerId: 'owner4',
-    owner: {
-      id: 'owner4',
-      fullName: 'Ramesh Abhishek',
-      email: 'ramesh@startupindia.gov.in',
-      mobile: '+91 9876543213',
-      username: 'rameshabhishek',
-      role: 'pod_owner',
-      createdAt: new Date(),
-    },
-    coOwnerIds: [],
-    memberIds: [],
-    isApproved: true,
-    isVerified: true,
-    createdAt: new Date(),
-  },
-  {
-    id: '5',
-    name: 'Sequoia Surge',
-    logo: '',
-    subcategory: 'Venture Capitalist',
-    focusAreas: ['Seed', 'Series A', 'Consumer', 'Enterprise'],
-    organisationName: 'Sequoia Capital',
-    organisationType: 'Private',
-    operatingCity: 'Bangalore',
-    totalInvestmentSize: '$500M',
-    numberOfInvestments: 50,
-    briefAboutOrganisation: 'Rapid scale-up program for early-stage startups',
-    socialLinks: { linkedin: 'https://linkedin.com' },
-    ownerId: 'owner5',
-    owner: {
-      id: 'owner5',
-      fullName: 'Rajan Anandan',
-      email: 'rajan@sequoiacap.com',
-      mobile: '+91 9876543214',
-      username: 'rajananandan',
-      role: 'pod_owner',
-      createdAt: new Date(),
-    },
-    coOwnerIds: [],
-    memberIds: [],
-    isApproved: true,
-    isVerified: true,
-    createdAt: new Date(),
-  },
-  {
-    id: '6',
-    name: 'Founder Collective',
-    logo: '',
-    subcategory: 'Community',
-    focusAreas: ['Pre-Seed', 'Seed'],
-    organisationName: 'Founder Collective',
-    organisationType: 'Private',
-    operatingCity: 'Mumbai',
-    briefAboutOrganisation: 'A community of founders helping founders',
-    socialLinks: { linkedin: 'https://linkedin.com' },
-    ownerId: 'owner6',
-    owner: {
-      id: 'owner6',
-      fullName: 'Neha Sharma',
-      email: 'neha@foundercollective.com',
-      mobile: '+91 9876543215',
-      username: 'nehasharma',
-      role: 'pod_owner',
-      createdAt: new Date(),
-    },
-    coOwnerIds: [],
-    memberIds: [],
-    isApproved: true,
-    isVerified: false,
-    createdAt: new Date(),
-  },
-];
+import { podsApi } from '@/services/api';
+import { toast } from 'sonner';
 
 const PodDiscovery = () => {
   const navigate = useNavigate();
@@ -189,11 +19,31 @@ const PodDiscovery = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedPodForDetails, setSelectedPodForDetails] = useState<Pod | null>(null);
   const [selectedUserForProfile, setSelectedUserForProfile] = useState<User | null>(null);
+  const [pods, setPods] = useState<Pod[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const filteredPods = MOCK_PODS.filter((pod) => {
+  // Fetch all pods on mount
+  useEffect(() => {
+    const fetchPods = async () => {
+      try {
+        setIsLoading(true);
+        const fetchedPods = await podsApi.getAllPods();
+        setPods(fetchedPods);
+      } catch (error) {
+        console.error('Failed to fetch pods:', error);
+        toast.error('Failed to load pods');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchPods();
+  }, []);
+
+  const filteredPods = pods.filter((pod) => {
     const matchesSubcategory = selectedSubcategory === 'all' || pod.subcategory === selectedSubcategory;
     const matchesSearch = pod.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      pod.organisationName.toLowerCase().includes(searchQuery.toLowerCase());
+      pod.organisationName?.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesSubcategory && matchesSearch;
   });
 
@@ -289,22 +139,30 @@ const PodDiscovery = () => {
           <span className="text-muted-foreground font-normal ml-2">({filteredPods.length})</span>
         </h2>
 
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {filteredPods.map((pod) => (
-            <PodCard
-              key={pod.id}
-              pod={pod}
-              isJoined={isJoined(pod.id)}
-              onJoin={() => handleJoinPod(pod)}
-              onView={() => handleViewPod(pod)}
-            />
-          ))}
-        </div>
-
-        {filteredPods.length === 0 && (
+        {isLoading ? (
           <div className="text-center py-12">
-            <p className="text-muted-foreground">No pods found matching your criteria</p>
+            <p className="text-muted-foreground">Loading pods...</p>
           </div>
+        ) : (
+          <>
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {filteredPods.map((pod) => (
+                <PodCard
+                  key={pod.id}
+                  pod={pod}
+                  isJoined={isJoined(pod.id)}
+                  onJoin={() => handleJoinPod(pod)}
+                  onView={() => handleViewPod(pod)}
+                />
+              ))}
+            </div>
+
+            {filteredPods.length === 0 && !isLoading && (
+              <div className="text-center py-12">
+                <p className="text-muted-foreground">No pods found matching your criteria</p>
+              </div>
+            )}
+          </>
         )}
       </main>
 

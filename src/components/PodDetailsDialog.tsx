@@ -88,24 +88,26 @@ const PodDetailsDialog = ({ pod, isOpen, onClose, isJoined, onJoin, onLeave, onU
                 <Users className="w-4 h-4" />
                 <span className="text-xs">Members</span>
               </div>
-              <p className="font-medium text-foreground text-sm">{pod.memberIds.length}</p>
+              <p className="font-medium text-foreground text-sm">{pod.memberIds?.length || 0}</p>
             </div>
           </div>
 
           {/* Focus Areas */}
-          <div>
-            <div className="flex items-center gap-2 mb-2">
-              <Target className="w-4 h-4 text-muted-foreground" />
-              <span className="text-sm font-medium text-foreground">Focus Areas</span>
+          {pod.focusAreas && pod.focusAreas.length > 0 && (
+            <div>
+              <div className="flex items-center gap-2 mb-2">
+                <Target className="w-4 h-4 text-muted-foreground" />
+                <span className="text-sm font-medium text-foreground">Focus Areas</span>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {pod.focusAreas.map((area) => (
+                  <Badge key={area} variant="outline" className="text-xs">
+                    {area}
+                  </Badge>
+                ))}
+              </div>
             </div>
-            <div className="flex flex-wrap gap-2">
-              {pod.focusAreas.map((area) => (
-                <Badge key={area} variant="outline" className="text-xs">
-                  {area}
-                </Badge>
-              ))}
-            </div>
-          </div>
+          )}
 
           {/* About */}
           {pod.briefAboutOrganisation && (
@@ -143,7 +145,7 @@ const PodDetailsDialog = ({ pod, isOpen, onClose, isJoined, onJoin, onLeave, onU
           )}
 
           {/* Social Links */}
-          {Object.values(pod.socialLinks).some(Boolean) && (
+          {pod.socialLinks && Object.values(pod.socialLinks).some(Boolean) && (
             <div>
               <h4 className="text-sm font-medium text-foreground mb-2">Connect</h4>
               <div className="flex gap-3">

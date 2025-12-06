@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -13,70 +13,8 @@ import BottomNav from '@/components/layout/BottomNav';
 import TopNav from '@/components/layout/TopNav';
 import PodDetailsDialog from '@/components/PodDetailsDialog';
 import UserProfileDialog from '@/components/UserProfileDialog';
-
-// Mock data
-const MOCK_POSTS: Post[] = [
-  {
-    id: '1',
-    authorId: 'user1',
-    author: {
-      id: 'user1',
-      fullName: 'Rahul Sharma',
-      email: 'rahul@example.com',
-      mobile: '+91 9876543210',
-      username: 'rahulsharma',
-      role: 'pod_owner',
-      createdAt: new Date(),
-    },
-    podId: '1',
-    content: '🚀 Exciting news! We just closed our Series A funding round. Thank you to all our investors and supporters who believed in our vision. This is just the beginning!',
-    mediaUrls: [],
-    likes: ['user2', 'user3'],
-    comments: [],
-    isOwnerPost: true,
-    createdAt: new Date(Date.now() - 3600000),
-  },
-  {
-    id: '2',
-    authorId: 'user2',
-    author: {
-      id: 'user2',
-      fullName: 'Priya Patel',
-      email: 'priya@example.com',
-      mobile: '+91 9876543211',
-      username: 'priyapatel',
-      role: 'user',
-      createdAt: new Date(),
-    },
-    podId: '1',
-    content: 'Looking for co-founders for my EdTech startup. We\'re building a platform to make quality education accessible to everyone. DM if interested! #startup #edtech #cofounder',
-    mediaUrls: [],
-    likes: ['user1'],
-    comments: [],
-    isOwnerPost: false,
-    createdAt: new Date(Date.now() - 7200000),
-  },
-  {
-    id: '3',
-    authorId: 'user3',
-    author: {
-      id: 'user3',
-      fullName: 'Amit Kumar',
-      email: 'amit@example.com',
-      mobile: '+91 9876543212',
-      username: 'amitkumar',
-      role: 'pod_owner',
-      createdAt: new Date(),
-    },
-    podId: '2',
-    content: '📢 Announcing our next Demo Day on January 15th! 10 startups will pitch to a panel of top VCs. Applications are now open. Don\'t miss this opportunity!',
-    mediaUrls: [],
-    likes: ['user1', 'user2', 'user4'],
-    comments: [],
-    isOwnerPost: true,
-    createdAt: new Date(Date.now() - 86400000),
-  },
-];
+import { postsApi, reactionsApi } from '@/services/api';
+import { toast } from 'sonner';
 
 const Home = () => {
   const navigate = useNavigate();
@@ -84,9 +22,34 @@ const Home = () => {
   const [selectedPod, setSelectedPod] = useState<string>('all');
   const [updateFilter, setUpdateFilter] = useState<'all' | 'owner' | 'members'>('all');
   const [newPostContent, setNewPostContent] = useState('');
-  const [posts, setPosts] = useState(MOCK_POSTS);
+  const [posts, setPosts] = useState<Post[]>([]);
   const [selectedPodForDetails, setSelectedPodForDetails] = useState<Pod | null>(null);
   const [selectedUserForProfile, setSelectedUserForProfile] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Fetch posts on mount and when pods change
+  useEffect(() => {
+    const fetchPosts = async () => {
+      if (joinedPods.length === 0) {
+        setIsLoading(false);
+        return;
+      }
+
+      try {
+        setIsLoading(true);
+        const podIds = joinedPods.map(pod => pod.id);
+        const fetchedPosts = await postsApi.getFeedPosts(podIds, 'all');
+        setPosts(fetchedPosts);
+      } catch (error) {
+        console.error('Failed to fetch posts:', error);
+        toast.error('Failed to load posts');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchPosts();
+  }, [joinedPods]);
 
   const filteredPosts = posts.filter((post) => {
     const matchesPod = selectedPod === 'all' || post.podId === selectedPod;
@@ -97,40 +60,79 @@ const Home = () => {
     return matchesPod && matchesFilter;
   });
 
-  const handleCreatePost = () => {
+  const handleCreatePost = async () => {
     if (!newPostContent.trim()) return;
     
-    const newPost: Post = {
-      id: crypto.randomUUID(),
-      authorId: user?.id || '',
-      author: user as User,
-      podId: selectedPod === 'all' ? joinedPods[0]?.id || '' : selectedPod,
-      content: newPostContent,
-      mediaUrls: [],
-      likes: [],
-      comments: [],
-      isOwnerPost: user?.role === 'pod_owner',
-      createdAt: new Date(),
-    };
-    
-    setPosts([newPost, ...posts]);
-    setNewPostContent('');
+    try {
+      const podId = selectedPod === 'all' ? joinedPods[0]?.id : selectedPod;
+      
+      if (!podId) {
+        toast.error('Please select a pod to post in');
+        return;
+      }
+
+      const newPost = await postsApi.createPost({
+        podId,
+        content: newPostContent,
+        mediaUrls: [],
+      });
+      
+      setPosts([newPost, ...posts]);
+      setNewPostContent('');
+      toast.success('Post created successfully!');
+    } catch (error) {
+      console.error('Failed to create post:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to create post');
+    }
   };
 
-  const handleLike = (postId: string) => {
-    setPosts(posts.map((post) => {
-      if (post.id === postId) {
-        const userId = user?.id || '';
-        const hasLiked = post.likes.includes(userId);
-        return {
-          ...post,
-          likes: hasLiked
-            ? post.likes.filter((id) => id !== userId)
-            : [...post.likes, userId],
-        };
+  const handleLike = async (postId: string) => {
+    if (!user) return;
+
+    const post = posts.find(p => p.id === postId);
+    if (!post) return;
+
+    const likes = post.likes || [];
+    const hasLiked = likes.includes(user.id);
+
+    try {
+      if (hasLiked) {
+        // Unlike - remove reaction
+        await reactionsApi.removeReaction(postId);
+        
+        // Update local state
+        setPosts(posts.map((p) => {
+          if (p.id === postId) {
+            return {
+              ...p,
+              likes: likes.filter((id) => id !== user.id),
+            };
+          }
+          return p;
+        }));
+      } else {
+        // Like - add reaction
+        await reactionsApi.addReaction({
+          entityId: postId,
+          entityType: 'post',
+          type: 'like',
+        });
+        
+        // Update local state
+        setPosts(posts.map((p) => {
+          if (p.id === postId) {
+            return {
+              ...p,
+              likes: [...likes, user.id],
+            };
+          }
+          return p;
+        }));
       }
-      return post;
-    }));
+    } catch (error) {
+      console.error('Failed to toggle like:', error);
+      toast.error('Failed to update like');
+    }
   };
 
   return (
@@ -223,22 +225,30 @@ const Home = () => {
         </Card>
 
         {/* Feed */}
-        <div className="space-y-4">
-          {filteredPosts.map((post) => (
-            <PostCard
-              key={post.id}
-              post={post}
-              onLike={() => handleLike(post.id)}
-              isLiked={post.likes.includes(user?.id || '')}
-              onUserClick={(user) => setSelectedUserForProfile(user)}
-            />
-          ))}
-        </div>
-
-        {filteredPosts.length === 0 && (
+        {isLoading ? (
           <div className="text-center py-12">
-            <p className="text-muted-foreground">No posts yet. Be the first to share!</p>
+            <p className="text-muted-foreground">Loading posts...</p>
           </div>
+        ) : (
+          <>
+            <div className="space-y-4">
+              {filteredPosts.map((post) => (
+                <PostCard
+                  key={post.id}
+                  post={post}
+                  onLike={() => handleLike(post.id)}
+                  isLiked={post.likes?.includes(user?.id || '') || false}
+                  onUserClick={(user) => setSelectedUserForProfile(user)}
+                />
+              ))}
+            </div>
+
+            {filteredPosts.length === 0 && !isLoading && (
+              <div className="text-center py-12">
+                <p className="text-muted-foreground">No posts yet. Be the first to share!</p>
+              </div>
+            )}
+          </>
         )}
       </main>
 
@@ -340,11 +350,11 @@ const PostCard = ({
                 }`}
               >
                 <Heart className={`w-5 h-5 ${isLiked ? 'fill-current' : ''}`} />
-                {post.likes.length > 0 && post.likes.length}
+                {post.likes && post.likes.length > 0 && post.likes.length}
               </button>
               <button className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary transition-colors">
                 <MessageCircle className="w-5 h-5" />
-                {post.comments.length > 0 && post.comments.length}
+                {post.comments && post.comments.length > 0 && post.comments.length}
               </button>
               <button className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary transition-colors">
                 <Share2 className="w-5 h-5" />
@@ -357,8 +367,9 @@ const PostCard = ({
   );
 };
 
-const getTimeAgo = (date: Date): string => {
-  const seconds = Math.floor((new Date().getTime() - date.getTime()) / 1000);
+const getTimeAgo = (date: Date | string): string => {
+  const dateObj = typeof date === 'string' ? new Date(date) : date;
+  const seconds = Math.floor((new Date().getTime() - dateObj.getTime()) / 1000);
   if (seconds < 60) return 'just now';
   const minutes = Math.floor(seconds / 60);
   if (minutes < 60) return `${minutes}m`;

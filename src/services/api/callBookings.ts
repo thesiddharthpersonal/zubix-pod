@@ -1,5 +1,4 @@
-// Call Booking API Service - Placeholder functions for backend integration
-
+import apiClient, { handleApiError } from './config';
 import { CallBooking, CallBookingStatus } from '@/types';
 
 export interface CreateCallBookingData {
@@ -20,37 +19,63 @@ export interface RespondToBookingData {
 export const callBookingApi = {
   // Get all call booking requests made by a user
   getUserBookings: async (userId: string): Promise<CallBooking[]> => {
-    // TODO: Implement backend integration
-    throw new Error('Not implemented');
+    try {
+      const response = await apiClient.get<{ bookings: CallBooking[] }>('/api/call-bookings/user');
+      return response.data.bookings;
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
   },
 
   // Get all call booking requests received by a pod owner/co-owner
   getReceivedBookings: async (userId: string): Promise<CallBooking[]> => {
-    // TODO: Implement backend integration
-    throw new Error('Not implemented');
+    try {
+      const response = await apiClient.get<{ bookings: CallBooking[] }>('/api/call-bookings/received');
+      return response.data.bookings;
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
   },
 
   // Create a new call booking request
   createBooking: async (requesterId: string, data: CreateCallBookingData): Promise<CallBooking> => {
-    // TODO: Implement backend integration
-    throw new Error('Not implemented');
+    try {
+      const response = await apiClient.post<{ booking: CallBooking }>('/api/call-bookings', data);
+      return response.data.booking;
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
   },
 
   // Accept or reject a booking request with optional remark
   respondToBooking: async (data: RespondToBookingData): Promise<CallBooking> => {
-    // TODO: Implement backend integration
-    throw new Error('Not implemented');
+    try {
+      const response = await apiClient.post<{ booking: CallBooking }>(
+        `/api/call-bookings/${data.bookingId}/respond`,
+        { status: data.status, remark: data.remark }
+      );
+      return response.data.booking;
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
   },
 
   // Cancel a pending booking request
   cancelBooking: async (bookingId: string): Promise<void> => {
-    // TODO: Implement backend integration
-    throw new Error('Not implemented');
+    try {
+      await apiClient.delete(`/api/call-bookings/${bookingId}`);
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
   },
 
   // Get count of pending bookings for badge display
   getPendingCount: async (userId: string): Promise<number> => {
-    // TODO: Implement backend integration
-    throw new Error('Not implemented');
+    try {
+      const response = await apiClient.get<{ count: number }>('/api/call-bookings/pending-count');
+      return response.data.count;
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
   },
 };

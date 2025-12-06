@@ -12,6 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import { ArrowLeft, ArrowRight, Upload, Check, Loader2, X, Plus } from 'lucide-react';
 import { POD_SUBCATEGORIES, FOCUS_AREAS, PodSubcategory } from '@/types';
 import { toast } from 'sonner';
+import { podsApi, usersApi, CreatePodRequest, authApi } from '@/services/api';
 
 const PodOwnerRegistration = () => {
   const navigate = useNavigate();
@@ -105,36 +106,68 @@ const PodOwnerRegistration = () => {
   const handleSubmit = async () => {
     setIsSubmitting(true);
     
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-    
-    updateUserProfile({
-      ...formData,
-      role: 'pod_owner',
-      socialLinks: {
-        linkedin: formData.linkedin,
-        instagram: formData.instagram,
-        facebook: formData.facebook,
-        twitter: formData.twitter,
-        youtube: formData.youtube,
-      },
-    });
+    try {
+      // First update user role to POD_OWNER
+      const { user: updatedUser, token } = await authApi.updateRoleToPodOwner();
+      
+      // Update user profile with form data
+      if (updatedUser) {
+        await usersApi.updateProfile(updatedUser.id, {
+          ...formData,
+          socialLinks: {
+            linkedin: formData.linkedin,
+            instagram: formData.instagram,
+            facebook: formData.facebook,
+            twitter: formData.twitter,
+            youtube: formData.youtube,
+          },
+        });
+      }
 
-    setPendingPodOwner({
-      subcategory: formData.podSubcategory as PodSubcategory,
-      organisationName: formData.organisationName,
-      organisationType: formData.organisationType as 'Government' | 'Private',
-      operatingCity: formData.operatingCity,
-      focusAreas: formData.focusAreas,
-      totalInvestmentSize: formData.totalInvestmentSize,
-      numberOfInvestments: parseInt(formData.numberOfInvestments) || 0,
-      briefAboutOrganisation: formData.briefAboutOrganisation,
-      coOwnerIds: coOwners,
-    });
-    
-    toast.success('Application submitted!');
-    navigate('/pending-approval');
-    setIsSubmitting(false);
+      // Create the pod
+      // Convert subcategory to match backend enum format (e.g., "Venture Capitalist" -> "VENTURE_CAPITALIST")
+      const subcategoryEnum = formData.podSubcategory.toUpperCase().replace(/ /g, '_') as PodSubcategory;
+      
+      const podData: CreatePodRequest = {
+        name: formData.organisationName,
+        subcategory: subcategoryEnum,
+        focusAreas: formData.focusAreas,
+        organisationName: formData.organisationName,
+        organisationType: formData.organisationType === 'Government' ? 'GOVERNMENT' : 'PRIVATE',
+        operatingCity: formData.operatingCity,
+        totalInvestmentSize: formData.totalInvestmentSize,
+        numberOfInvestments: parseInt(formData.numberOfInvestments) || undefined,
+        briefAboutOrganisation: formData.briefAboutOrganisation,
+        socialLinks: {
+          linkedin: formData.linkedin,
+          instagram: formData.instagram,
+          facebook: formData.facebook,
+          twitter: formData.twitter,
+          youtube: formData.youtube,
+        },
+        coOwnerUsernames: coOwners,
+      };
+
+      const pod = await podsApi.createPod(podData);
+      
+      // Update local state
+      updateUserProfile({
+        role: 'pod_owner',
+      });
+
+      setPendingPodOwner({
+        ...pod,
+        coOwnerIds: coOwners,
+      });
+      
+      toast.success('Pod created successfully!');
+      navigate('/pending-approval');
+    } catch (error) {
+      console.error('Failed to create pod:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to create pod');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (

@@ -40,7 +40,7 @@ export interface Pod {
   subcategory: PodSubcategory;
   focusAreas: string[];
   organisationName: string;
-  organisationType: 'Government' | 'Private';
+  organisationType: 'GOVERNMENT' | 'PRIVATE';
   operatingCity: string;
   totalInvestmentSize?: string;
   numberOfInvestments?: number;

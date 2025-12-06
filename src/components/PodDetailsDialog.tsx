@@ -10,13 +10,19 @@ interface PodDetailsDialogProps {
   onClose: () => void;
   isJoined: boolean;
   onJoin: () => void;
+  onLeave?: () => void;
 }
 
-const PodDetailsDialog = ({ pod, isOpen, onClose, isJoined, onJoin }: PodDetailsDialogProps) => {
+const PodDetailsDialog = ({ pod, isOpen, onClose, isJoined, onJoin, onLeave }: PodDetailsDialogProps) => {
   if (!pod) return null;
 
   const handleJoin = () => {
     onJoin();
+    onClose();
+  };
+
+  const handleLeave = () => {
+    onLeave?.();
     onClose();
   };
 
@@ -139,10 +145,10 @@ const PodDetailsDialog = ({ pod, isOpen, onClose, isJoined, onJoin }: PodDetails
           )}
 
           {/* Action */}
-          <div className="pt-2">
+          <div className="pt-2 space-y-2">
             {isJoined ? (
-              <Button variant="secondary" className="w-full" disabled>
-                Already Joined
+              <Button variant="destructive" className="w-full" onClick={handleLeave}>
+                Leave Pod
               </Button>
             ) : (
               <Button variant="hero" className="w-full" onClick={handleJoin}>

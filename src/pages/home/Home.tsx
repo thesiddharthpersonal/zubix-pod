@@ -79,7 +79,7 @@ const MOCK_POSTS: Post[] = [
 
 const Home = () => {
   const navigate = useNavigate();
-  const { user, joinedPods, joinPod } = useAuth();
+  const { user, joinedPods, joinPod, leavePod } = useAuth();
   const [selectedPod, setSelectedPod] = useState<string>('all');
   const [updateFilter, setUpdateFilter] = useState<'all' | 'owner' | 'members'>('all');
   const [newPostContent, setNewPostContent] = useState('');
@@ -248,6 +248,7 @@ const Home = () => {
         onClose={() => setSelectedPodForDetails(null)}
         isJoined={selectedPodForDetails ? joinedPods.some(p => p.id === selectedPodForDetails.id) : false}
         onJoin={() => selectedPodForDetails && joinPod(selectedPodForDetails)}
+        onLeave={() => selectedPodForDetails && leavePod(selectedPodForDetails.id)}
       />
     </div>
   );

@@ -47,6 +47,7 @@ export interface Pod {
   briefAboutOrganisation?: string;
   socialLinks: SocialLinks;
   ownerId: string;
+  owner?: User;
   coOwnerIds: string[];
   memberIds: string[];
   isApproved: boolean;

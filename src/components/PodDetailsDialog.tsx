@@ -1,8 +1,9 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Pod } from '@/types';
-import { Building2, MapPin, Target, Users, Globe, Linkedin, Instagram, Facebook, Twitter, Youtube, DollarSign, Briefcase } from 'lucide-react';
+import { Building2, MapPin, Target, Users, Linkedin, Instagram, Facebook, Twitter, Youtube, DollarSign, Briefcase, Crown } from 'lucide-react';
 
 interface PodDetailsDialogProps {
   pod: Pod | null;
@@ -107,6 +108,28 @@ const PodDetailsDialog = ({ pod, isOpen, onClose, isJoined, onJoin, onLeave }: P
               <p className="text-sm text-muted-foreground leading-relaxed">
                 {pod.briefAboutOrganisation}
               </p>
+            </div>
+          )}
+
+          {/* Pod Owner */}
+          {pod.owner && (
+            <div>
+              <div className="flex items-center gap-2 mb-3">
+                <Crown className="w-4 h-4 text-amber-500" />
+                <span className="text-sm font-medium text-foreground">Pod Owner</span>
+              </div>
+              <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
+                <Avatar className="w-12 h-12">
+                  <AvatarImage src={pod.owner.profilePhoto} />
+                  <AvatarFallback className="bg-primary/10 text-primary font-semibold">
+                    {pod.owner.fullName.charAt(0)}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="min-w-0 flex-1">
+                  <p className="font-medium text-foreground truncate">{pod.owner.fullName}</p>
+                  <p className="text-sm text-muted-foreground truncate">@{pod.owner.username}</p>
+                </div>
+              </div>
             </div>
           )}
 

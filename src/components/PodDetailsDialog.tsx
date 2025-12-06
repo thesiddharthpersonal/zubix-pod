@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Pod, User } from '@/types';
-import { Building2, MapPin, Target, Users, Linkedin, Instagram, Facebook, Twitter, Youtube, DollarSign, Briefcase, Crown } from 'lucide-react';
+import { Building2, MapPin, Target, Users, Linkedin, Instagram, Facebook, Twitter, Youtube, DollarSign, Briefcase, Crown, BadgeCheck } from 'lucide-react';
 
 interface PodDetailsDialogProps {
   pod: Pod | null;
@@ -42,7 +42,12 @@ const PodDetailsDialog = ({ pod, isOpen, onClose, isJoined, onJoin, onLeave, onU
               <Building2 className="w-8 h-8 text-primary" />
             </div>
             <div className="min-w-0 flex-1">
-              <h2 className="text-xl font-bold text-foreground">{pod.name}</h2>
+              <div className="flex items-center gap-2">
+                <h2 className="text-xl font-bold text-foreground">{pod.name}</h2>
+                {pod.isVerified && (
+                  <BadgeCheck className="w-5 h-5 text-blue-500 shrink-0" />
+                )}
+              </div>
               <p className="text-sm text-muted-foreground">{pod.organisationName}</p>
               <div className="flex flex-wrap gap-2 mt-2">
                 <Badge variant="secondary">{pod.subcategory}</Badge>

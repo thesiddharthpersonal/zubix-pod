@@ -51,6 +51,7 @@ export interface Pod {
   coOwnerIds: string[];
   memberIds: string[];
   isApproved: boolean;
+  isVerified?: boolean;
   createdAt: Date;
 }
 

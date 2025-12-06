@@ -6,7 +6,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { POD_SUBCATEGORIES, Pod, PodSubcategory, User } from '@/types';
-import { Search, Building2, MapPin, Target, Users, ArrowRight } from 'lucide-react';
+import { Search, Building2, MapPin, Target, Users, ArrowRight, BadgeCheck } from 'lucide-react';
 import PodDetailsDialog from '@/components/PodDetailsDialog';
 import UserProfileDialog from '@/components/UserProfileDialog';
 
@@ -38,6 +38,7 @@ const MOCK_PODS: Pod[] = [
     coOwnerIds: [],
     memberIds: [],
     isApproved: true,
+    isVerified: true,
     createdAt: new Date(),
   },
   {
@@ -66,6 +67,7 @@ const MOCK_PODS: Pod[] = [
     coOwnerIds: [],
     memberIds: [],
     isApproved: true,
+    isVerified: true,
     createdAt: new Date(),
   },
   {
@@ -92,6 +94,7 @@ const MOCK_PODS: Pod[] = [
     coOwnerIds: [],
     memberIds: [],
     isApproved: true,
+    isVerified: true,
     createdAt: new Date(),
   },
   {
@@ -118,6 +121,7 @@ const MOCK_PODS: Pod[] = [
     coOwnerIds: [],
     memberIds: [],
     isApproved: true,
+    isVerified: true,
     createdAt: new Date(),
   },
   {
@@ -146,6 +150,7 @@ const MOCK_PODS: Pod[] = [
     coOwnerIds: [],
     memberIds: [],
     isApproved: true,
+    isVerified: true,
     createdAt: new Date(),
   },
   {
@@ -172,6 +177,7 @@ const MOCK_PODS: Pod[] = [
     coOwnerIds: [],
     memberIds: [],
     isApproved: true,
+    isVerified: false,
     createdAt: new Date(),
   },
 ];
@@ -367,7 +373,12 @@ const PodCard = ({
           <Building2 className="w-7 h-7 text-primary" />
         </div>
         <div className="min-w-0">
-          <h3 className="font-semibold text-foreground truncate">{pod.name}</h3>
+          <div className="flex items-center gap-1.5">
+            <h3 className="font-semibold text-foreground truncate">{pod.name}</h3>
+            {pod.isVerified && (
+              <BadgeCheck className="w-4 h-4 text-blue-500 shrink-0" />
+            )}
+          </div>
           <Badge variant="secondary" className="mt-1">{pod.subcategory}</Badge>
         </div>
       </div>

@@ -123,7 +123,7 @@ const MOCK_PODS: Pod[] = [
 
 const PodDiscovery = () => {
   const navigate = useNavigate();
-  const { joinPod, joinedPods } = useAuth();
+  const { joinPod, leavePod, joinedPods } = useAuth();
   const [selectedSubcategory, setSelectedSubcategory] = useState<PodSubcategory | 'all'>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedPodForDetails, setSelectedPodForDetails] = useState<Pod | null>(null);
@@ -270,6 +270,7 @@ const PodDiscovery = () => {
         onClose={() => setSelectedPodForDetails(null)}
         isJoined={selectedPodForDetails ? isJoined(selectedPodForDetails.id) : false}
         onJoin={() => selectedPodForDetails && handleJoinPod(selectedPodForDetails)}
+        onLeave={() => selectedPodForDetails && leavePod(selectedPodForDetails.id)}
       />
     </div>
   );

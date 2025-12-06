@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -8,7 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Rocket, Upload, Send, MessageCircle, ChevronRight, ArrowLeft, Settings, HelpCircle, FileText, Users, Eye, Reply } from 'lucide-react';
+import { Rocket, Upload, Send, MessageCircle, ChevronRight, ArrowLeft, Settings, HelpCircle, FileText, Users, Eye, Reply, MailOpen } from 'lucide-react';
 import { Pitch, PitchReply, STARTUP_STAGES, PITCH_STATUSES, SECTORS, StartupStage, PitchStatus } from '@/types';
 import TopNav from '@/components/layout/TopNav';
 import BottomNav from '@/components/layout/BottomNav';
@@ -16,6 +17,7 @@ import { toast } from 'sonner';
 
 // Feature list for Others section
 const FEATURES = [
+  { id: 'message-requests', name: 'Message Requests', description: 'View and manage message requests', icon: MailOpen, available: true, forAll: true, path: '/message-requests' },
   { id: 'pitch', name: 'Pitch', description: 'Submit your startup pitch to investors', icon: Rocket, available: true, forAll: true },
   { id: 'view-pitches', name: 'View Pitches', description: 'Review pitches received from startups', icon: Eye, available: true, forPodOwner: true },
   { id: 'resources', name: 'Resources', description: 'Access helpful startup resources', icon: FileText, available: false, forAll: true },
@@ -31,6 +33,7 @@ const MOCK_PITCHES: Pitch[] = [
 ];
 
 const Others = () => {
+  const navigate = useNavigate();
   const { user, joinedPods } = useAuth();
   const [pitches, setPitches] = useState(MOCK_PITCHES);
   const [activeTab, setActiveTab] = useState('submit');
@@ -100,7 +103,14 @@ const Others = () => {
                 <Card 
                   key={feature.id} 
                   className={`cursor-pointer transition-all ${feature.available ? 'card-hover' : 'opacity-50'}`}
-                  onClick={() => feature.available && setSelectedFeature(feature.id)}
+                  onClick={() => {
+                    if (!feature.available) return;
+                    if (feature.path) {
+                      navigate(feature.path);
+                    } else {
+                      setSelectedFeature(feature.id);
+                    }
+                  }}
                 >
                   <CardContent className="p-4">
                     <div className="flex items-center gap-4">

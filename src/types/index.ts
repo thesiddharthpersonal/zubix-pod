@@ -206,6 +206,21 @@ export interface Chat {
   updatedAt: Date;
 }
 
+// Message Request Types
+export type MessageRequestStatus = 'pending' | 'accepted' | 'rejected';
+
+export interface MessageRequest {
+  id: string;
+  senderId: string;
+  sender: User;
+  receiverId: string;
+  receiver: User;
+  initialMessage: string;
+  status: MessageRequestStatus;
+  createdAt: Date;
+  respondedAt?: Date;
+}
+
 // Notification Types
 export interface Notification {
   id: string;

@@ -35,23 +35,15 @@ const Chat = () => {
   const [requestMessage, setRequestMessage] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Connect to socket on mount
+  // Cleanup on unmount
   useEffect(() => {
-    if (user?.id) {
-      try {
-        socketClient.connect();
-      } catch (error) {
-        console.error('Failed to connect to socket:', error);
-      }
-    }
-
     return () => {
       // Cleanup: leave current chat if any
       if (selectedChat?.id) {
         socketClient.getSocket()?.emit('leave-chat', { chatId: selectedChat.id });
       }
     };
-  }, [user?.id]);
+  }, [selectedChat?.id]);
 
   // Handle incoming messages via socket
   useEffect(() => {
@@ -140,23 +132,32 @@ const Chat = () => {
       window.history.replaceState({}, document.title);
     } else if (incomingTargetUser && user?.id) {
       // Check if already have an accepted chat with this user
-      const existingChat = chats.find(chat => 
-        chat.participants.some(p => p.id === incomingTargetUser.id)
-      );
-      
-      if (existingChat) {
-        // Already have a chat, open it directly
-        setSelectedChat(existingChat);
-      } else {
-        // No existing chat - show message request dialog
-        setTargetUser(incomingTargetUser);
-        setShowRequestDialog(true);
-      }
+      const checkAndLoadChat = async () => {
+        try {
+          const userChats = await chatApi.getUserChats(user.id);
+          const existingChat = userChats.find(chat => 
+            chat.participants.some(p => p.id === incomingTargetUser.id)
+          );
+          
+          if (existingChat) {
+            // Already have a chat, open it directly
+            setSelectedChat(existingChat);
+            setChats(userChats);
+          } else {
+            // No existing chat - show message request dialog
+            setTargetUser(incomingTargetUser);
+            setShowRequestDialog(true);
+          }
+        } catch (error) {
+          console.error('Failed to check for existing chat:', error);
+        }
+      };
+      checkAndLoadChat();
       
       // Clear the navigation state
       window.history.replaceState({}, document.title);
     }
-  }, [location.state, user?.id, chats]);
+  }, [location.state, user?.id]);
 
   // Load messages when a chat is selected
   useEffect(() => {

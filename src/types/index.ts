@@ -122,12 +122,20 @@ export interface Comment {
 export interface Room {
   id: string;
   name: string;
+  description?: string;
   podId: string;
-  privacy: 'public' | 'private';
-  type: 'general' | 'qa';
-  memberIds: string[];
+  privacy: 'PUBLIC' | 'PRIVATE';
+  type: 'GENERAL' | 'QA';
   createdBy: string;
-  createdAt: Date;
+  createdAt: Date | string;
+  updatedAt?: Date | string;
+  pod?: {
+    id: string;
+    name: string;
+  };
+  _count?: {
+    messages: number;
+  };
 }
 
 export interface Message {
@@ -164,15 +172,27 @@ export interface PodEvent {
   id: string;
   podId: string;
   name: string;
-  type: 'online' | 'offline';
-  date: Date;
+  title?: string;
+  description?: string;
+  type: string; // "ONLINE" | "OFFLINE"
+  date: Date | string;
   time: string;
   location?: string;
-  description: string;
   helpline?: string;
-  registeredUserIds: string[];
+  imageUrl?: string;
   createdBy: string;
-  createdAt: Date;
+  createdAt: Date | string;
+  updatedAt?: Date | string;
+  pod?: {
+    id: string;
+    name: string;
+    avatar?: string;
+  };
+  participants?: Array<{
+    id: string;
+    userId: string;
+    user: User;
+  }>;
 }
 
 // Pitch Types

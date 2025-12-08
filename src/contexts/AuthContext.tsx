@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useCallback, ReactNode, use
 import { UserProfile, Pod } from '@/types';
 import { authApi, podsApi, getAuthToken } from '@/services/api';
 import { toast } from 'sonner';
+import socket from '@/services/socket';
 
 interface AuthContextType {
   user: UserProfile | null;
@@ -53,6 +54,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           // Load user's pods
           const pods = await podsApi.getJoinedPods(userData.id);
           setJoinedPods(pods);
+          
+          // Initialize socket connection
+          if (!socket.isConnected()) {
+            socket.connect();
+          }
         } catch (error) {
           console.error('Failed to restore session:', error);
         } finally {
@@ -83,6 +89,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       // Load user's pods
       const pods = await podsApi.getJoinedPods(response.user.id);
       setJoinedPods(pods);
+      
+      // Initialize socket connection
+      if (!socket.isConnected()) {
+        socket.connect();
+      }
       
       toast.success('Login successful!');
     } catch (error) {
@@ -118,6 +129,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const logout = useCallback(async () => {
     try {
       await authApi.logout();
+      
+      // Disconnect socket
+      socket.disconnect();
+      
       setUser(null);
       setSelectedRole(null);
       setPendingPodOwner(null);
@@ -125,6 +140,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       toast.success('Logged out successfully');
     } catch (error) {
       console.error('Logout error:', error);
+      
+      // Disconnect socket even if API call fails
+      socket.disconnect();
+      
       // Clear local state even if API call fails
       setUser(null);
       setSelectedRole(null);

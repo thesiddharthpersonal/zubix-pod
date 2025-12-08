@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -15,76 +15,140 @@ import TopNav from '@/components/layout/TopNav';
 import BottomNav from '@/components/layout/BottomNav';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
-
-// Mock users for registration display
-const MOCK_USERS: User[] = [
-  { id: 'user1', fullName: 'Rahul Sharma', email: 'rahul@startup.com', mobile: '+91 98765 43210', username: 'rahulsharma', role: 'user', createdAt: new Date() },
-  { id: 'user2', fullName: 'Priya Patel', email: 'priya@techventure.in', mobile: '+91 87654 32109', username: 'priyapatel', role: 'user', createdAt: new Date() },
-  { id: 'user3', fullName: 'Amit Kumar', email: 'amit@innovate.co', mobile: '+91 76543 21098', username: 'amitkumar', role: 'user', createdAt: new Date() },
-];
-
-const MOCK_EVENTS: PodEvent[] = [
-  { id: '1', podId: '1', name: 'Demo Day 2024', type: 'offline', date: new Date(2024, 11, 15), time: '10:00 AM', location: 'Bangalore Tech Park', description: '10 startups pitch to top VCs', registeredUserIds: ['user1'], createdBy: 'owner1', createdAt: new Date() },
-  { id: '2', podId: '1', name: 'Founder Fireside Chat', type: 'online', date: new Date(2024, 11, 10), time: '6:00 PM', description: 'AMA with successful founders', registeredUserIds: ['user1', 'user2', 'user3'], createdBy: 'owner1', createdAt: new Date() },
-  { id: '3', podId: '2', name: 'Investor Office Hours', type: 'online', date: new Date(2024, 11, 10), time: '3:00 PM', description: '1-on-1 sessions with angel investors', registeredUserIds: ['user1', 'user2'], createdBy: 'owner2', createdAt: new Date() },
-  { id: '4', podId: '1', name: 'Startup Networking', type: 'offline', date: new Date(2024, 11, 20), time: '5:00 PM', location: 'WeWork HSR', description: 'Meet fellow founders', registeredUserIds: [], createdBy: 'owner1', createdAt: new Date() },
-  { id: '5', podId: '2', name: 'Pitch Practice', type: 'online', date: new Date(2024, 11, 15), time: '2:00 PM', description: 'Practice your pitch with mentors', registeredUserIds: ['user1'], createdBy: 'owner2', createdAt: new Date() },
-];
+import { eventsApi } from '@/services/api/events';
 
 const Events = () => {
   const navigate = useNavigate();
   const { user, joinedPods } = useAuth();
-  const [events, setEvents] = useState(MOCK_EVENTS);
+  const [events, setEvents] = useState<PodEvent[]>([]);
+  const [loading, setLoading] = useState(true);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
-  const [newEvent, setNewEvent] = useState({ name: '', type: 'online' as 'online' | 'offline', date: '', time: '', location: '', description: '', helpline: '', podId: '' });
+  const [newEvent, setNewEvent] = useState({ name: '', type: 'ONLINE', date: '', time: '', location: '', description: '', helpline: '', podId: '' });
   const [selectedEvent, setSelectedEvent] = useState<PodEvent | null>(null);
   const [selectedPod, setSelectedPod] = useState<string>('all');
   const [isRegisterOpen, setIsRegisterOpen] = useState(false);
   const [registeringEvent, setRegisteringEvent] = useState<PodEvent | null>(null);
-  const [registrationForm, setRegistrationForm] = useState({
-    name: '',
-    mobile: '',
-    email: '',
-    startupName: '',
-  });
+  const [eventParticipants, setEventParticipants] = useState<{ [eventId: string]: any[] }>({});
 
-  const isPodOwner = user?.role === 'pod_owner';
+  // Check if user owns any pods
+  const ownedPods = useMemo(() => joinedPods.filter(p => p.ownerId === user?.id), [joinedPods, user?.id]);
+  const isPodOwner = ownedPods.length > 0;
   const [activeTab, setActiveTab] = useState<'all' | 'registered' | 'registrations'>('all');
+
+  // Fetch events on mount
+  useEffect(() => {
+    const fetchEvents = async () => {
+      try {
+        setLoading(true);
+        console.log('Fetching events...');
+        const data = await eventsApi.getEventsFeed();
+        console.log('Events fetched:', data);
+        setEvents(data.map(event => ({
+          ...event,
+          date: new Date(event.date),
+          createdAt: new Date(event.createdAt)
+        })));
+      } catch (error) {
+        console.error('Failed to fetch events:', error);
+        toast.error('Failed to load events');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (user) {
+      fetchEvents();
+    } else {
+      setLoading(false);
+    }
+  }, [user]);
+
+  // Fetch participants for owner's events
+  useEffect(() => {
+    const fetchParticipants = async () => {
+      if (!isPodOwner || activeTab !== 'registrations') return;
+
+      try {
+        const ownerEventIds = events.filter(e => e.createdBy === user?.id).map(e => e.id);
+        const participantsData: { [eventId: string]: User[] } = {};
+
+        for (const eventId of ownerEventIds) {
+          const participants = await eventsApi.getEventParticipants(eventId);
+          participantsData[eventId] = participants;
+        }
+
+        setEventParticipants(participantsData);
+      } catch (error) {
+        console.error('Failed to fetch participants:', error);
+      }
+    };
+
+    fetchParticipants();
+  }, [events, isPodOwner, activeTab, user?.id]);
+
+  // Fetch participants for selected event
+  useEffect(() => {
+    const fetchSelectedEventParticipants = async () => {
+      if (!selectedEvent) return;
+
+      try {
+        console.log('Fetching participants for event:', selectedEvent.id);
+        const participants = await eventsApi.getEventParticipants(selectedEvent.id);
+        console.log('Participants fetched:', participants);
+        setEventParticipants(prev => ({
+          ...prev,
+          [selectedEvent.id]: participants
+        }));
+      } catch (error) {
+        console.error('Failed to fetch selected event participants:', error);
+      }
+    };
+
+    fetchSelectedEventParticipants();
+  }, [selectedEvent]);
 
   const openRegisterDialog = (event: PodEvent) => {
     setRegisteringEvent(event);
-    setRegistrationForm({
-      name: user?.fullName || '',
-      mobile: user?.mobile || '',
-      email: user?.email || '',
-      startupName: user?.organisationName || user?.brandName || '',
-    });
     setIsRegisterOpen(true);
   };
 
-  const handleConfirmRegister = () => {
+  const handleConfirmRegister = async () => {
     if (registeringEvent) {
-      setEvents(events.map((e) => e.id === registeringEvent.id ? { ...e, registeredUserIds: [...e.registeredUserIds, user?.id || ''] } : e));
-      toast.success('Registered successfully!');
-      setIsRegisterOpen(false);
-      setRegisteringEvent(null);
+      try {
+        await eventsApi.joinEvent(registeringEvent.id);
+        
+        // Refresh events to get updated participant list
+        const data = await eventsApi.getEventsFeed();
+        setEvents(data.map(event => ({
+          ...event,
+          date: new Date(event.date),
+          createdAt: new Date(event.createdAt)
+        })));
+        
+        toast.success('Registered successfully!');
+        setIsRegisterOpen(false);
+        setRegisteringEvent(null);
+      } catch (error: any) {
+        console.error('Failed to register:', error);
+        toast.error(error.response?.data?.message || 'Failed to register for event');
+      }
     }
   };
 
   // Get owner's events with registrations
   const ownerEvents = useMemo(() => {
-    return events.filter((e) => e.createdBy === 'owner1'); // Mock: assuming current pod owner is owner1
-  }, [events]);
+    return events.filter((e) => e.createdBy === user?.id);
+  }, [events, user?.id]);
 
-  const getRegisteredUsers = (userIds: string[]): User[] => {
-    return MOCK_USERS.filter((u) => userIds.includes(u.id));
+  const getRegisteredUsers = (eventId: string) => {
+    return eventParticipants[eventId] || [];
   };
 
   // Get registered events
   const registeredEvents = useMemo(() => {
     return events
-      .filter((e) => e.registeredUserIds.includes(user?.id || ''))
-      .sort((a, b) => a.date.getTime() - b.date.getTime());
+      .filter((e) => e.participants?.some(p => p.userId === user?.id))
+      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
   }, [events, user?.id]);
 
   // Filter events by selected pod
@@ -95,11 +159,11 @@ const Events = () => {
 
   // Group events by date and sort in ascending order
   const groupedEvents = useMemo(() => {
-    const sorted = [...filteredEvents].sort((a, b) => a.date.getTime() - b.date.getTime());
+    const sorted = [...filteredEvents].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
     const groups: { [key: string]: PodEvent[] } = {};
     
     sorted.forEach((event) => {
-      const dateKey = format(event.date, 'yyyy-MM-dd');
+      const dateKey = format(new Date(event.date), 'yyyy-MM-dd');
       if (!groups[dateKey]) {
         groups[dateKey] = [];
       }
@@ -113,9 +177,38 @@ const Events = () => {
     }));
   }, [filteredEvents]);
 
-  const handleCreate = () => {
-    setIsCreateOpen(false);
-    toast.success('Event created!');
+  const handleCreate = async () => {
+    if (!newEvent.name || !newEvent.date || !newEvent.time || !newEvent.podId) {
+      toast.error('Please fill in all required fields');
+      return;
+    }
+
+    try {
+      const eventData = {
+        ...newEvent,
+        type: newEvent.type as 'ONLINE' | 'OFFLINE',
+        description: newEvent.description || undefined,
+        location: newEvent.type === 'OFFLINE' ? newEvent.location : undefined,
+        helpline: newEvent.helpline || undefined,
+      };
+
+      await eventsApi.createEvent(eventData);
+      
+      // Refresh events
+      const data = await eventsApi.getEventsFeed();
+      setEvents(data.map(event => ({
+        ...event,
+        date: new Date(event.date),
+        createdAt: new Date(event.createdAt)
+      })));
+      
+      setIsCreateOpen(false);
+      setNewEvent({ name: '', type: 'ONLINE', date: '', time: '', location: '', description: '', helpline: '', podId: '' });
+      toast.success('Event created!');
+    } catch (error: any) {
+      console.error('Failed to create event:', error);
+      toast.error(error.response?.data?.message || 'Failed to create event');
+    }
   };
 
   return (
@@ -130,11 +223,13 @@ const Events = () => {
               <DialogContent>
                 <DialogHeader><DialogTitle>Create Event</DialogTitle></DialogHeader>
                 <div className="space-y-4 mt-4">
+                  <div className="space-y-2"><Label>Pod</Label><Select value={newEvent.podId} onValueChange={(v) => setNewEvent({ ...newEvent, podId: v })}><SelectTrigger><SelectValue placeholder="Select a pod" /></SelectTrigger><SelectContent>{ownedPods.map(pod => <SelectItem key={pod.id} value={pod.id}>{pod.name}</SelectItem>)}</SelectContent></Select></div>
                   <div className="space-y-2"><Label>Event Name</Label><Input value={newEvent.name} onChange={(e) => setNewEvent({ ...newEvent, name: e.target.value })} /></div>
-                  <div className="space-y-2"><Label>Type</Label><Select value={newEvent.type} onValueChange={(v) => setNewEvent({ ...newEvent, type: v as 'online' | 'offline' })}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="online">Online</SelectItem><SelectItem value="offline">Offline</SelectItem></SelectContent></Select></div>
+                  <div className="space-y-2"><Label>Type</Label><Select value={newEvent.type} onValueChange={(v) => setNewEvent({ ...newEvent, type: v })}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="ONLINE">Online</SelectItem><SelectItem value="OFFLINE">Offline</SelectItem></SelectContent></Select></div>
                   <div className="grid grid-cols-2 gap-4"><div className="space-y-2"><Label>Date</Label><Input type="date" value={newEvent.date} onChange={(e) => setNewEvent({ ...newEvent, date: e.target.value })} /></div><div className="space-y-2"><Label>Time</Label><Input type="time" value={newEvent.time} onChange={(e) => setNewEvent({ ...newEvent, time: e.target.value })} /></div></div>
-                  {newEvent.type === 'offline' && <div className="space-y-2"><Label>Location</Label><Input value={newEvent.location} onChange={(e) => setNewEvent({ ...newEvent, location: e.target.value })} /></div>}
+                  {newEvent.type === 'OFFLINE' && <div className="space-y-2"><Label>Location</Label><Input value={newEvent.location} onChange={(e) => setNewEvent({ ...newEvent, location: e.target.value })} /></div>}
                   <div className="space-y-2"><Label>Description</Label><Textarea value={newEvent.description} onChange={(e) => setNewEvent({ ...newEvent, description: e.target.value })} rows={3} /></div>
+                  <div className="space-y-2"><Label>Helpline (optional)</Label><Input value={newEvent.helpline} onChange={(e) => setNewEvent({ ...newEvent, helpline: e.target.value })} placeholder="Contact number" /></div>
                   <Button variant="hero" className="w-full" onClick={handleCreate}>Create Event</Button>
                 </div>
               </DialogContent>
@@ -142,8 +237,15 @@ const Events = () => {
           )}
         </div>
 
-        {/* Pod Filter */}
-        <div className="flex gap-2 overflow-x-auto pb-2 mb-4 scrollbar-hide">
+        {loading ? (
+          <div className="text-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+            <p className="text-muted-foreground">Loading events...</p>
+          </div>
+        ) : (
+          <>
+            {/* Pod Filter */}
+            <div className="flex gap-2 overflow-x-auto pb-2 mb-4 scrollbar-hide">
           <Badge
             variant={selectedPod === 'all' ? 'default' : 'outline'}
             className="cursor-pointer whitespace-nowrap"
@@ -213,8 +315,8 @@ const Events = () => {
                 <Card key={event.id} className="card-hover border-primary/20 bg-primary/5">
                   <CardContent className="p-4">
                     <div className="flex items-start gap-3">
-                      <div className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 ${event.type === 'online' ? 'bg-info/10 text-info' : 'bg-accent/10 text-accent'}`}>
-                        {event.type === 'online' ? <Video className="w-5 h-5" /> : <Building2 className="w-5 h-5" />}
+                      <div className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 ${event.type.toUpperCase() === 'ONLINE' ? 'bg-info/10 text-info' : 'bg-accent/10 text-accent'}`}>
+                        {event.type.toUpperCase() === 'ONLINE' ? <Video className="w-5 h-5" /> : <Building2 className="w-5 h-5" />}
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-start justify-between gap-2">
@@ -223,7 +325,7 @@ const Events = () => {
                         </div>
                         <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{event.description}</p>
                         <div className="flex flex-wrap gap-3 mt-2 text-sm text-muted-foreground">
-                          <span className="flex items-center gap-1"><Calendar className="w-3.5 h-3.5" />{format(event.date, 'MMM d, yyyy')}</span>
+                          <span className="flex items-center gap-1"><Calendar className="w-3.5 h-3.5" />{format(new Date(event.date), 'MMM d, yyyy')}</span>
                           <span className="flex items-center gap-1"><Clock className="w-3.5 h-3.5" />{event.time}</span>
                           {event.location && <span className="flex items-center gap-1"><MapPin className="w-3.5 h-3.5" />{event.location}</span>}
                         </div>
@@ -257,13 +359,15 @@ const Events = () => {
                   {/* Events for this date */}
                   <div className="space-y-3 ml-[72px]">
                     {dayEvents.map((event) => {
-                      const isRegistered = event.registeredUserIds.includes(user?.id || '');
+                      const isRegistered = event.participants?.some(p => p.userId === user?.id);
+                      const isCreator = event.createdBy === user?.id;
+                      const participantCount = event.participants?.length || 0;
                       return (
                         <Card key={event.id} className="card-hover">
                           <CardContent className="p-4">
                             <div className="flex items-start gap-3">
-                              <div className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 ${event.type === 'online' ? 'bg-info/10 text-info' : 'bg-accent/10 text-accent'}`}>
-                                {event.type === 'online' ? <Video className="w-5 h-5" /> : <Building2 className="w-5 h-5" />}
+                              <div className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 ${event.type.toUpperCase() === 'ONLINE' ? 'bg-info/10 text-info' : 'bg-accent/10 text-accent'}`}>
+                                {event.type.toUpperCase() === 'ONLINE' ? <Video className="w-5 h-5" /> : <Building2 className="w-5 h-5" />}
                               </div>
                               <div className="flex-1 min-w-0">
                                 <div className="flex items-start justify-between gap-2">
@@ -274,10 +378,16 @@ const Events = () => {
                                 <div className="flex flex-wrap gap-3 mt-2 text-sm text-muted-foreground">
                                   <span className="flex items-center gap-1"><Clock className="w-3.5 h-3.5" />{event.time}</span>
                                   {event.location && <span className="flex items-center gap-1"><MapPin className="w-3.5 h-3.5" />{event.location}</span>}
-                                  <span className="flex items-center gap-1"><Users className="w-3.5 h-3.5" />{event.registeredUserIds.length}</span>
+                                  <span className="flex items-center gap-1"><Users className="w-3.5 h-3.5" />{participantCount}</span>
                                 </div>
                                 <div className="mt-3">
-                                  {isRegistered ? <Button variant="secondary" size="sm" disabled>Registered</Button> : <Button variant="hero" size="sm" onClick={() => openRegisterDialog(event)}>Register</Button>}
+                                  {isCreator ? (
+                                    <Badge variant="outline">Event Creator</Badge>
+                                  ) : isRegistered ? (
+                                    <Button variant="secondary" size="sm" disabled>Registered</Button>
+                                  ) : (
+                                    <Button variant="hero" size="sm" onClick={() => openRegisterDialog(event)}>Register</Button>
+                                  )}
                                 </div>
                               </div>
                             </div>
@@ -315,13 +425,13 @@ const Events = () => {
                 <Card className="mb-4">
                   <CardContent className="p-4">
                     <div className="flex items-start gap-3">
-                      <div className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 ${selectedEvent.type === 'online' ? 'bg-info/10 text-info' : 'bg-accent/10 text-accent'}`}>
-                        {selectedEvent.type === 'online' ? <Video className="w-5 h-5" /> : <Building2 className="w-5 h-5" />}
+                      <div className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 ${selectedEvent.type.toUpperCase() === 'ONLINE' ? 'bg-info/10 text-info' : 'bg-accent/10 text-accent'}`}>
+                        {selectedEvent.type.toUpperCase() === 'ONLINE' ? <Video className="w-5 h-5" /> : <Building2 className="w-5 h-5" />}
                       </div>
                       <div className="flex-1">
                         <h3 className="font-semibold text-foreground">{selectedEvent.name}</h3>
                         <div className="flex flex-wrap gap-3 mt-1 text-sm text-muted-foreground">
-                          <span className="flex items-center gap-1"><Calendar className="w-3.5 h-3.5" />{format(selectedEvent.date, 'MMM d, yyyy')}</span>
+                          <span className="flex items-center gap-1"><Calendar className="w-3.5 h-3.5" />{format(new Date(selectedEvent.date), 'MMM d, yyyy')}</span>
                           <span className="flex items-center gap-1"><Clock className="w-3.5 h-3.5" />{selectedEvent.time}</span>
                         </div>
                       </div>
@@ -331,34 +441,34 @@ const Events = () => {
 
                 <h4 className="font-semibold mb-3 flex items-center gap-2">
                   <Users className="w-4 h-4" />
-                  Registered Users ({selectedEvent.registeredUserIds.length})
+                  Registered Users ({getRegisteredUsers(selectedEvent.id).length})
                 </h4>
 
-                {selectedEvent.registeredUserIds.length === 0 ? (
+                {getRegisteredUsers(selectedEvent.id).length === 0 ? (
                   <div className="text-center py-8 bg-muted/20 rounded-lg">
                     <Users className="w-10 h-10 mx-auto text-muted-foreground mb-2" />
                     <p className="text-muted-foreground">No registrations yet</p>
                   </div>
                 ) : (
                   <div className="space-y-3">
-                    {getRegisteredUsers(selectedEvent.registeredUserIds).map((regUser) => (
-                      <Card key={regUser.id} className="card-hover">
+                    {getRegisteredUsers(selectedEvent.id).map((participant) => (
+                      <Card key={participant.id} className="card-hover">
                         <CardContent className="p-4">
                           <div className="flex items-start gap-3">
                             <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
                               <UserIcon className="w-5 h-5 text-primary" />
                             </div>
                             <div className="flex-1 min-w-0">
-                              <h4 className="font-semibold text-foreground">{regUser.fullName}</h4>
-                              <p className="text-sm text-muted-foreground">@{regUser.username}</p>
+                              <h4 className="font-semibold text-foreground">{participant.user.fullName}</h4>
+                              <p className="text-sm text-muted-foreground">@{participant.user.username}</p>
                               <div className="flex flex-wrap gap-3 mt-2 text-sm text-muted-foreground">
                                 <span className="flex items-center gap-1">
                                   <Mail className="w-3.5 h-3.5" />
-                                  {regUser.email}
+                                  {participant.user.email}
                                 </span>
                                 <span className="flex items-center gap-1">
                                   <Phone className="w-3.5 h-3.5" />
-                                  {regUser.mobile}
+                                  {participant.user.mobile}
                                 </span>
                               </div>
                             </div>
@@ -380,34 +490,37 @@ const Events = () => {
                   </div>
                 ) : (
                   <div className="space-y-3">
-                    {ownerEvents.map((event) => (
-                      <Card
-                        key={event.id}
-                        className="card-hover cursor-pointer"
-                        onClick={() => setSelectedEvent(event)}
-                      >
-                        <CardContent className="p-4">
-                          <div className="flex items-start gap-3">
-                            <div className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 ${event.type === 'online' ? 'bg-info/10 text-info' : 'bg-accent/10 text-accent'}`}>
-                              {event.type === 'online' ? <Video className="w-5 h-5" /> : <Building2 className="w-5 h-5" />}
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-start justify-between gap-2">
-                                <h3 className="font-semibold text-foreground">{event.name}</h3>
-                                <Badge variant="secondary" className="shrink-0">
-                                  <Users className="w-3 h-3 mr-1" />
-                                  {event.registeredUserIds.length}
-                                </Badge>
+                    {ownerEvents.map((event) => {
+                      const participantCount = getRegisteredUsers(event.id).length;
+                      return (
+                        <Card
+                          key={event.id}
+                          className="card-hover cursor-pointer"
+                          onClick={() => setSelectedEvent(event)}
+                        >
+                          <CardContent className="p-4">
+                            <div className="flex items-start gap-3">
+                              <div className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 ${event.type.toUpperCase() === 'ONLINE' ? 'bg-info/10 text-info' : 'bg-accent/10 text-accent'}`}>
+                                {event.type.toUpperCase() === 'ONLINE' ? <Video className="w-5 h-5" /> : <Building2 className="w-5 h-5" />}
                               </div>
-                              <div className="flex flex-wrap gap-3 mt-1 text-sm text-muted-foreground">
-                                <span className="flex items-center gap-1"><Calendar className="w-3.5 h-3.5" />{format(event.date, 'MMM d, yyyy')}</span>
-                                <span className="flex items-center gap-1"><Clock className="w-3.5 h-3.5" />{event.time}</span>
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-start justify-between gap-2">
+                                  <h3 className="font-semibold text-foreground">{event.name}</h3>
+                                  <Badge variant="secondary" className="shrink-0">
+                                    <Users className="w-3 h-3 mr-1" />
+                                    {participantCount}
+                                  </Badge>
+                                </div>
+                                <div className="flex flex-wrap gap-3 mt-1 text-sm text-muted-foreground">
+                                  <span className="flex items-center gap-1"><Calendar className="w-3.5 h-3.5" />{format(new Date(event.date), 'MMM d, yyyy')}</span>
+                                  <span className="flex items-center gap-1"><Clock className="w-3.5 h-3.5" />{event.time}</span>
+                                </div>
                               </div>
                             </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
+                          </CardContent>
+                        </Card>
+                      );
+                    })}
                   </div>
                 )}
               </div>
@@ -415,6 +528,7 @@ const Events = () => {
           </div>
         )}
         {/* Registration Dialog */}
+        {/* Registration Confirmation Dialog */}
         <Dialog open={isRegisterOpen} onOpenChange={setIsRegisterOpen}>
           <DialogContent>
             <DialogHeader>
@@ -425,50 +539,30 @@ const Events = () => {
                 <div className="p-3 bg-muted/50 rounded-lg">
                   <h4 className="font-medium text-foreground">{registeringEvent.name}</h4>
                   <div className="flex flex-wrap gap-3 mt-1 text-sm text-muted-foreground">
-                    <span className="flex items-center gap-1"><Calendar className="w-3.5 h-3.5" />{format(registeringEvent.date, 'MMM d, yyyy')}</span>
+                    <span className="flex items-center gap-1"><Calendar className="w-3.5 h-3.5" />{format(new Date(registeringEvent.date), 'MMM d, yyyy')}</span>
                     <span className="flex items-center gap-1"><Clock className="w-3.5 h-3.5" />{registeringEvent.time}</span>
                   </div>
+                  {registeringEvent.description && (
+                    <p className="text-sm text-muted-foreground mt-2">{registeringEvent.description}</p>
+                  )}
                 </div>
 
-                <div className="space-y-3">
-                  <div className="space-y-2">
-                    <Label>Full Name</Label>
-                    <Input 
-                      value={registrationForm.name} 
-                      onChange={(e) => setRegistrationForm({ ...registrationForm, name: e.target.value })} 
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Mobile Number</Label>
-                    <Input 
-                      value={registrationForm.mobile} 
-                      onChange={(e) => setRegistrationForm({ ...registrationForm, mobile: e.target.value })} 
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Email</Label>
-                    <Input 
-                      type="email"
-                      value={registrationForm.email} 
-                      onChange={(e) => setRegistrationForm({ ...registrationForm, email: e.target.value })} 
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Startup Name</Label>
-                    <Input 
-                      value={registrationForm.startupName} 
-                      onChange={(e) => setRegistrationForm({ ...registrationForm, startupName: e.target.value })} 
-                    />
-                  </div>
+                <div className="p-3 bg-primary/5 rounded-lg">
+                  <p className="text-sm text-foreground">
+                    You are registering as <span className="font-semibold">{user?.fullName}</span>
+                  </p>
+                  <p className="text-sm text-muted-foreground mt-1">{user?.email}</p>
                 </div>
 
                 <Button variant="hero" className="w-full" onClick={handleConfirmRegister}>
-                  Register
+                  Confirm Registration
                 </Button>
               </div>
             )}
           </DialogContent>
         </Dialog>
+        </>
+        )}
       </main>
       <BottomNav />
     </div>

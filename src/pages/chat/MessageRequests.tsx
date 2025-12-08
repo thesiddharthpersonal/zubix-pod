@@ -1,11 +1,13 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ArrowLeft, Check, X, Clock, Send } from 'lucide-react';
+import { ArrowLeft, Check, X, Clock, Send, Loader2 } from 'lucide-react';
 import { MessageRequest, User } from '@/types';
+import { messageRequestApi } from '@/services/api';
 import { toast } from 'sonner';
 
 // Mock data for UI demonstration
@@ -17,7 +19,7 @@ const MOCK_RECEIVED_REQUESTS: MessageRequest[] = [
     receiverId: 'user1',
     receiver: {} as User,
     initialMessage: 'Hi! I saw your startup pitch and would love to connect and discuss potential collaboration.',
-    status: 'pending',
+    status: 'PENDING',
     createdAt: new Date(Date.now() - 3600000),
   },
   {
@@ -27,7 +29,7 @@ const MOCK_RECEIVED_REQUESTS: MessageRequest[] = [
     receiverId: 'user1',
     receiver: {} as User,
     initialMessage: 'Hello! I am the founder of InnovateTech incubator. Would like to know more about your project.',
-    status: 'pending',
+    status: 'PENDING',
     createdAt: new Date(Date.now() - 86400000),
   },
 ];
@@ -40,25 +42,63 @@ const MOCK_SENT_REQUESTS: MessageRequest[] = [
     receiverId: 'user5',
     receiver: { id: 'user5', fullName: 'Vikram Singh', username: 'vikram', email: '', mobile: '', role: 'pod_owner', createdAt: new Date() },
     initialMessage: 'Hi Vikram! I am interested in your accelerator program. Can we discuss?',
-    status: 'pending',
+    status: 'PENDING',
     createdAt: new Date(Date.now() - 7200000),
   },
 ];
 
 const MessageRequests = () => {
   const navigate = useNavigate();
-  const [receivedRequests, setReceivedRequests] = useState<MessageRequest[]>(MOCK_RECEIVED_REQUESTS);
-  const [sentRequests, setSentRequests] = useState<MessageRequest[]>(MOCK_SENT_REQUESTS);
+  const { user } = useAuth();
+  const [receivedRequests, setReceivedRequests] = useState<MessageRequest[]>([]);
+  const [sentRequests, setSentRequests] = useState<MessageRequest[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const handleAccept = (requestId: string) => {
-    setReceivedRequests(prev => prev.filter(r => r.id !== requestId));
-    toast.success('Message request accepted! You can now chat.');
-    // TODO: Navigate to chat with this user
+  useEffect(() => {
+    const fetchRequests = async () => {
+      if (!user?.id) return;
+
+      try {
+        setIsLoading(true);
+        const [received, sent] = await Promise.all([
+          messageRequestApi.getReceivedRequests(user.id),
+          messageRequestApi.getSentRequests(user.id)
+        ]);
+        setReceivedRequests(received);
+        setSentRequests(sent);
+      } catch (error) {
+        console.error('Failed to fetch message requests:', error);
+        toast.error('Failed to load message requests');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchRequests();
+  }, [user?.id]);
+
+  const handleAccept = async (requestId: string) => {
+    try {
+      const result = await messageRequestApi.acceptRequest(requestId);
+      setReceivedRequests(prev => prev.filter(r => r.id !== requestId));
+      toast.success('Message request accepted! You can now chat.');
+      // Navigate to the chat
+      navigate('/chat', { state: { chatId: result.chatId } });
+    } catch (error) {
+      console.error('Failed to accept request:', error);
+      toast.error('Failed to accept request');
+    }
   };
 
-  const handleReject = (requestId: string) => {
-    setReceivedRequests(prev => prev.filter(r => r.id !== requestId));
-    toast.success('Message request rejected');
+  const handleReject = async (requestId: string) => {
+    try {
+      await messageRequestApi.rejectRequest(requestId);
+      setReceivedRequests(prev => prev.filter(r => r.id !== requestId));
+      toast.success('Message request rejected');
+    } catch (error) {
+      console.error('Failed to reject request:', error);
+      toast.error('Failed to reject request');
+    }
   };
 
   const RequestCard = ({ request, type }: { request: MessageRequest; type: 'received' | 'sent' }) => {
@@ -90,7 +130,7 @@ const MessageRequests = () => {
             </div>
           </div>
           
-          {type === 'received' && request.status === 'pending' && (
+          {type === 'received' && request.status === 'PENDING' && (
             <div className="flex gap-2 mt-4">
               <Button 
                 variant="outline" 
@@ -113,7 +153,7 @@ const MessageRequests = () => {
             </div>
           )}
           
-          {type === 'sent' && request.status === 'pending' && (
+          {type === 'sent' && request.status === 'PENDING' && (
             <div className="mt-3 flex items-center gap-2 text-sm text-muted-foreground">
               <Clock className="w-4 h-4" />
               <span>Waiting for response...</span>
@@ -136,28 +176,33 @@ const MessageRequests = () => {
       </header>
 
       <main className="container mx-auto px-4 py-4 max-w-2xl">
-        <Tabs defaultValue="received" className="w-full">
-          <TabsList className="w-full mb-4">
-            <TabsTrigger value="received" className="flex-1">
-              Received
-              {receivedRequests.length > 0 && (
-                <span className="ml-2 bg-primary text-primary-foreground text-xs px-2 py-0.5 rounded-full">
-                  {receivedRequests.length}
-                </span>
-              )}
-            </TabsTrigger>
-            <TabsTrigger value="sent" className="flex-1">
-              Sent
-              {sentRequests.length > 0 && (
-                <span className="ml-2 bg-muted text-muted-foreground text-xs px-2 py-0.5 rounded-full">
-                  {sentRequests.length}
-                </span>
-              )}
-            </TabsTrigger>
-          </TabsList>
+        {isLoading ? (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="w-8 h-8 animate-spin text-primary" />
+          </div>
+        ) : (
+          <Tabs defaultValue="received" className="w-full">
+            <TabsList className="w-full mb-4">
+              <TabsTrigger value="received" className="flex-1">
+                Received
+                {receivedRequests.length > 0 && (
+                  <span className="ml-2 bg-primary text-primary-foreground text-xs px-2 py-0.5 rounded-full">
+                    {receivedRequests.length}
+                  </span>
+                )}
+              </TabsTrigger>
+              <TabsTrigger value="sent" className="flex-1">
+                Sent
+                {sentRequests.length > 0 && (
+                  <span className="ml-2 bg-muted text-muted-foreground text-xs px-2 py-0.5 rounded-full">
+                    {sentRequests.length}
+                  </span>
+                )}
+              </TabsTrigger>
+            </TabsList>
 
-          <TabsContent value="received" className="space-y-3">
-            {receivedRequests.length === 0 ? (
+            <TabsContent value="received" className="space-y-3">
+              {receivedRequests.length === 0 ? (
               <div className="text-center py-12">
                 <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
                   <Send className="w-8 h-8 text-muted-foreground" />
@@ -192,13 +237,15 @@ const MessageRequests = () => {
             )}
           </TabsContent>
         </Tabs>
+        )}
       </main>
     </div>
   );
 };
 
-const getTimeAgo = (date: Date): string => {
-  const seconds = Math.floor((new Date().getTime() - date.getTime()) / 1000);
+const getTimeAgo = (date: Date | string): string => {
+  const dateObj = typeof date === 'string' ? new Date(date) : date;
+  const seconds = Math.floor((new Date().getTime() - dateObj.getTime()) / 1000);
   if (seconds < 60) return 'Just now';
   const minutes = Math.floor(seconds / 60);
   if (minutes < 60) return `${minutes}m ago`;

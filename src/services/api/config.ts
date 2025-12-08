@@ -1,8 +1,19 @@
 import axios, { AxiosInstance, AxiosError, InternalAxiosRequestConfig } from 'axios';
 
 // API Configuration
-export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
-export const WS_URL = import.meta.env.VITE_WS_URL || 'http://localhost:3000';
+const APP_ENV = import.meta.env.VITE_APP_ENV || 'development';
+console.log(`App Environment: ${APP_ENV}`);
+const PRODUCTION_API_URL = 'https://podapi.zoobalo.com';
+const DEVELOPMENT_API_URL = 'http://localhost:3000';
+
+// Automatically set API URL based on environment
+export const API_BASE_URL = APP_ENV === 'production' 
+  ? PRODUCTION_API_URL 
+  : (import.meta.env.VITE_API_BASE_URL || DEVELOPMENT_API_URL);
+
+export const WS_URL = APP_ENV === 'production'
+  ? PRODUCTION_API_URL
+  : (import.meta.env.VITE_WS_URL || DEVELOPMENT_API_URL);
 
 // Token management
 const TOKEN_KEY = 'zubix_auth_token';
@@ -23,6 +34,7 @@ export const removeAuthToken = (): void => {
 const apiClient: AxiosInstance = axios.create({
   baseURL: API_BASE_URL,
   timeout: 30000,
+  withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
   },

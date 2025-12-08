@@ -2,7 +2,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Pod, User } from '@/types';
+import { Pod, User, POD_SUBCATEGORY_DISPLAY } from '@/types';
 import { Building2, MapPin, Target, Users, Linkedin, Instagram, Facebook, Twitter, Youtube, DollarSign, Briefcase, Crown, BadgeCheck } from 'lucide-react';
 
 interface PodDetailsDialogProps {
@@ -13,10 +13,13 @@ interface PodDetailsDialogProps {
   onJoin: () => void;
   onLeave?: () => void;
   onUserClick?: (user: User) => void;
+  currentUserId?: string;
 }
 
-const PodDetailsDialog = ({ pod, isOpen, onClose, isJoined, onJoin, onLeave, onUserClick }: PodDetailsDialogProps) => {
+const PodDetailsDialog = ({ pod, isOpen, onClose, isJoined, onJoin, onLeave, onUserClick, currentUserId }: PodDetailsDialogProps) => {
   if (!pod) return null;
+
+  const isOwner = currentUserId && pod.ownerId === currentUserId;
 
   const handleJoin = () => {
     onJoin();
@@ -50,7 +53,7 @@ const PodDetailsDialog = ({ pod, isOpen, onClose, isJoined, onJoin, onLeave, onU
               </div>
               <p className="text-sm text-muted-foreground">{pod.organisationName}</p>
               <div className="flex flex-wrap gap-2 mt-2">
-                <Badge variant="secondary">{pod.subcategory}</Badge>
+                <Badge variant="secondary">{pod.subcategory ? POD_SUBCATEGORY_DISPLAY[pod.subcategory] : ''}</Badge>
                 <Badge variant="outline">{pod.organisationType}</Badge>
               </div>
             </div>
@@ -180,7 +183,11 @@ const PodDetailsDialog = ({ pod, isOpen, onClose, isJoined, onJoin, onLeave, onU
 
           {/* Action */}
           <div className="pt-2 space-y-2">
-            {isJoined ? (
+            {isOwner ? (
+              <div className="text-center py-3 px-4 bg-muted/50 rounded-lg">
+                <p className="text-sm text-muted-foreground">You are the owner of this pod</p>
+              </div>
+            ) : isJoined ? (
               <Button variant="destructive" className="w-full" onClick={handleLeave}>
                 Leave Pod
               </Button>

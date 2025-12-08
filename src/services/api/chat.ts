@@ -13,7 +13,7 @@ export interface SendDMRequest {
 export const chatApi = {
   getUserChats: async (userId: string): Promise<Chat[]> => {
     try {
-      const response = await apiClient.get<{ chats: Chat[] }>(`/api/users/${userId}/chats`);
+      const response = await apiClient.get<{ chats: Chat[] }>('/api/chats');
       return response.data.chats;
     } catch (error) {
       throw new Error(handleApiError(error));
@@ -60,7 +60,9 @@ export const chatApi = {
 
   sendMessage: async (data: SendDMRequest): Promise<Message> => {
     try {
-      const response = await apiClient.post<{ message: Message }>('/api/chats/messages', data);
+      const response = await apiClient.post<{ message: Message }>(`/api/chats/${data.chatId}/messages`, {
+        content: data.content
+      });
       return response.data.message;
     } catch (error) {
       throw new Error(handleApiError(error));

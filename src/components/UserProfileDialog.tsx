@@ -1,22 +1,83 @@
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { User, UserProfile } from '@/types';
-import { Mail, Phone, Building2, MapPin, Briefcase, Calendar, Linkedin, Instagram, Facebook, Twitter, Youtube, MessageCircle } from 'lucide-react';
+import { Mail, Phone, Building2, MapPin, Briefcase, Calendar, Linkedin, Instagram, Facebook, Twitter, Youtube, MessageCircle, Clock } from 'lucide-react';
+import { messageRequestApi, chatApi } from '@/services/api';
+import { toast } from 'sonner';
 
 interface UserProfileDialogProps {
   user: User | UserProfile | null;
+  currentUserId?: string;
+  podOwnerId?: string;
   isOpen: boolean;
   onClose: () => void;
   onMessage?: () => void;
 }
 
-const UserProfileDialog = ({ user, isOpen, onClose, onMessage }: UserProfileDialogProps) => {
+const UserProfileDialog = ({ user, currentUserId, podOwnerId, isOpen, onClose, onMessage }: UserProfileDialogProps) => {
+  const navigate = useNavigate();
+  const [hasExistingRequest, setHasExistingRequest] = useState(false);
+  const [isCheckingRequest, setIsCheckingRequest] = useState(false);
+  const [existingChatId, setExistingChatId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const checkExistingRequest = async () => {
+      if (!user || !currentUserId || currentUserId === user.id) {
+        setHasExistingRequest(false);
+        setExistingChatId(null);
+        return;
+      }
+
+      setIsCheckingRequest(true);
+      try {
+        // First check if there's an existing chat
+        const chat = await chatApi.getChatByParticipants([currentUserId, user.id]);
+        if (chat) {
+          setExistingChatId(chat.id);
+          setHasExistingRequest(false);
+          return;
+        }
+
+        // If no chat, check for pending message request
+        const requests = await messageRequestApi.getSentRequests(currentUserId);
+        const existingRequest = requests.find(
+          req => req.receiverId === user.id && req.status === 'PENDING'
+        );
+        setHasExistingRequest(!!existingRequest);
+        setExistingChatId(null);
+      } catch (error) {
+        console.error('Failed to check existing request:', error);
+        setHasExistingRequest(false);
+        setExistingChatId(null);
+      } finally {
+        setIsCheckingRequest(false);
+      }
+    };
+
+    if (isOpen) {
+      checkExistingRequest();
+    }
+  }, [user, currentUserId, isOpen]);
+
   if (!user) return null;
 
   const userProfile = user as UserProfile;
   const hasSocialLinks = userProfile.socialLinks && Object.values(userProfile.socialLinks).some(Boolean);
+
+  const handleMessageClick = () => {
+    if (existingChatId) {
+      // If chat exists, navigate to chat page
+      onClose();
+      navigate('/chat', { state: { chatId: existingChatId } });
+    } else {
+      // If no chat, show send message dialog
+      onMessage?.();
+    }
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -36,9 +97,11 @@ const UserProfileDialog = ({ user, isOpen, onClose, onMessage }: UserProfileDial
             </Avatar>
             <h2 className="text-xl font-bold text-foreground">{user.fullName}</h2>
             <p className="text-sm text-muted-foreground">@{user.username}</p>
-            <Badge variant={user.role === 'pod_owner' ? 'default' : 'secondary'} className="mt-2">
-              {user.role === 'pod_owner' ? 'Pod Owner' : 'Member'}
-            </Badge>
+            {podOwnerId && (
+              <Badge variant={user.id === podOwnerId ? 'default' : 'secondary'} className="mt-2">
+                {user.id === podOwnerId ? 'Pod Owner' : 'Member'}
+              </Badge>
+            )}
           </div>
 
           {/* Contact Info */}
@@ -127,17 +190,41 @@ const UserProfileDialog = ({ user, isOpen, onClose, onMessage }: UserProfileDial
           )}
 
           {/* Member Since */}
-          <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground pt-2">
-            <Calendar className="w-3 h-3" />
-            <span>Member since {new Date(user.createdAt).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}</span>
-          </div>
+          {user.createdAt && (
+            <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground pt-2">
+              <Calendar className="w-3 h-3" />
+              <span>Member since {new Date(user.createdAt).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}</span>
+            </div>
+          )}
 
           {/* Action */}
-          {onMessage && (
-            <Button variant="hero" className="w-full" onClick={onMessage}>
-              <MessageCircle className="w-4 h-4 mr-2" />
-              Send Message
-            </Button>
+          {onMessage && currentUserId && currentUserId !== user.id && (
+            <>
+              {isCheckingRequest ? (
+                <Button variant="hero" className="w-full" disabled>
+                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
+                  Checking...
+                </Button>
+              ) : existingChatId ? (
+                <Button variant="hero" className="w-full" onClick={handleMessageClick}>
+                  <MessageCircle className="w-4 h-4 mr-2" />
+                  Open Chat
+                </Button>
+              ) : hasExistingRequest ? (
+                <div className="p-3 bg-primary/5 border border-primary/10 rounded-lg text-center">
+                  <Clock className="w-5 h-5 text-primary mx-auto mb-2" />
+                  <p className="text-sm font-medium text-foreground mb-1">Request Pending</p>
+                  <p className="text-xs text-muted-foreground">
+                    You've already sent a message request to this user. Please wait for them to accept.
+                  </p>
+                </div>
+              ) : (
+                <Button variant="hero" className="w-full" onClick={handleMessageClick}>
+                  <MessageCircle className="w-4 h-4 mr-2" />
+                  Send Message
+                </Button>
+              )}
+            </>
           )}
         </div>
       </DialogContent>

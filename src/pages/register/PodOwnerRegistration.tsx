@@ -9,8 +9,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, ArrowRight, Upload, Check, Loader2, X, Plus } from 'lucide-react';
-import { POD_SUBCATEGORIES, FOCUS_AREAS, PodSubcategory } from '@/types';
+import { ArrowLeft, ArrowRight, Check, Loader2, X, Plus } from 'lucide-react';
+import { POD_SUBCATEGORIES, POD_SUBCATEGORY_DISPLAY, FOCUS_AREAS, PodSubcategory } from '@/types';
 import { toast } from 'sonner';
 import { podsApi, usersApi, CreatePodRequest, authApi } from '@/services/api';
 
@@ -27,7 +27,6 @@ const PodOwnerRegistration = () => {
     fullName: user?.fullName || '',
     email: user?.email || '',
     mobile: user?.mobile || '',
-    profilePhoto: '',
     // Step B
     podSubcategory: '' as PodSubcategory | '',
     // Step C
@@ -198,15 +197,6 @@ const PodOwnerRegistration = () => {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
-                  <Label>Profile Photo</Label>
-                  <div className="flex items-center gap-4">
-                    <div className="w-20 h-20 rounded-full bg-secondary flex items-center justify-center border-2 border-dashed border-border">
-                      <Upload className="w-6 h-6 text-muted-foreground" />
-                    </div>
-                    <Button variant="outline" size="sm">Upload Photo</Button>
-                  </div>
-                </div>
-                <div className="space-y-2">
                   <Label htmlFor="fullName">Full Name *</Label>
                   <Input
                     id="fullName"
@@ -251,7 +241,7 @@ const PodOwnerRegistration = () => {
                   </SelectTrigger>
                   <SelectContent>
                     {POD_SUBCATEGORIES.map((cat) => (
-                      <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                      <SelectItem key={cat} value={cat}>{POD_SUBCATEGORY_DISPLAY[cat]}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>

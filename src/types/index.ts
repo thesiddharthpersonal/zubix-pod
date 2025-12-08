@@ -12,6 +12,7 @@ export interface User {
 
 export interface UserProfile extends User {
   organisationName?: string;
+  profilePicture?: string;
   brandName?: string;
   designation?: string;
   workingExperienceFrom?: Date;
@@ -56,29 +57,43 @@ export interface Pod {
 }
 
 export type PodSubcategory =
-  | 'Incubation'
-  | 'Community'
-  | 'Venture Capitalist'
-  | 'Angel Investor'
-  | 'Angel Network'
-  | 'Service Provider'
-  | 'Accelerator'
-  | 'Corporate Innovation'
-  | 'Government Program'
-  | 'University Entrepreneurship Cell';
+  | 'INCUBATION'
+  | 'COMMUNITY'
+  | 'VENTURE_CAPITALIST'
+  | 'ANGEL_INVESTOR'
+  | 'ANGEL_NETWORK'
+  | 'SERVICE_PROVIDER'
+  | 'ACCELERATOR'
+  | 'CORPORATE_INNOVATION'
+  | 'GOVERNMENT_PROGRAM'
+  | 'UNIVERSITY_ENTREPRENEURSHIP_CELL';
 
 export const POD_SUBCATEGORIES: PodSubcategory[] = [
-  'Incubation',
-  'Community',
-  'Venture Capitalist',
-  'Angel Investor',
-  'Angel Network',
-  'Service Provider',
-  'Accelerator',
-  'Corporate Innovation',
-  'Government Program',
-  'University Entrepreneurship Cell',
+  'INCUBATION',
+  'COMMUNITY',
+  'VENTURE_CAPITALIST',
+  'ANGEL_INVESTOR',
+  'ANGEL_NETWORK',
+  'SERVICE_PROVIDER',
+  'ACCELERATOR',
+  'CORPORATE_INNOVATION',
+  'GOVERNMENT_PROGRAM',
+  'UNIVERSITY_ENTREPRENEURSHIP_CELL',
 ];
+
+// Helper to convert enum to display name
+export const POD_SUBCATEGORY_DISPLAY: Record<PodSubcategory, string> = {
+  'INCUBATION': 'Incubation',
+  'COMMUNITY': 'Community',
+  'VENTURE_CAPITALIST': 'Venture Capitalist',
+  'ANGEL_INVESTOR': 'Angel Investor',
+  'ANGEL_NETWORK': 'Angel Network',
+  'SERVICE_PROVIDER': 'Service Provider',
+  'ACCELERATOR': 'Accelerator',
+  'CORPORATE_INNOVATION': 'Corporate Innovation',
+  'GOVERNMENT_PROGRAM': 'Government Program',
+  'UNIVERSITY_ENTREPRENEURSHIP_CELL': 'University Entrepreneurship Cell',
+};
 
 // Post Types
 export interface Post {
@@ -107,12 +122,20 @@ export interface Comment {
 export interface Room {
   id: string;
   name: string;
+  description?: string;
   podId: string;
-  privacy: 'public' | 'private';
-  type: 'general' | 'qa';
-  memberIds: string[];
+  privacy: 'PUBLIC' | 'PRIVATE';
+  type: 'GENERAL' | 'QA';
   createdBy: string;
-  createdAt: Date;
+  createdAt: Date | string;
+  updatedAt?: Date | string;
+  pod?: {
+    id: string;
+    name: string;
+  };
+  _count?: {
+    messages: number;
+  };
 }
 
 export interface Message {
@@ -149,15 +172,27 @@ export interface PodEvent {
   id: string;
   podId: string;
   name: string;
-  type: 'online' | 'offline';
-  date: Date;
+  title?: string;
+  description?: string;
+  type: string; // "ONLINE" | "OFFLINE"
+  date: Date | string;
   time: string;
   location?: string;
-  description: string;
   helpline?: string;
-  registeredUserIds: string[];
+  imageUrl?: string;
   createdBy: string;
-  createdAt: Date;
+  createdAt: Date | string;
+  updatedAt?: Date | string;
+  pod?: {
+    id: string;
+    name: string;
+    avatar?: string;
+  };
+  participants?: Array<{
+    id: string;
+    userId: string;
+    user: User;
+  }>;
 }
 
 // Pitch Types
@@ -207,7 +242,7 @@ export interface Chat {
 }
 
 // Message Request Types
-export type MessageRequestStatus = 'pending' | 'accepted' | 'rejected';
+export type MessageRequestStatus = 'PENDING' | 'ACCEPTED' | 'REJECTED';
 
 export interface MessageRequest {
   id: string;

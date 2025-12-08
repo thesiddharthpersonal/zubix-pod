@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useCallback, ReactNode, use
 import { UserProfile, Pod } from '@/types';
 import { authApi, podsApi, getAuthToken } from '@/services/api';
 import { toast } from 'sonner';
+import socket from '@/services/socket';
 
 interface AuthContextType {
   user: UserProfile | null;
@@ -32,7 +33,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<UserProfile | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [selectedRole, setSelectedRole] = useState<'user' | 'pod_owner' | null>(null);
   const [pendingPodOwner, setPendingPodOwner] = useState<Partial<Pod> | null>(null);
   const [joinedPods, setJoinedPods] = useState<Pod[]>([]);
@@ -43,7 +44,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const token = getAuthToken();
       if (token && !user) {
         try {
-          setIsLoading(true);
           const userData = await authApi.getCurrentUser();
           setUser({
             ...userData,
@@ -54,11 +54,18 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           // Load user's pods
           const pods = await podsApi.getJoinedPods(userData.id);
           setJoinedPods(pods);
+          
+          // Initialize socket connection
+          if (!socket.isConnected()) {
+            socket.connect();
+          }
         } catch (error) {
           console.error('Failed to restore session:', error);
         } finally {
           setIsLoading(false);
         }
+      } else {
+        setIsLoading(false);
       }
     };
     
@@ -82,6 +89,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       // Load user's pods
       const pods = await podsApi.getJoinedPods(response.user.id);
       setJoinedPods(pods);
+      
+      // Initialize socket connection
+      if (!socket.isConnected()) {
+        socket.connect();
+      }
       
       toast.success('Login successful!');
     } catch (error) {
@@ -117,6 +129,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const logout = useCallback(async () => {
     try {
       await authApi.logout();
+      
+      // Disconnect socket
+      socket.disconnect();
+      
       setUser(null);
       setSelectedRole(null);
       setPendingPodOwner(null);
@@ -124,6 +140,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       toast.success('Logged out successfully');
     } catch (error) {
       console.error('Logout error:', error);
+      
+      // Disconnect socket even if API call fails
+      socket.disconnect();
+      
       // Clear local state even if API call fails
       setUser(null);
       setSelectedRole(null);

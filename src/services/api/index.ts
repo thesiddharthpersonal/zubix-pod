@@ -12,3 +12,5 @@ export * from './messageRequests';
 export * from './callBookings';
 export * from './notifications';
 export * from './reactions';
+export * from './upload';
+export * from './comments';

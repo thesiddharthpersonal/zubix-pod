@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Progress } from '@/components/ui/progress';
-import { ArrowLeft, ArrowRight, Upload, Check, Loader2 } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Check, Loader2 } from 'lucide-react';
 import { STARTUP_SUBCATEGORIES, BUSINESS_TYPES } from '@/types';
 import { toast } from 'sonner';
 
@@ -23,7 +23,6 @@ const UserRegistration = () => {
     fullName: user?.fullName || '',
     mobile: user?.mobile || '',
     email: user?.email || '',
-    profilePhoto: '',
     // Step B
     organisationName: '',
     brandName: '',
@@ -85,7 +84,6 @@ const UserRegistration = () => {
       fullName: formData.fullName,
       mobile: formData.mobile,
       email: formData.email,
-      profilePhoto: formData.profilePhoto,
       organisationName: formData.organisationName,
       brandName: formData.brandName,
       designation: formData.designation,
@@ -137,22 +135,6 @@ const UserRegistration = () => {
                 <CardDescription>Tell us about yourself</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="profilePhoto">Profile Photo</Label>
-                  <div className="flex items-center gap-4">
-                    <div className="w-20 h-20 rounded-full bg-secondary flex items-center justify-center border-2 border-dashed border-border">
-                      {formData.profilePhoto ? (
-                        <img src={formData.profilePhoto} alt="Profile" className="w-full h-full rounded-full object-cover" />
-                      ) : (
-                        <Upload className="w-6 h-6 text-muted-foreground" />
-                      )}
-                    </div>
-                    <Button variant="outline" size="sm">
-                      Upload Photo
-                    </Button>
-                  </div>
-                </div>
-
                 <div className="space-y-2">
                   <Label htmlFor="fullName">Full Name *</Label>
                   <Input

@@ -5,6 +5,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { ArrowLeft, Edit, MapPin, Building2, Globe, Linkedin, Instagram, Twitter, MessageCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { POD_SUBCATEGORY_DISPLAY } from '@/types';
 
 const Profile = () => {
   const navigate = useNavigate();
@@ -58,7 +59,7 @@ const Profile = () => {
               {joinedPods.map((pod) => (
                 <div key={pod.id} className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center"><Building2 className="w-5 h-5 text-primary" /></div>
-                  <div className="flex-1"><p className="font-medium text-foreground">{pod.name}</p><p className="text-sm text-muted-foreground">{pod.subcategory}</p></div>
+                  <div className="flex-1"><p className="font-medium text-foreground">{pod.name}</p><p className="text-sm text-muted-foreground">{pod.subcategory ? POD_SUBCATEGORY_DISPLAY[pod.subcategory] : ''}</p></div>
                 </div>
               ))}
               {joinedPods.length === 0 && <p className="text-muted-foreground text-center py-4">No pods joined yet</p>}

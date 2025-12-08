@@ -63,7 +63,7 @@ const TopNav = () => {
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon" className="rounded-full">
                   <Avatar className="w-8 h-8">
-                    <AvatarImage src={user?.profilePhoto} />
+                    <AvatarImage src={user?.profilePicture || user?.profilePhoto} />
                     <AvatarFallback>{user?.fullName?.charAt(0) || 'U'}</AvatarFallback>
                   </Avatar>
                 </Button>

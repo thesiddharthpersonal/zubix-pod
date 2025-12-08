@@ -45,7 +45,7 @@ const Signup = () => {
         password: formData.password,
       });
       toast.success('Account created successfully!');
-      navigate('/role-selection');
+      navigate('/profile-setup');
     } catch (error) {
       toast.error('Signup failed. Please try again.');
     }

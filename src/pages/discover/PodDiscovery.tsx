@@ -5,20 +5,23 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { POD_SUBCATEGORIES, Pod, PodSubcategory, User } from '@/types';
+import { POD_SUBCATEGORIES, POD_SUBCATEGORY_DISPLAY, Pod, PodSubcategory, User } from '@/types';
 import { Search, Building2, MapPin, Target, Users, ArrowRight, BadgeCheck } from 'lucide-react';
 import PodDetailsDialog from '@/components/PodDetailsDialog';
 import UserProfileDialog from '@/components/UserProfileDialog';
+import SendMessageDialog from '@/components/SendMessageDialog';
 import { podsApi } from '@/services/api';
 import { toast } from 'sonner';
 
 const PodDiscovery = () => {
   const navigate = useNavigate();
-  const { joinPod, leavePod, joinedPods } = useAuth();
+  const { joinPod, leavePod, joinedPods, user } = useAuth();
   const [selectedSubcategory, setSelectedSubcategory] = useState<PodSubcategory | 'all'>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedPodForDetails, setSelectedPodForDetails] = useState<Pod | null>(null);
   const [selectedUserForProfile, setSelectedUserForProfile] = useState<User | null>(null);
+  const [podOwnerIdForProfile, setPodOwnerIdForProfile] = useState<string | undefined>(undefined);
+  const [showSendMessageDialog, setShowSendMessageDialog] = useState(false);
   const [pods, setPods] = useState<Pod[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -45,6 +48,11 @@ const PodDiscovery = () => {
     const matchesSearch = pod.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       pod.organisationName?.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesSubcategory && matchesSearch;
+  });
+
+  const filteredJoinedPods = joinedPods.filter((pod) => {
+    const matchesSubcategory = selectedSubcategory === 'all' || pod.subcategory === selectedSubcategory;
+    return matchesSubcategory;
   });
 
   const isJoined = (podId: string) => joinedPods.some((p) => p.id === podId);
@@ -102,7 +110,7 @@ const PodDiscovery = () => {
                 className="cursor-pointer whitespace-nowrap"
                 onClick={() => setSelectedSubcategory(cat)}
               >
-                {cat}
+                {POD_SUBCATEGORY_DISPLAY[cat]}
               </Badge>
             ))}
           </div>
@@ -111,11 +119,11 @@ const PodDiscovery = () => {
 
       {/* Content */}
       <main className="container mx-auto px-4 py-6">
-        {joinedPods.length > 0 && (
+        {filteredJoinedPods.length > 0 && (
           <div className="mb-8">
             <h2 className="text-lg font-semibold text-foreground mb-4">Your Pods</h2>
             <div className="flex gap-3 overflow-x-auto pb-2">
-              {joinedPods.map((pod) => (
+              {filteredJoinedPods.map((pod) => (
                 <Card
                   key={pod.id}
                   className="min-w-[200px] cursor-pointer card-hover"
@@ -126,7 +134,7 @@ const PodDiscovery = () => {
                       <Building2 className="w-5 h-5 text-primary" />
                     </div>
                     <p className="font-medium text-foreground truncate">{pod.name}</p>
-                    <p className="text-xs text-muted-foreground">{pod.subcategory}</p>
+                    <p className="text-xs text-muted-foreground">{pod.subcategory ? POD_SUBCATEGORY_DISPLAY[pod.subcategory] : ''}</p>
                   </CardContent>
                 </Card>
               ))}
@@ -135,7 +143,7 @@ const PodDiscovery = () => {
         )}
 
         <h2 className="text-lg font-semibold text-foreground mb-4">
-          {selectedSubcategory === 'all' ? 'All Pods' : selectedSubcategory}
+          {selectedSubcategory === 'all' ? 'All Pods' : POD_SUBCATEGORY_DISPLAY[selectedSubcategory]}
           <span className="text-muted-foreground font-normal ml-2">({filteredPods.length})</span>
         </h2>
 
@@ -191,7 +199,9 @@ const PodDiscovery = () => {
         isJoined={selectedPodForDetails ? isJoined(selectedPodForDetails.id) : false}
         onJoin={() => selectedPodForDetails && handleJoinPod(selectedPodForDetails)}
         onLeave={() => selectedPodForDetails && leavePod(selectedPodForDetails.id)}
+        currentUserId={user?.id}
         onUserClick={(user) => {
+          setPodOwnerIdForProfile(selectedPodForDetails?.ownerId);
           setSelectedPodForDetails(null);
           setSelectedUserForProfile(user);
         }}
@@ -201,13 +211,27 @@ const PodDiscovery = () => {
       <UserProfileDialog
         user={selectedUserForProfile}
         isOpen={!!selectedUserForProfile}
-        onClose={() => setSelectedUserForProfile(null)}
-        onMessage={() => {
-          if (selectedUserForProfile) {
-            navigate('/chat', { state: { targetUser: selectedUserForProfile } });
-            setSelectedUserForProfile(null);
-          }
+        onClose={() => {
+          setSelectedUserForProfile(null);
+          setPodOwnerIdForProfile(undefined);
         }}
+        currentUserId={user?.id}
+        podOwnerId={podOwnerIdForProfile}
+        onMessage={() => {
+          setShowSendMessageDialog(true);
+        }}
+      />
+
+      {/* Send Message Dialog */}
+      <SendMessageDialog
+        isOpen={showSendMessageDialog}
+        onClose={() => {
+          setShowSendMessageDialog(false);
+          setSelectedUserForProfile(null);
+          setPodOwnerIdForProfile(undefined);
+        }}
+        user={selectedUserForProfile}
+        currentUserId={user?.id}
       />
     </div>
   );
@@ -237,7 +261,7 @@ const PodCard = ({
               <BadgeCheck className="w-4 h-4 text-blue-500 shrink-0" />
             )}
           </div>
-          <Badge variant="secondary" className="mt-1">{pod.subcategory}</Badge>
+          <Badge variant="secondary" className="mt-1">{pod.subcategory ? POD_SUBCATEGORY_DISPLAY[pod.subcategory] : ''}</Badge>
         </div>
       </div>
 

@@ -33,6 +33,8 @@ export const uploadApi = {
         'Content-Type': file.type,
       },
       transformRequest: [(data) => data],
+      // Don't send any extra headers that weren't part of the signature
+      withCredentials: false,
     });
   },
 

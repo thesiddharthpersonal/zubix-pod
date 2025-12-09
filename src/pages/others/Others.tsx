@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -10,10 +10,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Rocket, Upload, Send, MessageCircle, ChevronRight, ArrowLeft, Settings, HelpCircle, FileText, Users, Eye, Reply, MailOpen, PhoneCall } from 'lucide-react';
-import { Pitch, PitchReply, STARTUP_STAGES, PITCH_STATUSES, SECTORS, StartupStage, PitchStatus } from '@/types';
+import { Pitch, PitchReply, STARTUP_STAGES, PITCH_STATUSES, STARTUP_STAGE_DISPLAY, PITCH_STATUS_DISPLAY, SECTORS, StartupStage, PitchStatus } from '@/types';
 import TopNav from '@/components/layout/TopNav';
 import BottomNav from '@/components/layout/BottomNav';
 import { toast } from 'sonner';
+import { pitchesApi } from '@/services/api/pitches';
 
 // Feature list for Others section
 const FEATURES = [
@@ -27,62 +28,180 @@ const FEATURES = [
   { id: 'settings', name: 'Settings', description: 'Manage your preferences', icon: Settings, available: false, forAll: true },
 ];
 
-const MOCK_PITCHES: Pitch[] = [
-  { id: '1', podId: '1', podName: 'TechStars India', founderId: 'user1', founder: { id: 'user1', fullName: 'Rahul Sharma', username: 'rahul', email: 'r@e.com', mobile: '', role: 'user', createdAt: new Date() }, startupName: 'TechFlow AI', summary: 'AI-powered workflow automation for enterprises. Our platform reduces manual tasks by 70% and improves productivity across teams.', sector: 'Technology', stage: 'MVP', ask: '$500K', operatingCity: 'Bangalore', contactEmail: 'rahul@techflow.ai', contactPhone: '+91 98765 43210', status: 'New', replies: [], createdAt: new Date() },
-  { id: '2', podId: '1', podName: 'TechStars India', founderId: 'user2', founder: { id: 'user2', fullName: 'Priya Patel', username: 'priya', email: 'p@e.com', mobile: '', role: 'user', createdAt: new Date() }, startupName: 'EduLearn', summary: 'Gamified learning platform for K-12 students. We make education fun and engaging with interactive content.', sector: 'Education', stage: 'Early Traction', ask: '$1M', operatingCity: 'Mumbai', contactEmail: 'priya@edulearn.com', contactPhone: '+91 87654 32109', status: 'Replied', replies: [{ id: 'r1', pitchId: '2', authorId: 'owner1', author: { id: 'owner1', fullName: 'Investor Team', username: 'investor', email: 'i@e.com', mobile: '', role: 'pod_owner', createdAt: new Date() }, content: 'Great pitch! We would like to schedule a call to discuss further. Please share your availability for next week.', createdAt: new Date() }], createdAt: new Date() },
-  { id: '3', podId: '2', podName: 'Angel Network', founderId: 'user3', founder: { id: 'user3', fullName: 'Amit Kumar', username: 'amit', email: 'a@e.com', mobile: '', role: 'user', createdAt: new Date() }, startupName: 'GreenEnergy', summary: 'Renewable energy solutions for rural India. Solar-powered systems for agriculture and households.', sector: 'Energy', stage: 'Idea', ask: '$250K', operatingCity: 'Delhi', contactEmail: 'amit@greenenergy.in', contactPhone: '+91 76543 21098', status: 'Shortlisted', replies: [], createdAt: new Date() },
-];
-
 const Others = () => {
   const navigate = useNavigate();
   const { user, joinedPods } = useAuth();
-  const [pitches, setPitches] = useState(MOCK_PITCHES);
+  const [pitches, setPitches] = useState<Pitch[]>([]);
+  const [userPitches, setUserPitches] = useState<Pitch[]>([]);
   const [activeTab, setActiveTab] = useState('submit');
   const [selectedFeature, setSelectedFeature] = useState<string | null>(null);
   const [selectedPitch, setSelectedPitch] = useState<Pitch | null>(null);
   const [replyText, setReplyText] = useState('');
-  const [formData, setFormData] = useState({ startupName: '', summary: '', sector: '', stage: '' as StartupStage | '', ask: '', operatingCity: '', website: '', contactEmail: user?.email || '', contactPhone: user?.mobile || '', podId: '' });
+  const [loading, setLoading] = useState(false);
+  const [pitchDeckFile, setPitchDeckFile] = useState<File | null>(null);
+  const [formData, setFormData] = useState({ 
+    startupName: '', 
+    summary: '', 
+    sector: '', 
+    stage: '' as StartupStage | '', 
+    ask: '', 
+    operatingCity: '', 
+    website: '', 
+    contactEmail: user?.email || '', 
+    contactPhone: user?.mobile || '', 
+    podId: '' 
+  });
 
-  const isPodOwner = user?.role === 'pod_owner';
+  const isPodOwner = user?.role === 'pod_owner' || user?.role === 'POD_OWNER';
 
-  const handleSubmit = () => {
-    if (!formData.startupName || !formData.summary || !formData.podId) { toast.error('Fill required fields'); return; }
-    toast.success('Pitch submitted!');
-    setFormData({ startupName: '', summary: '', sector: '', stage: '', ask: '', operatingCity: '', website: '', contactEmail: '', contactPhone: '', podId: '' });
-  };
-
-  const updateStatus = (pitchId: string, status: PitchStatus) => {
-    setPitches(pitches.map((p) => p.id === pitchId ? { ...p, status } : p));
-    toast.success(`Status updated to ${status}`);
-  };
-
-  const handleReply = (pitchId: string) => {
-    if (!replyText.trim()) { toast.error('Please enter a reply'); return; }
-    
-    const newReply: PitchReply = {
-      id: `r${Date.now()}`,
-      pitchId,
-      authorId: user?.id || '',
-      author: user!,
-      content: replyText,
-      createdAt: new Date(),
+  // Fetch user's pitches
+  useEffect(() => {
+    const fetchUserPitches = async () => {
+      if (!user) return;
+      try {
+        const data = await pitchesApi.getUserPitches(user.id);
+        setUserPitches(data);
+      } catch (error) {
+        console.error('Failed to fetch user pitches:', error);
+      }
     };
 
-    setPitches(pitches.map((p) => 
-      p.id === pitchId 
-        ? { ...p, replies: [...p.replies, newReply], status: 'Replied' as PitchStatus } 
-        : p
-    ));
-    setReplyText('');
-    toast.success('Reply sent!');
+    if (selectedFeature === 'pitch') {
+      fetchUserPitches();
+    }
+  }, [user, selectedFeature]);
+
+  // Fetch pitches for pod owner
+  useEffect(() => {
+    const fetchPodPitches = async () => {
+      if (!user || !isPodOwner || !joinedPods.length) return;
+      try {
+        // Fetch pitches for all pods the user owns
+        const allPitches = await Promise.all(
+          joinedPods.map(pod => pitchesApi.getPodPitches(pod.id))
+        );
+        setPitches(allPitches.flat());
+      } catch (error) {
+        console.error('Failed to fetch pod pitches:', error);
+      }
+    };
+
+    if ((selectedFeature === 'view-pitches' || selectedFeature === 'pitch') && isPodOwner) {
+      fetchPodPitches();
+    }
+  }, [user, isPodOwner, joinedPods, selectedFeature]);
+
+  const handleSubmit = async () => {
+    if (!formData.startupName || !formData.summary || !formData.podId) { 
+      toast.error('Please fill in all required fields'); 
+      return; 
+    }
+
+    if (!formData.stage || !formData.sector) {
+      toast.error('Please select sector and stage');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const pitch = await pitchesApi.createPitch({
+        ...formData,
+        stage: formData.stage as StartupStage,
+      });
+
+      // Upload pitch deck if provided
+      if (pitchDeckFile) {
+        try {
+          await pitchesApi.uploadPitchDeck(pitch.id, pitchDeckFile);
+          toast.success('Pitch submitted with deck!');
+        } catch (error) {
+          console.error('Pitch deck upload error:', error);
+          toast.warning('Pitch submitted but deck upload failed');
+        }
+      } else {
+        toast.success('Pitch submitted successfully!');
+      }
+
+      // Reset form
+      setFormData({ 
+        startupName: '', 
+        summary: '', 
+        sector: '', 
+        stage: '', 
+        ask: '', 
+        operatingCity: '', 
+        website: '', 
+        contactEmail: user?.email || '', 
+        contactPhone: user?.mobile || '', 
+        podId: '' 
+      });
+      setPitchDeckFile(null);
+
+      // Refresh user pitches
+      const data = await pitchesApi.getUserPitches(user!.id);
+      setUserPitches(data);
+      setActiveTab('inbox');
+    } catch (error: any) {
+      console.error('Failed to create pitch:', error);
+      toast.error(error.message || 'Failed to submit pitch');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const updateStatus = async (pitchId: string, status: PitchStatus) => {
+    try {
+      await pitchesApi.updatePitchStatus({ pitchId, status });
+      setPitches(pitches.map((p) => p.id === pitchId ? { ...p, status } : p));
+      toast.success(`Status updated to ${status}`);
+    } catch (error) {
+      toast.error('Failed to update status');
+    }
+  };
+
+  const handleReply = async (pitchId: string) => {
+    if (!replyText.trim()) { toast.error('Please enter a reply'); return; }
+    
+    try {
+      setLoading(true);
+      const newReply: PitchReply = {
+        id: `r${Date.now()}`,
+        pitchId,
+        authorId: user?.id || '',
+        author: user!,
+        content: replyText,
+        createdAt: new Date(),
+      };
+
+      setPitches(pitches.map((p) => 
+        p.id === pitchId 
+          ? { ...p, replies: [...(p.replies || []), newReply], status: 'Replied' as PitchStatus } 
+          : p
+      ));
+      
+      if (selectedPitch && selectedPitch.id === pitchId) {
+        setSelectedPitch({
+          ...selectedPitch,
+          replies: [...(selectedPitch.replies || []), newReply],
+          status: 'Replied' as PitchStatus
+        });
+      }
+
+      setReplyText('');
+      toast.success('Reply sent!');
+    } catch (error) {
+      toast.error('Failed to send reply');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const getStatusColor = (status: PitchStatus) => {
     switch (status) {
-      case 'Accepted': return 'bg-success/10 text-success';
-      case 'Rejected': return 'bg-destructive/10 text-destructive';
-      case 'Shortlisted': return 'bg-primary/10 text-primary';
-      case 'Replied': return 'bg-accent/20 text-accent-foreground';
+      case 'ACCEPTED': return 'bg-success/10 text-success';
+      case 'REJECTED': return 'bg-destructive/10 text-destructive';
+      case 'SHORTLISTED': return 'bg-primary/10 text-primary';
+      case 'REPLIED': return 'bg-accent/20 text-accent-foreground';
       default: return 'bg-secondary text-secondary-foreground';
     }
   };
@@ -163,7 +282,7 @@ const Others = () => {
                     <h2 className="text-xl font-bold text-foreground">{selectedPitch.startupName}</h2>
                     <p className="text-sm text-muted-foreground">by {selectedPitch.founder.fullName}</p>
                   </div>
-                  <Badge className={getStatusColor(selectedPitch.status)}>{selectedPitch.status}</Badge>
+                  <Badge className={getStatusColor(selectedPitch.status)}>{PITCH_STATUS_DISPLAY[selectedPitch.status]}</Badge>
                 </div>
 
                 <div className="space-y-4">
@@ -179,7 +298,7 @@ const Others = () => {
                     </div>
                     <div>
                       <Label className="text-xs text-muted-foreground">Stage</Label>
-                      <p className="text-sm text-foreground">{selectedPitch.stage}</p>
+                      <p className="text-sm text-foreground">{STARTUP_STAGE_DISPLAY[selectedPitch.stage]}</p>
                     </div>
                     <div>
                       <Label className="text-xs text-muted-foreground">Ask</Label>
@@ -197,14 +316,29 @@ const Others = () => {
                     <p className="text-sm text-foreground">{selectedPitch.contactPhone}</p>
                   </div>
 
-                  <div className="flex gap-2">
+                  {selectedPitch.pitchDeckUrl && (
+                    <div className="border-t border-border pt-4">
+                      <Label className="text-xs text-muted-foreground">Pitch Deck</Label>
+                      <a
+                        href={selectedPitch.pitchDeckUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 mt-2 text-sm text-primary hover:underline"
+                      >
+                        <FileText className="w-4 h-4" />
+                        View Pitch Deck (PDF)
+                      </a>
+                    </div>
+                  )}
+
+                  <div className="flex gap-2">{
                     <Select value={selectedPitch.status} onValueChange={(v) => {
                       updateStatus(selectedPitch.id, v as PitchStatus);
                       setSelectedPitch({ ...selectedPitch, status: v as PitchStatus });
                     }}>
                       <SelectTrigger className="w-[140px]"><SelectValue /></SelectTrigger>
-                      <SelectContent>{PITCH_STATUSES.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
-                    </Select>
+                      <SelectContent>{PITCH_STATUSES.map((s) => <SelectItem key={s} value={s}>{PITCH_STATUS_DISPLAY[s]}</SelectItem>)}</SelectContent>
+                    </Select>}
                   </div>
                 </div>
               </CardContent>
@@ -219,22 +353,25 @@ const Others = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                {selectedPitch.replies.length > 0 ? (
+                {selectedPitch.replies && selectedPitch.replies.length > 0 ? (
                   <div className="space-y-3">
-                    {selectedPitch.replies.map((reply) => (
-                      <div key={reply.id} className="bg-secondary/50 rounded-lg p-3">
-                        <div className="flex items-center gap-2 mb-2">
-                          <div className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-semibold">
-                            {reply.author.fullName.charAt(0)}
+                    {selectedPitch.replies.map((reply) => {
+                      const replyDate = typeof reply.createdAt === 'string' ? new Date(reply.createdAt) : reply.createdAt;
+                      return (
+                        <div key={reply.id} className="bg-secondary/50 rounded-lg p-3">
+                          <div className="flex items-center gap-2 mb-2">
+                            <div className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-semibold">
+                              {reply.author.fullName.charAt(0)}
+                            </div>
+                            <div>
+                              <p className="text-sm font-medium text-foreground">{reply.author.fullName}</p>
+                              <p className="text-xs text-muted-foreground">{replyDate.toLocaleDateString()}</p>
+                            </div>
                           </div>
-                          <div>
-                            <p className="text-sm font-medium text-foreground">{reply.author.fullName}</p>
-                            <p className="text-xs text-muted-foreground">{reply.createdAt.toLocaleDateString()}</p>
-                          </div>
+                          <p className="text-sm text-foreground">{reply.content}</p>
                         </div>
-                        <p className="text-sm text-foreground">{reply.content}</p>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 ) : (
                   <p className="text-sm text-muted-foreground text-center py-4">No replies yet</p>
@@ -252,14 +389,13 @@ const Others = () => {
                   <Button 
                     variant="hero" 
                     className="w-full"
+                    disabled={loading || !replyText.trim()}
                     onClick={() => {
                       handleReply(selectedPitch.id);
-                      const updatedPitch = pitches.find(p => p.id === selectedPitch.id);
-                      if (updatedPitch) setSelectedPitch(updatedPitch);
                     }}
                   >
-                    <Reply className="w-4 h-4" />
-                    Send Reply
+                    <Reply className="w-4 h-4 mr-2" />
+                    {loading ? 'Sending...' : 'Send Reply'}
                   </Button>
                 </div>
               </CardContent>
@@ -300,12 +436,12 @@ const Others = () => {
                       <h3 className="font-semibold text-foreground">{pitch.startupName}</h3>
                       <p className="text-sm text-muted-foreground">by {pitch.founder.fullName}</p>
                     </div>
-                    <Badge className={getStatusColor(pitch.status)}>{pitch.status}</Badge>
+                    <Badge className={getStatusColor(pitch.status)}>{PITCH_STATUS_DISPLAY[pitch.status]}</Badge>
                   </div>
                   <p className="text-sm text-muted-foreground mt-2 line-clamp-2">{pitch.summary}</p>
                   <div className="flex flex-wrap gap-2 mt-3">
                     <Badge variant="outline">{pitch.sector}</Badge>
-                    <Badge variant="outline">{pitch.stage}</Badge>
+                    <Badge variant="outline">{STARTUP_STAGE_DISPLAY[pitch.stage]}</Badge>
                     <Badge variant="outline">{pitch.ask}</Badge>
                   </div>
                   <div className="flex items-center justify-between mt-4 pt-3 border-t border-border">
@@ -346,9 +482,10 @@ const Others = () => {
           </Button>
           <h1 className="text-2xl font-bold text-foreground mb-6">Pitch Module</h1>
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-2 mb-6">
+          <TabsList className={`grid w-full mb-6 ${isPodOwner ? 'grid-cols-3' : 'grid-cols-2'}`}>
             <TabsTrigger value="submit">Submit Pitch</TabsTrigger>
             <TabsTrigger value="inbox">My Pitches</TabsTrigger>
+            {isPodOwner ? <TabsTrigger value="received">Received</TabsTrigger> : null}
           </TabsList>
 
           <TabsContent value="submit">
@@ -357,11 +494,59 @@ const Others = () => {
               <CardContent className="space-y-4">
                 <div className="space-y-2"><Label>Select Pod *</Label><Select value={formData.podId} onValueChange={(v) => setFormData({ ...formData, podId: v })}><SelectTrigger><SelectValue placeholder="Choose pod" /></SelectTrigger><SelectContent>{joinedPods.map((p) => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}</SelectContent></Select></div>
                 <div className="space-y-2"><Label>Startup Name *</Label><Input value={formData.startupName} onChange={(e) => setFormData({ ...formData, startupName: e.target.value })} /></div>
-                <div className="space-y-2"><Label>Pitch Deck (PDF)</Label><div className="border-2 border-dashed border-border rounded-lg p-6 text-center"><Upload className="w-8 h-8 mx-auto text-muted-foreground mb-2" /><p className="text-sm text-muted-foreground">Click to upload PDF</p></div></div>
+                <div className="space-y-2">
+                  <Label>Pitch Deck (PDF)</Label>
+                  <div className="border-2 border-dashed border-border rounded-lg p-6 text-center cursor-pointer hover:border-primary transition-colors"
+                    onClick={() => document.getElementById('pitch-deck-upload')?.click()}
+                  >
+                    <Upload className="w-8 h-8 mx-auto text-muted-foreground mb-2" />
+                    <p className="text-sm text-muted-foreground">
+                      {pitchDeckFile ? pitchDeckFile.name : 'Click to upload PDF (Max 10MB)'}
+                    </p>
+                    <input
+                      id="pitch-deck-upload"
+                      type="file"
+                      accept=".pdf,application/pdf"
+                      className="hidden"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          if (file.type !== 'application/pdf') {
+                            toast.error('Please select a PDF file');
+                            return;
+                          }
+                          if (file.size > 10 * 1024 * 1024) {
+                            toast.error('File size must be less than 10MB');
+                            return;
+                          }
+                          setPitchDeckFile(file);
+                          toast.success('PDF selected');
+                        }
+                      }}
+                    />
+                  </div>
+                  {pitchDeckFile && (
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-muted-foreground">{(pitchDeckFile.size / 1024 / 1024).toFixed(2)} MB</span>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          setPitchDeckFile(null);
+                          const input = document.getElementById('pitch-deck-upload') as HTMLInputElement;
+                          if (input) input.value = '';
+                        }}
+                      >
+                        Remove
+                      </Button>
+                    </div>
+                  )}
+                </div>
                 <div className="space-y-2"><Label>Summary *</Label><Textarea value={formData.summary} onChange={(e) => setFormData({ ...formData, summary: e.target.value })} rows={3} /></div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2"><Label>Sector</Label><Select value={formData.sector} onValueChange={(v) => setFormData({ ...formData, sector: v })}><SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger><SelectContent>{SECTORS.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent></Select></div>
-                  <div className="space-y-2"><Label>Stage</Label><Select value={formData.stage} onValueChange={(v) => setFormData({ ...formData, stage: v as StartupStage })}><SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger><SelectContent>{STARTUP_STAGES.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent></Select></div>
+                  <div className="space-y-2"><Label>Stage</Label><Select value={formData.stage} onValueChange={(v) => setFormData({ ...formData, stage: v as StartupStage })}><SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger><SelectContent>{STARTUP_STAGES.map((s) => <SelectItem key={s} value={s}>{STARTUP_STAGE_DISPLAY[s]}</SelectItem>)}</SelectContent></Select></div>
                 </div>
                 <div className="space-y-2"><Label>Ask</Label><Input value={formData.ask} onChange={(e) => setFormData({ ...formData, ask: e.target.value })} placeholder="e.g., $500K" /></div>
                 <div className="space-y-2"><Label>Operating City</Label><Input value={formData.operatingCity} onChange={(e) => setFormData({ ...formData, operatingCity: e.target.value })} /></div>
@@ -370,14 +555,17 @@ const Others = () => {
                   <div className="space-y-2"><Label>Contact Email</Label><Input value={formData.contactEmail} onChange={(e) => setFormData({ ...formData, contactEmail: e.target.value })} /></div>
                   <div className="space-y-2"><Label>Contact Phone</Label><Input value={formData.contactPhone} onChange={(e) => setFormData({ ...formData, contactPhone: e.target.value })} /></div>
                 </div>
-                <Button variant="hero" className="w-full" onClick={handleSubmit}><Send className="w-4 h-4" />Submit Pitch</Button>
+                <Button variant="hero" className="w-full" onClick={handleSubmit} disabled={loading}>
+                  <Send className="w-4 h-4 mr-2" />
+                  {loading ? 'Submitting...' : 'Submit Pitch'}
+                </Button>
               </CardContent>
             </Card>
           </TabsContent>
 
           <TabsContent value="inbox">
             <div className="space-y-4">
-              {pitches.filter(p => p.founderId === user?.id || true).map((pitch) => (
+              {userPitches.length > 0 ? userPitches.map((pitch) => (
                 <Card key={pitch.id}>
                   <CardContent className="p-5">
                     <div className="flex items-start justify-between">
@@ -385,40 +573,116 @@ const Others = () => {
                         <h3 className="font-semibold text-foreground">{pitch.startupName}</h3>
                         <p className="text-sm text-muted-foreground">Sent to {pitch.podName}</p>
                       </div>
-                      <Badge className={getStatusColor(pitch.status)}>{pitch.status}</Badge>
+                      <Badge className={getStatusColor(pitch.status)}>{PITCH_STATUS_DISPLAY[pitch.status]}</Badge>
                     </div>
                     <p className="text-sm text-muted-foreground mt-2">{pitch.summary}</p>
                     <div className="flex flex-wrap gap-2 mt-3">
                       <Badge variant="outline">{pitch.sector}</Badge>
-                      <Badge variant="outline">{pitch.stage}</Badge>
+                      <Badge variant="outline">{STARTUP_STAGE_DISPLAY[pitch.stage]}</Badge>
                       <Badge variant="outline">{pitch.ask}</Badge>
+                      {pitch.pitchDeckUrl && (
+                        <a
+                          href={pitch.pitchDeckUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
+                        >
+                          <FileText className="w-3 h-3" />
+                          Pitch Deck
+                        </a>
+                      )}
                     </div>
 
                     {/* Show replies from pod owner */}
-                    {pitch.replies.length > 0 && (
+                    {pitch.replies && pitch.replies.length > 0 && (
                       <div className="mt-4 pt-4 border-t border-border">
                         <p className="text-sm font-medium text-foreground mb-2 flex items-center gap-1">
                           <MessageCircle className="w-4 h-4" />
                           Replies ({pitch.replies.length})
                         </p>
                         <div className="space-y-2">
-                          {pitch.replies.map((reply) => (
-                            <div key={reply.id} className="bg-secondary/50 rounded-lg p-3">
-                              <div className="flex items-center gap-2 mb-1">
-                                <span className="text-xs font-medium text-foreground">{reply.author.fullName}</span>
-                                <span className="text-xs text-muted-foreground">• {reply.createdAt.toLocaleDateString()}</span>
+                          {pitch.replies.map((reply) => {
+                            const replyDate = typeof reply.createdAt === 'string' ? new Date(reply.createdAt) : reply.createdAt;
+                            return (
+                              <div key={reply.id} className="bg-secondary/50 rounded-lg p-3">
+                                <div className="flex items-center gap-2 mb-1">
+                                  <span className="text-xs font-medium text-foreground">{reply.author.fullName}</span>
+                                  <span className="text-xs text-muted-foreground">• {replyDate.toLocaleDateString()}</span>
+                                </div>
+                                <p className="text-sm text-foreground">{reply.content}</p>
                               </div>
-                              <p className="text-sm text-foreground">{reply.content}</p>
-                            </div>
-                          ))}
+                            );
+                          })}
                         </div>
                       </div>
                     )}
                   </CardContent>
                 </Card>
-              ))}
+              )) : (
+                <div className="text-center py-12">
+                  <Rocket className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+                  <p className="text-muted-foreground">No pitches submitted yet</p>
+                  <p className="text-sm text-muted-foreground mt-1">Submit your first pitch to get started</p>
+                </div>
+              )}
             </div>
           </TabsContent>
+
+          {/* Received Pitches Tab (for pod owners) */}
+          {isPodOwner && (
+            <TabsContent value="received">
+              <div className="space-y-4">
+                {pitches.length > 0 ? pitches.map((pitch) => (
+                  <Card 
+                    key={pitch.id}
+                    className="cursor-pointer card-hover"
+                    onClick={() => {
+                      setSelectedPitch(pitch);
+                      setSelectedFeature('view-pitches');
+                    }}
+                  >
+                    <CardContent className="p-5">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <h3 className="font-semibold text-foreground">{pitch.startupName}</h3>
+                          <p className="text-sm text-muted-foreground">by {pitch.founder.fullName}</p>
+                        </div>
+                        <Badge className={getStatusColor(pitch.status)}>{PITCH_STATUS_DISPLAY[pitch.status]}</Badge>
+                      </div>
+                      <p className="text-sm text-muted-foreground mt-2 line-clamp-2">{pitch.summary}</p>
+                      <div className="flex flex-wrap gap-2 mt-3">
+                        <Badge variant="outline">{pitch.sector}</Badge>
+                        <Badge variant="outline">{STARTUP_STAGE_DISPLAY[pitch.stage]}</Badge>
+                        <Badge variant="outline">{pitch.ask}</Badge>
+                        {pitch.pitchDeckUrl && (
+                          <Badge variant="outline" className="text-primary">
+                            <FileText className="w-3 h-3 mr-1" />
+                            Has Deck
+                          </Badge>
+                        )}
+                      </div>
+                      <div className="flex items-center justify-between mt-4 pt-3 border-t border-border">
+                        <span className="text-xs text-muted-foreground">
+                          {pitch.replies && pitch.replies.length > 0 ? `${pitch.replies.length} replies` : 'No replies yet'}
+                        </span>
+                        <span className="text-xs text-primary flex items-center gap-1">
+                          View Details <ChevronRight className="w-3 h-3" />
+                        </span>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )) : (
+                  <div className="text-center py-12">
+                    <Eye className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+                    <p className="text-muted-foreground">No pitches received yet</p>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      When users submit pitches to your pods, they'll appear here
+                    </p>
+                  </div>
+                )}
+              </div>
+            </TabsContent>
+          )}
         </Tabs>
         </main>
         <BottomNav />

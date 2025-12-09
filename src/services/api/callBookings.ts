@@ -20,7 +20,7 @@ export const callBookingApi = {
   // Get all call booking requests made by a user
   getUserBookings: async (userId: string): Promise<CallBooking[]> => {
     try {
-      const response = await apiClient.get<{ bookings: CallBooking[] }>('/api/call-bookings/user');
+      const response = await apiClient.get<{ bookings: CallBooking[] }>('/api/call-bookings/requested');
       return response.data.bookings;
     } catch (error) {
       throw new Error(handleApiError(error));
@@ -72,7 +72,7 @@ export const callBookingApi = {
   // Get count of pending bookings for badge display
   getPendingCount: async (userId: string): Promise<number> => {
     try {
-      const response = await apiClient.get<{ count: number }>('/api/call-bookings/pending-count');
+      const response = await apiClient.get<{ count: number }>('/api/call-bookings/pending/count');
       return response.data.count;
     } catch (error) {
       throw new Error(handleApiError(error));

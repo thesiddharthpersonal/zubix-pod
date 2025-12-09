@@ -6,7 +6,7 @@ export interface User {
   mobile: string;
   username: string;
   profilePhoto?: string;
-  role: 'user' | 'pod_owner';
+  role: 'user' | 'pod_owner' | 'USER' | 'POD_OWNER';
   createdAt: Date;
 }
 
@@ -50,6 +50,7 @@ export interface Pod {
   ownerId: string;
   owner?: User;
   coOwnerIds: string[];
+  coOwners?: User[];
   memberIds: string[];
   isApproved: boolean;
   isVerified?: boolean;
@@ -226,11 +227,29 @@ export interface Pitch {
   createdAt: Date;
 }
 
-export type StartupStage = 'Idea' | 'MVP' | 'Early Traction' | 'Growth' | 'Scale';
-export type PitchStatus = 'New' | 'Viewed' | 'Replied' | 'Shortlisted' | 'Accepted' | 'Rejected';
+export type StartupStage = 'IDEA' | 'MVP' | 'EARLY_TRACTION' | 'GROWTH' | 'SCALE';
+export type PitchStatus = 'NEW' | 'VIEWED' | 'REPLIED' | 'SHORTLISTED' | 'ACCEPTED' | 'REJECTED';
 
-export const STARTUP_STAGES: StartupStage[] = ['Idea', 'MVP', 'Early Traction', 'Growth', 'Scale'];
-export const PITCH_STATUSES: PitchStatus[] = ['New', 'Viewed', 'Replied', 'Shortlisted', 'Accepted', 'Rejected'];
+export const STARTUP_STAGES: StartupStage[] = ['IDEA', 'MVP', 'EARLY_TRACTION', 'GROWTH', 'SCALE'];
+export const PITCH_STATUSES: PitchStatus[] = ['NEW', 'VIEWED', 'REPLIED', 'SHORTLISTED', 'ACCEPTED', 'REJECTED'];
+
+// Display mappings for enums
+export const STARTUP_STAGE_DISPLAY: Record<StartupStage, string> = {
+  'IDEA': 'Idea',
+  'MVP': 'MVP',
+  'EARLY_TRACTION': 'Early Traction',
+  'GROWTH': 'Growth',
+  'SCALE': 'Scale',
+};
+
+export const PITCH_STATUS_DISPLAY: Record<PitchStatus, string> = {
+  'NEW': 'New',
+  'VIEWED': 'Viewed',
+  'REPLIED': 'Replied',
+  'SHORTLISTED': 'Shortlisted',
+  'ACCEPTED': 'Accepted',
+  'REJECTED': 'Rejected',
+};
 
 // Chat Types
 export interface Chat {
@@ -262,11 +281,28 @@ export type CallBookingStatus = 'pending' | 'accepted' | 'rejected';
 export interface CallBooking {
   id: string;
   podId: string;
-  podName: string;
+  podName?: string;
+  pod?: { id: string; name: string; logo?: string };
   requesterId: string;
-  requester: User;
+  requester?: {
+    id: string;
+    username: string;
+    fullName: string;
+    avatar?: string;
+    organisationName?: string;
+    designation?: string;
+    email?: string;
+    mobile?: string;
+  };
   targetUserId: string;
-  targetUser: User;
+  target?: {
+    id: string;
+    username: string;
+    fullName: string;
+    avatar?: string;
+    organisationName?: string;
+    designation?: string;
+  };
   targetRole: 'owner' | 'co-owner';
   purpose: string;
   preferredDate?: Date;

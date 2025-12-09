@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { ArrowLeft, Phone, Calendar, Clock, Send, Check, X, MessageSquare } from 'lucide-react';
+import { ArrowLeft, Phone, Send, Check, X, MessageSquare } from 'lucide-react';
 import { CallBooking, User, Pod } from '@/types';
 import { toast } from 'sonner';
 import {
@@ -21,119 +21,23 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-
-// Mock pods with owners and co-owners
-const MOCK_PODS: (Pod & { coOwners: User[] })[] = [
-  {
-    id: '1',
-    name: 'TechStars India',
-    logo: undefined,
-    subcategory: 'Accelerator',
-    focusAreas: ['SaaS', 'FinTech'],
-    organisationName: 'TechStars',
-    organisationType: 'Private',
-    operatingCity: 'Bangalore',
-    socialLinks: {},
-    ownerId: 'owner1',
-    owner: { id: 'owner1', fullName: 'Vikram Mehta', username: 'vikram', email: 'v@e.com', mobile: '', role: 'pod_owner', createdAt: new Date() },
-    coOwnerIds: ['coowner1', 'coowner2'],
-    coOwners: [
-      { id: 'coowner1', fullName: 'Sneha Kapoor', username: 'sneha', email: 's@e.com', mobile: '', role: 'pod_owner', createdAt: new Date() },
-      { id: 'coowner2', fullName: 'Arjun Reddy', username: 'arjun', email: 'a@e.com', mobile: '', role: 'pod_owner', createdAt: new Date() },
-    ],
-    memberIds: [],
-    isApproved: true,
-    createdAt: new Date(),
-  },
-  {
-    id: '2',
-    name: 'Angel Network Mumbai',
-    logo: undefined,
-    subcategory: 'Angel Network',
-    focusAreas: ['Pre-Seed', 'Seed'],
-    organisationName: 'Angel Network',
-    organisationType: 'Private',
-    operatingCity: 'Mumbai',
-    socialLinks: {},
-    ownerId: 'owner2',
-    owner: { id: 'owner2', fullName: 'Priya Shah', username: 'priya', email: 'p@e.com', mobile: '', role: 'pod_owner', createdAt: new Date() },
-    coOwnerIds: ['coowner3'],
-    coOwners: [
-      { id: 'coowner3', fullName: 'Karan Malhotra', username: 'karan', email: 'k@e.com', mobile: '', role: 'pod_owner', createdAt: new Date() },
-    ],
-    memberIds: [],
-    isApproved: true,
-    createdAt: new Date(),
-  },
-];
-
-// Mock bookings for the user
-const MOCK_USER_BOOKINGS: CallBooking[] = [
-  {
-    id: '1',
-    podId: '1',
-    podName: 'TechStars India',
-    requesterId: 'user1',
-    requester: {} as User,
-    targetUserId: 'owner1',
-    targetUser: { id: 'owner1', fullName: 'Vikram Mehta', username: 'vikram', email: '', mobile: '', role: 'pod_owner', createdAt: new Date() },
-    targetRole: 'owner',
-    purpose: 'Discuss investment opportunity for my AI startup',
-    preferredDate: new Date(Date.now() + 86400000 * 3),
-    preferredTime: '3:00 PM',
-    status: 'pending',
-    createdAt: new Date(Date.now() - 86400000),
-  },
-];
-
-// Mock received bookings for pod owners
-const MOCK_RECEIVED_BOOKINGS: CallBooking[] = [
-  {
-    id: '2',
-    podId: '1',
-    podName: 'TechStars India',
-    requesterId: 'user2',
-    requester: { id: 'user2', fullName: 'Rahul Sharma', username: 'rahul', email: '', mobile: '', role: 'user', createdAt: new Date() },
-    targetUserId: 'owner1',
-    targetUser: {} as User,
-    targetRole: 'owner',
-    purpose: 'Want to pitch my EdTech startup and explore mentorship',
-    preferredDate: new Date(Date.now() + 86400000 * 2),
-    preferredTime: '11:00 AM',
-    status: 'pending',
-    createdAt: new Date(Date.now() - 3600000 * 5),
-  },
-  {
-    id: '3',
-    podId: '1',
-    podName: 'TechStars India',
-    requesterId: 'user3',
-    requester: { id: 'user3', fullName: 'Neha Gupta', username: 'neha', email: '', mobile: '', role: 'user', createdAt: new Date() },
-    targetUserId: 'owner1',
-    targetUser: {} as User,
-    targetRole: 'owner',
-    purpose: 'Seeking guidance on fundraising strategy',
-    status: 'accepted',
-    remark: 'Looking forward to the call! Please prepare your pitch deck.',
-    createdAt: new Date(Date.now() - 86400000 * 2),
-    respondedAt: new Date(Date.now() - 86400000),
-  },
-];
+import { callBookingApi } from '@/services/api/callBookings';
+import { podsApi } from '@/services/api/pods';
 
 const BookCall = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, joinedPods } = useAuth();
   const isPodOwner = user?.role === 'pod_owner';
 
   const [activeTab, setActiveTab] = useState(isPodOwner ? 'received' : 'book');
   const [selectedPodId, setSelectedPodId] = useState('');
   const [selectedPerson, setSelectedPerson] = useState('');
   const [purpose, setPurpose] = useState('');
-  const [preferredDate, setPreferredDate] = useState('');
-  const [preferredTime, setPreferredTime] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const [userBookings, setUserBookings] = useState<CallBooking[]>(MOCK_USER_BOOKINGS);
-  const [receivedBookings, setReceivedBookings] = useState<CallBooking[]>(MOCK_RECEIVED_BOOKINGS);
+  const [pods, setPods] = useState<(Pod & { coOwners: User[] })[]>([]);
+  const [userBookings, setUserBookings] = useState<CallBooking[]>([]);
+  const [receivedBookings, setReceivedBookings] = useState<CallBooking[]>([]);
 
   const [respondDialog, setRespondDialog] = useState<{ open: boolean; booking: CallBooking | null; action: 'accept' | 'reject' }>({
     open: false,
@@ -142,7 +46,71 @@ const BookCall = () => {
   });
   const [remark, setRemark] = useState('');
 
-  const selectedPod = MOCK_PODS.find(p => p.id === selectedPodId);
+  // Fetch joined pods with owners and co-owners
+  useEffect(() => {
+    const fetchPods = async () => {
+      try {
+        const podsWithDetails = await Promise.all(
+          joinedPods.map(async (pod) => {
+            try {
+              const details = await podsApi.getPodById(pod.id);
+              return {
+                ...pod,
+                owner: details.owner,
+                coOwners: details.coOwners || [],
+              };
+            } catch (error) {
+              console.error(`Failed to fetch details for pod ${pod.id}:`, error);
+              return null;
+            }
+          })
+        );
+        setPods(podsWithDetails.filter(Boolean) as (Pod & { coOwners: User[] })[]);
+      } catch (error) {
+        console.error('Failed to fetch pods:', error);
+      }
+    };
+
+    if (joinedPods.length > 0) {
+      fetchPods();
+    }
+  }, [joinedPods]);
+
+  // Fetch user's call bookings
+  useEffect(() => {
+    const fetchUserBookings = async () => {
+      if (!user) return;
+      
+      try {
+        const bookings = await callBookingApi.getUserBookings(user.id);
+        setUserBookings(bookings);
+      } catch (error) {
+        console.error('Failed to fetch user bookings:', error);
+      }
+    };
+
+    fetchUserBookings();
+  }, [user]);
+
+  // Fetch received bookings for all users
+  useEffect(() => {
+    const fetchReceivedBookings = async () => {
+      if (!user) return;
+      
+      try {
+        const bookings = await callBookingApi.getReceivedBookings(user.id);
+        console.log('Received bookings:', bookings);
+        console.log('Current user ID:', user.id);
+        setReceivedBookings(bookings);
+      } catch (error) {
+        console.error('Failed to fetch received bookings:', error);
+      }
+    };
+
+    fetchReceivedBookings();
+  }, [user]);
+
+  const selectedPod = pods.find(p => p.id === selectedPodId);
   const availablePeople = selectedPod
     ? [
         { ...selectedPod.owner, role: 'owner' as const },
@@ -150,35 +118,66 @@ const BookCall = () => {
       ]
     : [];
 
-  const handleSubmitBooking = () => {
-    if (!selectedPodId || !selectedPerson || !purpose.trim()) {
+  const handleSubmitBooking = async () => {
+    if (!selectedPodId || !selectedPerson || !purpose.trim() || !user) {
       toast.error('Please fill in all required fields');
       return;
     }
-    // TODO: Call callBookingApi.createBooking()
-    toast.success('Call booking request sent!');
-    setSelectedPodId('');
-    setSelectedPerson('');
-    setPurpose('');
-    setPreferredDate('');
-    setPreferredTime('');
-    setActiveTab('my-requests');
+
+    try {
+      setLoading(true);
+      const [targetUserId, targetRole] = selectedPerson.split(':');
+      
+      await callBookingApi.createBooking(user.id, {
+        podId: selectedPodId,
+        targetUserId,
+        targetRole: targetRole as 'owner' | 'co-owner',
+        purpose: purpose.trim(),
+      });
+
+      toast.success('Call booking request sent!');
+      
+      // Refresh bookings
+      const bookings = await callBookingApi.getUserBookings(user.id);
+      setUserBookings(bookings);
+      
+      // Reset form
+      setSelectedPodId('');
+      setSelectedPerson('');
+      setPurpose('');
+      setActiveTab('my-requests');
+    } catch (error: any) {
+      console.error('Failed to create booking:', error);
+      toast.error(error.message || 'Failed to send booking request');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleRespond = () => {
-    if (!respondDialog.booking) return;
+  const handleRespond = async () => {
+    if (!respondDialog.booking || !user) return;
     
-    setReceivedBookings(prev =>
-      prev.map(b =>
-        b.id === respondDialog.booking!.id
-          ? { ...b, status: respondDialog.action === 'accept' ? 'accepted' : 'rejected', remark, respondedAt: new Date() }
-          : b
-      )
-    );
-    
-    toast.success(`Request ${respondDialog.action === 'accept' ? 'accepted' : 'rejected'}`);
-    setRespondDialog({ open: false, booking: null, action: 'accept' });
-    setRemark('');
+    try {
+      setLoading(true);
+      await callBookingApi.respondToBooking({
+        bookingId: respondDialog.booking.id,
+        status: respondDialog.action === 'accept' ? 'accepted' : 'rejected',
+        remark: remark.trim() || undefined,
+      });
+
+      // Refresh received bookings
+      const bookings = await callBookingApi.getReceivedBookings(user.id);
+      setReceivedBookings(bookings);
+      
+      toast.success(`Request ${respondDialog.action === 'accept' ? 'accepted' : 'rejected'}`);
+      setRespondDialog({ open: false, booking: null, action: 'accept' });
+      setRemark('');
+    } catch (error: any) {
+      console.error('Failed to respond to booking:', error);
+      toast.error(error.message || 'Failed to respond to booking');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const getStatusColor = (status: CallBooking['status']) => {
@@ -189,8 +188,9 @@ const BookCall = () => {
     }
   };
 
-  const getTimeAgo = (date: Date): string => {
-    const seconds = Math.floor((new Date().getTime() - date.getTime()) / 1000);
+  const getTimeAgo = (date: Date | string): string => {
+    const dateObj = typeof date === 'string' ? new Date(date) : date;
+    const seconds = Math.floor((new Date().getTime() - dateObj.getTime()) / 1000);
     if (seconds < 60) return 'Just now';
     const minutes = Math.floor(seconds / 60);
     if (minutes < 60) return `${minutes}m ago`;
@@ -201,14 +201,19 @@ const BookCall = () => {
   };
 
   const BookingCard = ({ booking, type }: { booking: CallBooking; type: 'sent' | 'received' }) => {
-    const person = type === 'sent' ? booking.targetUser : booking.requester;
+    const person = type === 'sent' ? booking.target : booking.requester;
+    const podName = booking.pod?.name || booking.podName || 'Unknown Pod';
+    
+    if (!person) {
+      return null;
+    }
     
     return (
       <Card>
         <CardContent className="p-4">
           <div className="flex items-start gap-3">
             <Avatar className="w-12 h-12">
-              <AvatarImage src={person.profilePhoto} />
+              <AvatarImage src={person.avatar} />
               <AvatarFallback className="bg-primary/10 text-primary font-semibold">
                 {person.fullName.charAt(0)}
               </AvatarFallback>
@@ -220,25 +225,8 @@ const BookCall = () => {
                   {booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
                 </Badge>
               </div>
-              <p className="text-xs text-muted-foreground">{booking.podName} • {type === 'sent' ? booking.targetRole : 'User'}</p>
+              <p className="text-xs text-muted-foreground">{podName} • {type === 'sent' ? booking.targetRole : 'User'}</p>
               <p className="text-sm text-muted-foreground mt-2 line-clamp-2">{booking.purpose}</p>
-              
-              {(booking.preferredDate || booking.preferredTime) && (
-                <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
-                  {booking.preferredDate && (
-                    <span className="flex items-center gap-1">
-                      <Calendar className="w-3 h-3" />
-                      {new Date(booking.preferredDate).toLocaleDateString()}
-                    </span>
-                  )}
-                  {booking.preferredTime && (
-                    <span className="flex items-center gap-1">
-                      <Clock className="w-3 h-3" />
-                      {booking.preferredTime}
-                    </span>
-                  )}
-                </div>
-              )}
 
               {booking.remark && (
                 <div className="mt-3 p-2 bg-secondary/50 rounded-lg">
@@ -293,21 +281,19 @@ const BookCall = () => {
 
       <main className="container mx-auto px-4 py-4 max-w-2xl">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className={`w-full mb-6 ${isPodOwner ? 'grid-cols-3' : 'grid-cols-2'}`}>
+          <TabsList className="w-full mb-6 grid-cols-3">
             {!isPodOwner && <TabsTrigger value="book" className="flex-1">Book Call</TabsTrigger>}
             <TabsTrigger value="my-requests" className="flex-1">
-              {isPodOwner ? 'My Requests' : 'My Requests'}
+              My Requests
             </TabsTrigger>
-            {isPodOwner && (
-              <TabsTrigger value="received" className="flex-1">
-                Received
-                {pendingReceivedCount > 0 && (
-                  <span className="ml-2 bg-primary text-primary-foreground text-xs px-2 py-0.5 rounded-full">
-                    {pendingReceivedCount}
-                  </span>
-                )}
-              </TabsTrigger>
-            )}
+            <TabsTrigger value="received" className="flex-1">
+              Received
+              {pendingReceivedCount > 0 && (
+                <span className="ml-2 bg-primary text-primary-foreground text-xs px-2 py-0.5 rounded-full">
+                  {pendingReceivedCount}
+                </span>
+              )}
+            </TabsTrigger>
           </TabsList>
 
           {/* Book a Call Form (for users) */}
@@ -328,7 +314,7 @@ const BookCall = () => {
                         <SelectValue placeholder="Choose a pod" />
                       </SelectTrigger>
                       <SelectContent>
-                        {MOCK_PODS.map(pod => (
+                        {pods.map(pod => (
                           <SelectItem key={pod.id} value={pod.id}>{pod.name}</SelectItem>
                         ))}
                       </SelectContent>
@@ -366,29 +352,9 @@ const BookCall = () => {
                     />
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label>Preferred Date (optional)</Label>
-                      <Input
-                        type="date"
-                        value={preferredDate}
-                        onChange={(e) => setPreferredDate(e.target.value)}
-                        min={new Date().toISOString().split('T')[0]}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Preferred Time (optional)</Label>
-                      <Input
-                        type="time"
-                        value={preferredTime}
-                        onChange={(e) => setPreferredTime(e.target.value)}
-                      />
-                    </div>
-                  </div>
-
-                  <Button variant="hero" className="w-full" onClick={handleSubmitBooking}>
+                  <Button variant="hero" className="w-full" onClick={handleSubmitBooking} disabled={loading}>
                     <Send className="w-4 h-4 mr-2" />
-                    Send Request
+                    {loading ? 'Sending...' : 'Send Request'}
                   </Button>
                 </CardContent>
               </Card>
@@ -414,26 +380,24 @@ const BookCall = () => {
             )}
           </TabsContent>
 
-          {/* Received Requests (for pod owners) */}
-          {isPodOwner && (
-            <TabsContent value="received" className="space-y-3">
-              {receivedBookings.length === 0 ? (
-                <div className="text-center py-12">
-                  <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
-                    <Phone className="w-8 h-8 text-muted-foreground" />
-                  </div>
-                  <p className="text-muted-foreground">No call requests received</p>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    When users request calls, they'll appear here
-                  </p>
+          {/* Received Requests */}
+          <TabsContent value="received" className="space-y-3">
+            {receivedBookings.length === 0 ? (
+              <div className="text-center py-12">
+                <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Phone className="w-8 h-8 text-muted-foreground" />
                 </div>
-              ) : (
-                receivedBookings.map(booking => (
-                  <BookingCard key={booking.id} booking={booking} type="received" />
-                ))
-              )}
-            </TabsContent>
-          )}
+                <p className="text-muted-foreground">No call requests received</p>
+                <p className="text-sm text-muted-foreground mt-1">
+                  When users request calls with you, they'll appear here
+                </p>
+              </div>
+            ) : (
+              receivedBookings.map(booking => (
+                <BookingCard key={booking.id} booking={booking} type="received" />
+              ))
+            )}
+          </TabsContent>
         </Tabs>
       </main>
 
@@ -483,14 +447,15 @@ const BookCall = () => {
           )}
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => setRespondDialog({ open: false, booking: null, action: 'accept' })}>
+            <Button variant="outline" onClick={() => setRespondDialog({ open: false, booking: null, action: 'accept' })} disabled={loading}>
               Cancel
             </Button>
             <Button
               variant={respondDialog.action === 'accept' ? 'hero' : 'destructive'}
               onClick={handleRespond}
+              disabled={loading}
             >
-              {respondDialog.action === 'accept' ? (
+              {loading ? 'Processing...' : respondDialog.action === 'accept' ? (
                 <>
                   <Check className="w-4 h-4 mr-2" />
                   Accept

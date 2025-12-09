@@ -23,7 +23,7 @@ export interface UpdatePitchStatusRequest {
 export const pitchesApi = {
   getPodPitches: async (podId: string): Promise<Pitch[]> => {
     try {
-      const response = await apiClient.get<{ pitches: Pitch[] }>(`/api/pods/${podId}/pitches`);
+      const response = await apiClient.get<{ pitches: Pitch[] }>(`/api/pitches/pod/${podId}`);
       return response.data.pitches;
     } catch (error) {
       throw new Error(handleApiError(error));
@@ -41,7 +41,7 @@ export const pitchesApi = {
 
   getUserPitches: async (userId: string): Promise<Pitch[]> => {
     try {
-      const response = await apiClient.get<{ pitches: Pitch[] }>(`/api/users/${userId}/pitches`);
+      const response = await apiClient.get<{ pitches: Pitch[] }>(`/api/pitches/user/${userId}`);
       return response.data.pitches;
     } catch (error) {
       throw new Error(handleApiError(error));
@@ -76,7 +76,7 @@ export const pitchesApi = {
 
   updatePitchStatus: async (data: UpdatePitchStatusRequest): Promise<Pitch> => {
     try {
-      const response = await apiClient.put<{ pitch: Pitch }>(`/api/pitches/${data.pitchId}/status`, {
+      const response = await apiClient.patch<{ pitch: Pitch }>(`/api/pitches/${data.pitchId}/status`, {
         status: data.status,
       });
       return response.data.pitch;
@@ -87,16 +87,17 @@ export const pitchesApi = {
 
   uploadPitchDeck: async (pitchId: string, file: File): Promise<string> => {
     try {
-      const formData = new FormData();
-      formData.append('pitchDeck', file);
-      const response = await apiClient.post<{ url: string }>(
+      // First, upload the file to S3 public folder and get the URL
+      const uploadApi = (await import('./upload')).uploadApi;
+      const fileUrl = await uploadApi.uploadFile(file, 'public');
+      
+      // Then, update the pitch with the pitch deck URL
+      const response = await apiClient.post<{ pitch: Pitch }>(
         `/api/pitches/${pitchId}/pitch-deck`,
-        formData,
-        {
-          headers: { 'Content-Type': 'multipart/form-data' },
-        }
+        { pitchDeckUrl: fileUrl }
       );
-      return response.data.url;
+      
+      return fileUrl;
     } catch (error) {
       throw new Error(handleApiError(error));
     }
@@ -104,7 +105,7 @@ export const pitchesApi = {
 
   getPitchesByStatus: async (podId: string, status: PitchStatus): Promise<Pitch[]> => {
     try {
-      const response = await apiClient.get<{ pitches: Pitch[] }>(`/api/pods/${podId}/pitches`, {
+      const response = await apiClient.get<{ pitches: Pitch[] }>(`/api/pitches/pod/${podId}`, {
         params: { status },
       });
       return response.data.pitches;

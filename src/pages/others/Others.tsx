@@ -182,6 +182,10 @@ const Others = () => {
       const newReply = await pitchesApi.addPitchReply(pitchId, replyText);
       console.log('Reply created successfully:', newReply);
 
+      if (!newReply || !newReply.id) {
+        throw new Error('Invalid reply response from server');
+      }
+
       // Update local state with the new reply
       setPitches(pitches.map((p) => 
         p.id === pitchId 
@@ -199,6 +203,16 @@ const Others = () => {
 
       setReplyText('');
       toast.success('Reply sent successfully!');
+      
+      // Refresh the pitch to ensure we have the latest data
+      try {
+        const updatedPitch = await pitchesApi.getPitchById(pitchId);
+        if (selectedPitch && selectedPitch.id === pitchId) {
+          setSelectedPitch(updatedPitch);
+        }
+      } catch (refreshError) {
+        console.warn('Failed to refresh pitch:', refreshError);
+      }
     } catch (error: any) {
       console.error('Failed to send reply - Full error:', error);
       console.error('Error response:', error.response);

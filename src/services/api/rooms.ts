@@ -165,4 +165,34 @@ export const roomsApi = {
       throw new Error(handleApiError(error));
     }
   },
+
+  // Request to join a room (creates request for private rooms, directly joins public rooms)
+  requestJoinRoom: async (roomId: string): Promise<{ message: string; status: string }> => {
+    try {
+      const response = await apiClient.post<{ message: string; status: string }>(`/api/rooms/${roomId}/join-request`);
+      return response.data;
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
+  },
+
+  // Get pending join requests for a room (pod owner only)
+  getRoomJoinRequests: async (roomId: string): Promise<any[]> => {
+    try {
+      const response = await apiClient.get<{ joinRequests: any[] }>(`/api/rooms/${roomId}/join-requests`);
+      return response.data.joinRequests;
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
+  },
+
+  // Approve or reject a join request (pod owner only)
+  handleJoinRequest: async (roomId: string, requestId: string, status: 'ACCEPTED' | 'REJECTED'): Promise<{ message: string; status: string }> => {
+    try {
+      const response = await apiClient.put<{ message: string; status: string }>(`/api/rooms/${roomId}/join-requests/${requestId}`, { status });
+      return response.data;
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
+  },
 };

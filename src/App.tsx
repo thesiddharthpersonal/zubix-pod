@@ -20,6 +20,7 @@ import PostDetail from "@/pages/PostDetail";
 import Rooms from "@/pages/rooms/Rooms";
 import RoomChat from "@/pages/rooms/RoomChat";
 import RoomQA from "@/pages/rooms/RoomQA";
+import RoomJoinRequests from "@/pages/rooms/RoomJoinRequests";
 import Events from "@/pages/events/Events";
 import Others from "@/pages/others/Others";
 import Chat from "@/pages/chat/Chat";
@@ -91,6 +92,7 @@ const AppRoutes = () => {
       <Route path="/rooms" element={<ProtectedRoute><Rooms /></ProtectedRoute>} />
       <Route path="/rooms/:roomId/chat" element={<ProtectedRoute><RoomChat /></ProtectedRoute>} />
       <Route path="/rooms/:roomId/qa" element={<ProtectedRoute><RoomQA /></ProtectedRoute>} />
+      <Route path="/rooms/:roomId/join-requests" element={<ProtectedRoute><RoomJoinRequests /></ProtectedRoute>} />
       <Route path="/events" element={<ProtectedRoute><Events /></ProtectedRoute>} />
       <Route path="/others" element={<ProtectedRoute><Others /></ProtectedRoute>} />
       <Route path="/chat" element={<ProtectedRoute><Chat /></ProtectedRoute>} />

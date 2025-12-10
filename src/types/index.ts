@@ -147,10 +147,25 @@ export interface Room {
   pod?: {
     id: string;
     name: string;
+    ownerId?: string;
   };
+  isMember?: boolean;
+  joinRequestStatus?: 'PENDING' | 'ACCEPTED' | 'REJECTED' | null;
   _count?: {
     messages: number;
+    members?: number;
   };
+}
+
+export interface RoomJoinRequest {
+  id: string;
+  roomId: string;
+  userId: string;
+  status: 'PENDING' | 'ACCEPTED' | 'REJECTED';
+  createdAt: Date | string;
+  updatedAt: Date | string;
+  user?: User;
+  room?: Room;
 }
 
 export interface Message {

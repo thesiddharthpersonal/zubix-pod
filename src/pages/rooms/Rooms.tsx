@@ -107,7 +107,39 @@ const Rooms = () => {
     }
   };
 
-  const handleRoomClick = (room: Room) => {
+  const handleRoomClick = async (room: Room) => {
+    // Check if it's a private room and user is not a member
+    if (room.privacy === 'PRIVATE' && !room.isMember) {
+      // Check if there's already a pending request
+      if (room.joinRequestStatus === 'PENDING') {
+        toast({
+          title: 'Request Pending',
+          description: 'Your join request is pending approval from the pod owner',
+        });
+        return;
+      }
+
+      // Send join request
+      try {
+        const result = await roomsApi.requestJoinRoom(room.id);
+        toast({
+          title: 'Request Sent',
+          description: result.message || 'Your join request has been submitted',
+        });
+        
+        // Refresh rooms to update status
+        fetchRooms();
+      } catch (error: any) {
+        toast({
+          title: 'Error',
+          description: error.message || 'Failed to send join request',
+          variant: 'destructive',
+        });
+      }
+      return;
+    }
+
+    // Navigate to room
     if (room.type === 'QA') {
       navigate(`/rooms/${room.id}/qa`);
     } else {
@@ -282,40 +314,55 @@ const Rooms = () => {
   );
 };
 
-const RoomCard = ({ room, podName, onClick }: { room: Room; podName?: string; onClick: () => void }) => (
-  <Card className="cursor-pointer card-hover" onClick={onClick}>
-    <CardContent className="p-4">
-      <div className="flex items-center gap-4">
-        <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
-          room.type === 'QA' ? 'bg-accent/10 text-accent' : 'bg-primary/10 text-primary'
-        }`}>
-          {room.type === 'QA' ? <HelpCircle className="w-6 h-6" /> : <MessageSquare className="w-6 h-6" />}
-        </div>
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2">
-            <h3 className="font-semibold text-foreground truncate">{room.name}</h3>
-            {room.privacy === 'PRIVATE' ? (
-              <Lock className="w-4 h-4 text-muted-foreground shrink-0" />
-            ) : (
-              <Globe className="w-4 h-4 text-muted-foreground shrink-0" />
-            )}
+const RoomCard = ({ room, podName, onClick }: { room: Room; podName?: string; onClick: () => void }) => {
+  const isPrivateNotMember = room.privacy === 'PRIVATE' && !room.isMember;
+  const hasPendingRequest = room.joinRequestStatus === 'PENDING';
+
+  return (
+    <Card className="cursor-pointer card-hover" onClick={onClick}>
+      <CardContent className="p-4">
+        <div className="flex items-center gap-4">
+          <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
+            room.type === 'QA' ? 'bg-accent/10 text-accent' : 'bg-primary/10 text-primary'
+          }`}>
+            {room.type === 'QA' ? <HelpCircle className="w-6 h-6" /> : <MessageSquare className="w-6 h-6" />}
           </div>
-          <div className="flex items-center gap-3 mt-1">
-            {podName && (
-              <Badge variant="outline" className="text-xs">{podName}</Badge>
-            )}
-            <Badge variant="secondary" className="text-xs">{room.type === 'QA' ? 'Q&A' : 'Chat'}</Badge>
-            {room._count && (
-              <span className="flex items-center gap-1 text-sm text-muted-foreground">
-                <MessageSquare className="w-4 h-4" />
-                {room._count.messages}
-              </span>
-            )}
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2">
+              <h3 className="font-semibold text-foreground truncate">{room.name}</h3>
+              {room.privacy === 'PRIVATE' ? (
+                <Lock className="w-4 h-4 text-muted-foreground shrink-0" />
+              ) : (
+                <Globe className="w-4 h-4 text-muted-foreground shrink-0" />
+              )}
+            </div>
+            <div className="flex items-center gap-3 mt-1 flex-wrap">
+              {podName && (
+                <Badge variant="outline" className="text-xs">{podName}</Badge>
+              )}
+              <Badge variant="secondary" className="text-xs">{room.type === 'QA' ? 'Q&A' : 'Chat'}</Badge>
+              {hasPendingRequest && (
+                <Badge variant="outline" className="text-xs border-yellow-500 text-yellow-600">
+                  Request Pending
+                </Badge>
+              )}
+              {isPrivateNotMember && !hasPendingRequest && (
+                <Badge variant="outline" className="text-xs">
+                  Request to Join
+                </Badge>
+              )}
+              {room._count && room.isMember && (
+                <span className="flex items-center gap-1 text-sm text-muted-foreground">
+                  <MessageSquare className="w-4 h-4" />
+                  {room._count.messages}
+                </span>
+              )}
+            </div>
           </div>
         </div>
-      </div>
-    </CardContent>
-  </Card>
-);
+      </CardContent>
+    </Card>
+  );
+};
 
 export default Rooms;

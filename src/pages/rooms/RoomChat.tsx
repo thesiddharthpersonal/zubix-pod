@@ -174,9 +174,20 @@ const RoomChat = () => {
               )}
             </div>
           </div>
-          <Button variant="ghost" size="icon">
-            <MoreVertical className="w-5 h-5" />
-          </Button>
+          <div className="flex items-center gap-2">
+            {room?.privacy === 'PRIVATE' && room?.pod?.ownerId === user?.id && (
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => navigate(`/rooms/${roomId}/join-requests`)}
+              >
+                Requests
+              </Button>
+            )}
+            <Button variant="ghost" size="icon">
+              <MoreVertical className="w-5 h-5" />
+            </Button>
+          </div>
         </div>
       </header>
 

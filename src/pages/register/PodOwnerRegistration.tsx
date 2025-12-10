@@ -30,9 +30,12 @@ const PodOwnerRegistration = () => {
     // Step B
     podSubcategory: '' as PodSubcategory | '',
     // Step C
+    podName: '',
     organisationName: '',
     organisationType: '' as 'Government' | 'Private' | '',
+    organisationEmail: '',
     operatingCity: '',
+    website: '',
     focusAreas: [] as string[],
     totalInvestmentSize: '',
     numberOfInvestments: '',
@@ -57,8 +60,8 @@ const PodOwnerRegistration = () => {
       toast.error('Please select a pod subcategory');
       return;
     }
-    if (step === 3 && !formData.organisationName) {
-      toast.error('Organisation name is required');
+    if (step === 3 && (!formData.podName || !formData.organisationName)) {
+      toast.error('Pod name and organisation name are required');
       return;
     }
     if (step === 4 && !formData.linkedin) {
@@ -128,12 +131,14 @@ const PodOwnerRegistration = () => {
       const subcategoryEnum = formData.podSubcategory.toUpperCase().replace(/ /g, '_') as PodSubcategory;
       
       const podData: CreatePodRequest = {
-        name: formData.organisationName,
+        name: formData.podName,
         subcategory: subcategoryEnum,
         focusAreas: formData.focusAreas,
         organisationName: formData.organisationName,
         organisationType: formData.organisationType === 'Government' ? 'GOVERNMENT' : 'PRIVATE',
+        organisationEmail: formData.organisationEmail,
         operatingCity: formData.operatingCity,
+        website: formData.website,
         totalInvestmentSize: formData.totalInvestmentSize,
         numberOfInvestments: parseInt(formData.numberOfInvestments) || undefined,
         briefAboutOrganisation: formData.briefAboutOrganisation,
@@ -257,13 +262,25 @@ const PodOwnerRegistration = () => {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
+                  <Label htmlFor="podName">Pod Name *</Label>
+                  <Input
+                    id="podName"
+                    value={formData.podName}
+                    onChange={(e) => setFormData({ ...formData, podName: e.target.value })}
+                    placeholder="Enter your pod name"
+                  />
+                </div>
+
+                <div className="space-y-2">
                   <Label htmlFor="orgName">Organisation Name *</Label>
                   <Input
                     id="orgName"
                     value={formData.organisationName}
                     onChange={(e) => setFormData({ ...formData, organisationName: e.target.value })}
+                    placeholder="Enter organisation name"
                   />
                 </div>
+
                 <div className="space-y-2">
                   <Label>Organisation Type</Label>
                   <Select
@@ -279,53 +296,45 @@ const PodOwnerRegistration = () => {
                     </SelectContent>
                   </Select>
                 </div>
+
                 <div className="space-y-2">
-                  <Label htmlFor="city">Operating City</Label>
+                  <Label htmlFor="orgEmail">Organisation Email</Label>
+                  <Input
+                    id="orgEmail"
+                    type="email"
+                    value={formData.organisationEmail}
+                    onChange={(e) => setFormData({ ...formData, organisationEmail: e.target.value })}
+                    placeholder="contact@organisation.com"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="city">Location</Label>
                   <Input
                     id="city"
                     value={formData.operatingCity}
                     onChange={(e) => setFormData({ ...formData, operatingCity: e.target.value })}
+                    placeholder="e.g., Bangalore, India"
                   />
                 </div>
+
                 <div className="space-y-2">
-                  <Label>Focus Areas</Label>
-                  <div className="flex flex-wrap gap-2">
-                    {FOCUS_AREAS.map((area) => (
-                      <Badge
-                        key={area}
-                        variant={formData.focusAreas.includes(area) ? 'default' : 'outline'}
-                        className="cursor-pointer"
-                        onClick={() => toggleFocusArea(area)}
-                      >
-                        {area}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="investmentSize">Total Investment Size</Label>
+                  <Label htmlFor="website">Website</Label>
                   <Input
-                    id="investmentSize"
-                    value={formData.totalInvestmentSize}
-                    onChange={(e) => setFormData({ ...formData, totalInvestmentSize: e.target.value })}
-                    placeholder="e.g., $10M"
+                    id="website"
+                    value={formData.website}
+                    onChange={(e) => setFormData({ ...formData, website: e.target.value })}
+                    placeholder="https://yourwebsite.com"
                   />
                 </div>
+
                 <div className="space-y-2">
-                  <Label htmlFor="numInvestments">Number of Investments</Label>
-                  <Input
-                    id="numInvestments"
-                    type="number"
-                    value={formData.numberOfInvestments}
-                    onChange={(e) => setFormData({ ...formData, numberOfInvestments: e.target.value })}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="brief">Brief About Organisation</Label>
+                  <Label htmlFor="brief">Pod Description</Label>
                   <Textarea
                     id="brief"
                     value={formData.briefAboutOrganisation}
                     onChange={(e) => setFormData({ ...formData, briefAboutOrganisation: e.target.value })}
+                    placeholder="Describe your pod and what it offers..."
                     rows={3}
                   />
                 </div>

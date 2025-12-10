@@ -8,7 +8,9 @@ export interface CreatePodRequest {
   focusAreas: string[];
   organisationName: string;
   organisationType: 'GOVERNMENT' | 'PRIVATE';
+  organisationEmail?: string;
   operatingCity: string;
+  website?: string;
   totalInvestmentSize?: string;
   numberOfInvestments?: number;
   briefAboutOrganisation?: string;

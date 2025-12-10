@@ -10,7 +10,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Rocket, Search, Bell, MessageCircle, LogOut, User, Settings } from 'lucide-react';
+import { Search, Bell, MessageCircle, LogOut, User, Settings } from 'lucide-react';
 
 const TopNav = () => {
   const navigate = useNavigate();
@@ -27,8 +27,8 @@ const TopNav = () => {
         <div className="flex items-center justify-between gap-4">
           {/* Logo */}
           <Link to="/home" className="flex items-center gap-2 shrink-0">
-            <div className="w-9 h-9 rounded-lg bg-primary flex items-center justify-center">
-              <Rocket className="w-5 h-5 text-primary-foreground" />
+            <div className="w-9 h-9 rounded-lg flex items-center justify-center">
+              <img src="/zubixfavicon.png" alt="Zubix" className="w-9 h-9" />
             </div>
             <span className="text-lg font-bold text-foreground hidden sm:block">Zubix</span>
           </Link>

@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Rocket, Loader2, Camera, ArrowRight } from 'lucide-react';
+import { Loader2, Camera, ArrowRight } from 'lucide-react';
 import { toast } from 'sonner';
 import { uploadApi } from '@/services/api/upload';
 import { usersApi } from '@/services/api/users';

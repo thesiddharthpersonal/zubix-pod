@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Rocket, Users, Lightbulb, ArrowRight } from 'lucide-react';
+import { Users, Lightbulb, ArrowRight } from 'lucide-react';
 
 const Landing = () => {
   return (
@@ -15,8 +15,8 @@ const Landing = () => {
           {/* Header */}
           <header className="flex items-center justify-between mb-16">
             <div className="flex items-center gap-2">
-              <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center">
-                <Rocket className="w-5 h-5 text-primary-foreground" />
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center">
+                <img src="/zubixfavicon.png" alt="Zubix" className="w-10 h-10" />
               </div>
               <span className="text-xl font-bold text-foreground">Zubix</span>
             </div>

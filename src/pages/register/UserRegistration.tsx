@@ -23,7 +23,9 @@ const UserRegistration = () => {
     fullName: user?.fullName || '',
     mobile: user?.mobile || '',
     email: user?.email || '',
-    // Step B
+    // Step B - Profession Category
+    professionCategory: '',
+    // Step C
     organisationName: '',
     brandName: '',
     designation: '',
@@ -42,7 +44,7 @@ const UserRegistration = () => {
     youtube: '',
   });
 
-  const totalSteps = 3;
+  const totalSteps = 4;
   const progress = (step / totalSteps) * 100;
 
   const handleNext = () => {
@@ -52,7 +54,13 @@ const UserRegistration = () => {
         return;
       }
     }
-    if (step === 3) {
+    if (step === 2) {
+      if (!formData.professionCategory) {
+        toast.error('Please select a profession category');
+        return;
+      }
+    }
+    if (step === 4) {
       if (!formData.linkedin) {
         toast.error('LinkedIn profile is required');
         return;
@@ -84,6 +92,7 @@ const UserRegistration = () => {
       fullName: formData.fullName,
       mobile: formData.mobile,
       email: formData.email,
+      professionCategory: formData.professionCategory,
       organisationName: formData.organisationName,
       brandName: formData.brandName,
       designation: formData.designation,
@@ -170,6 +179,30 @@ const UserRegistration = () => {
           )}
 
           {step === 2 && (
+            <>
+              <CardHeader>
+                <CardTitle>Profession Category</CardTitle>
+                <CardDescription>Select your professional category</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label>Profession Category *</Label>
+                  <Select value={formData.professionCategory} onValueChange={(v) => setFormData({ ...formData, professionCategory: v })}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select your profession category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Startup">Startup</SelectItem>
+                      <SelectItem value="Working Professional">Working Professional</SelectItem>
+                      <SelectItem value="Student">Student</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </CardContent>
+            </>
+          )}
+
+          {step === 3 && (
             <>
               <CardHeader>
                 <CardTitle>Professional Details</CardTitle>
@@ -289,7 +322,7 @@ const UserRegistration = () => {
             </>
           )}
 
-          {step === 3 && (
+          {step === 4 && (
             <>
               <CardHeader>
                 <CardTitle>Social Links</CardTitle>

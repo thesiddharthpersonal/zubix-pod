@@ -11,6 +11,7 @@ export interface User {
 }
 
 export interface UserProfile extends User {
+  professionCategory?: string;
   organisationName?: string;
   profilePicture?: string;
   brandName?: string;

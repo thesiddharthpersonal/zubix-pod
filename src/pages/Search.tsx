@@ -10,9 +10,11 @@ import { usersApi, podsApi } from '@/services/api';
 import { UserProfile, Pod } from '@/types';
 import { toast } from 'sonner';
 import PodDetailsDialog from '@/components/PodDetailsDialog';
+import { useAuth } from '@/contexts/AuthContext';
 
 const Search = () => {
   const navigate = useNavigate();
+  const { user, joinedPods } = useAuth();
   const [query, setQuery] = useState('');
   const [tab, setTab] = useState('all');
   const [users, setUsers] = useState<UserProfile[]>([]);
@@ -95,11 +97,30 @@ const Search = () => {
           pod={selectedPod}
           isOpen={!!selectedPod}
           onClose={() => setSelectedPod(null)}
-          isJoined={false}
+          isJoined={joinedPods.some(p => p.id === selectedPod.id)}
           onJoin={() => {
-            toast.success('Join pod functionality coming soon');
-            setSelectedPod(null);
+            if (user?.id && selectedPod.id) {
+              podsApi.joinPod(selectedPod.id, user.id)
+                .then(() => {
+                  toast.success('Successfully joined pod');
+                  setSelectedPod(null);
+                  window.location.reload();
+                })
+                .catch(() => toast.error('Failed to join pod'));
+            }
           }}
+          onLeave={() => {
+            if (user?.id && selectedPod.id) {
+              podsApi.leavePod(selectedPod.id, user.id)
+                .then(() => {
+                  toast.success('Successfully left pod');
+                  setSelectedPod(null);
+                  window.location.reload();
+                })
+                .catch(() => toast.error('Failed to leave pod'));
+            }
+          }}
+          currentUserId={user?.id}
         />
       )}
     </div>

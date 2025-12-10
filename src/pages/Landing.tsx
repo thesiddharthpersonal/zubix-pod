@@ -18,7 +18,7 @@ const Landing = () => {
             Zubix
           </h1>
           <p className="text-muted-foreground text-lg">
-            Connect, Collaborate & Grow
+            Connect & Grow
           </p>
         </div>
 

@@ -288,36 +288,37 @@ const RoomQA = () => {
                   Ask
                 </Button>
               </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Ask a Question</DialogTitle>
-              </DialogHeader>
-              <div className="space-y-4 mt-4">
-                <Textarea
-                  value={newQuestion}
-                  onChange={(e) => setNewQuestion(e.target.value)}
-                  placeholder="What would you like to know?"
-                  rows={4}
-                  disabled={posting}
-                />
-                <Button 
-                  variant="hero" 
-                  className="w-full" 
-                  onClick={handleAddQuestion}
-                  disabled={posting}
-                >
-                  {posting ? (
-                    <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Posting...
-                    </>
-                  ) : (
-                    'Post Question'
-                  )}
-                </Button>
-              </div>
-            </DialogContent>
-          </Dialog>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Ask a Question</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4 mt-4">
+                  <Textarea
+                    value={newQuestion}
+                    onChange={(e) => setNewQuestion(e.target.value)}
+                    placeholder="What would you like to know?"
+                    rows={4}
+                    disabled={posting}
+                  />
+                  <Button 
+                    variant="hero" 
+                    className="w-full" 
+                    onClick={handleAddQuestion}
+                    disabled={posting}
+                  >
+                    {posting ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Posting...
+                      </>
+                    ) : (
+                      'Post Question'
+                    )}
+                  </Button>
+                </div>
+              </DialogContent>
+            </Dialog>
+          </div>
         </div>
       </header>
 

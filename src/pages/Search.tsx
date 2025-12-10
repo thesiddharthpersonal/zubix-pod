@@ -1,29 +1,50 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { ArrowLeft, Search as SearchIcon, Building2, Users } from 'lucide-react';
+import { ArrowLeft, Search as SearchIcon, Building2, Loader2 } from 'lucide-react';
+import { usersApi, podsApi } from '@/services/api';
+import { UserProfile, Pod } from '@/types';
+import { toast } from 'sonner';
 
 const Search = () => {
   const navigate = useNavigate();
   const [query, setQuery] = useState('');
   const [tab, setTab] = useState('all');
+  const [users, setUsers] = useState<UserProfile[]>([]);
+  const [pods, setPods] = useState<Pod[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const mockUsers = [
-    { id: '1', name: 'Rahul Sharma', username: 'rahulsharma', role: 'Founder' },
-    { id: '2', name: 'Priya Patel', username: 'priyapatel', role: 'Investor' },
-  ];
+  useEffect(() => {
+    const searchData = async () => {
+      if (!query.trim()) {
+        setUsers([]);
+        setPods([]);
+        return;
+      }
 
-  const mockPods = [
-    { id: '1', name: 'TechStars Bangalore', type: 'Accelerator' },
-    { id: '2', name: 'Indian Angel Network', type: 'Angel Network' },
-  ];
+      setIsLoading(true);
+      try {
+        const [usersData, podsData] = await Promise.all([
+          usersApi.searchUsers(query),
+          podsApi.searchPods(query)
+        ]);
+        setUsers(usersData);
+        setPods(podsData);
+      } catch (error) {
+        console.error('Search error:', error);
+        toast.error('Failed to search');
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-  const filteredUsers = mockUsers.filter((u) => u.name.toLowerCase().includes(query.toLowerCase()) || u.username.includes(query.toLowerCase()));
-  const filteredPods = mockPods.filter((p) => p.name.toLowerCase().includes(query.toLowerCase()));
+    const timeoutId = setTimeout(searchData, 300);
+    return () => clearTimeout(timeoutId);
+  }, [query]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -34,27 +55,79 @@ const Search = () => {
         </div>
       </header>
       <main className="container mx-auto px-4 py-4 max-w-2xl">
-        <Tabs value={tab} onValueChange={setTab}>
-          <TabsList className="grid w-full grid-cols-3 mb-4"><TabsTrigger value="all">All</TabsTrigger><TabsTrigger value="users">Users</TabsTrigger><TabsTrigger value="pods">Pods</TabsTrigger></TabsList>
-          <TabsContent value="all" className="space-y-3">
-            {filteredUsers.map((u) => <UserCard key={u.id} user={u} onClick={() => {}} />)}
-            {filteredPods.map((p) => <PodCard key={p.id} pod={p} onClick={() => navigate(`/pod/${p.id}`)} />)}
-          </TabsContent>
-          <TabsContent value="users" className="space-y-3">{filteredUsers.map((u) => <UserCard key={u.id} user={u} onClick={() => {}} />)}</TabsContent>
-          <TabsContent value="pods" className="space-y-3">{filteredPods.map((p) => <PodCard key={p.id} pod={p} onClick={() => navigate(`/pod/${p.id}`)} />)}</TabsContent>
-        </Tabs>
-        {query && filteredUsers.length === 0 && filteredPods.length === 0 && <p className="text-center text-muted-foreground py-8">No results found</p>}
+        {isLoading ? (
+          <div className="flex justify-center items-center py-12">
+            <Loader2 className="w-6 h-6 animate-spin text-primary" />
+          </div>
+        ) : (
+          <Tabs value={tab} onValueChange={setTab}>
+            <TabsList className="grid w-full grid-cols-3 mb-4">
+              <TabsTrigger value="all">All ({users.length + pods.length})</TabsTrigger>
+              <TabsTrigger value="users">Users ({users.length})</TabsTrigger>
+              <TabsTrigger value="pods">Pods ({pods.length})</TabsTrigger>
+            </TabsList>
+            <TabsContent value="all" className="space-y-3">
+              {users.map((u) => <UserCard key={u.id} user={u} onClick={() => navigate(`/profile/${u.id}`)} />)}
+              {pods.map((p) => <PodCard key={p.id} pod={p} onClick={() => navigate(`/pod/${p.id}`)} />)}
+              {query && users.length === 0 && pods.length === 0 && (
+                <p className="text-center text-muted-foreground py-8">No results found</p>
+              )}
+            </TabsContent>
+            <TabsContent value="users" className="space-y-3">
+              {users.map((u) => <UserCard key={u.id} user={u} onClick={() => navigate(`/profile/${u.id}`)} />)}
+              {query && users.length === 0 && (
+                <p className="text-center text-muted-foreground py-8">No users found</p>
+              )}
+            </TabsContent>
+            <TabsContent value="pods" className="space-y-3">
+              {pods.map((p) => <PodCard key={p.id} pod={p} onClick={() => navigate(`/pod/${p.id}`)} />)}
+              {query && pods.length === 0 && (
+                <p className="text-center text-muted-foreground py-8">No pods found</p>
+              )}
+            </TabsContent>
+          </Tabs>
+        )}
       </main>
     </div>
   );
 };
 
-const UserCard = ({ user, onClick }: { user: any; onClick: () => void }) => (
-  <Card className="cursor-pointer card-hover" onClick={onClick}><CardContent className="p-4 flex items-center gap-3"><Avatar><AvatarFallback>{user.name.charAt(0)}</AvatarFallback></Avatar><div><p className="font-medium text-foreground">{user.name}</p><p className="text-sm text-muted-foreground">@{user.username} · {user.role}</p></div></CardContent></Card>
+const UserCard = ({ user, onClick }: { user: UserProfile; onClick: () => void }) => (
+  <Card className="cursor-pointer card-hover" onClick={onClick}>
+    <CardContent className="p-4 flex items-center gap-3">
+      <Avatar>
+        {user.profilePhoto && <AvatarImage src={user.profilePhoto} />}
+        <AvatarFallback>{user.fullName?.charAt(0) || user.username.charAt(0).toUpperCase()}</AvatarFallback>
+      </Avatar>
+      <div className="flex-1">
+        <p className="font-medium text-foreground">{user.fullName || user.username}</p>
+        <p className="text-sm text-muted-foreground">
+          @{user.username}
+          {user.role && ` · ${user.role === 'POD_OWNER' ? 'Pod Owner' : 'User'}`}
+        </p>
+      </div>
+    </CardContent>
+  </Card>
 );
 
-const PodCard = ({ pod, onClick }: { pod: any; onClick: () => void }) => (
-  <Card className="cursor-pointer card-hover" onClick={onClick}><CardContent className="p-4 flex items-center gap-3"><div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center"><Building2 className="w-5 h-5 text-primary" /></div><div><p className="font-medium text-foreground">{pod.name}</p><p className="text-sm text-muted-foreground">{pod.type}</p></div></CardContent></Card>
+const PodCard = ({ pod, onClick }: { pod: Pod; onClick: () => void }) => (
+  <Card className="cursor-pointer card-hover" onClick={onClick}>
+    <CardContent className="p-4 flex items-center gap-3">
+      <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+        {pod.logo ? (
+          <img src={pod.logo} alt={pod.name} className="w-full h-full object-cover rounded-lg" />
+        ) : (
+          <Building2 className="w-5 h-5 text-primary" />
+        )}
+      </div>
+      <div className="flex-1">
+        <p className="font-medium text-foreground">{pod.name}</p>
+        <p className="text-sm text-muted-foreground">
+          {pod.subcategory?.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase()) || 'Pod'}
+        </p>
+      </div>
+    </CardContent>
+  </Card>
 );
 
 export default Search;

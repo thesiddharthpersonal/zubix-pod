@@ -66,7 +66,17 @@ const UserProfileDialog = ({ user, currentUserId, podOwnerId, isOpen, onClose, o
   if (!user) return null;
 
   const userProfile = user as UserProfile;
-  const hasSocialLinks = userProfile.socialLinks && Object.values(userProfile.socialLinks).some(Boolean);
+  
+  // Handle both nested socialLinks and flat URL fields from backend
+  const socialLinks = userProfile.socialLinks || {
+    linkedin: (user as any).linkedinUrl,
+    instagram: (user as any).instagramUrl,
+    facebook: (user as any).facebookUrl,
+    twitter: (user as any).twitterUrl,
+    youtube: (user as any).youtubeUrl,
+  };
+  
+  const hasSocialLinks = socialLinks && Object.values(socialLinks).some(Boolean);
 
   const handleMessageClick = () => {
     if (existingChatId) {
@@ -190,28 +200,28 @@ const UserProfileDialog = ({ user, currentUserId, podOwnerId, isOpen, onClose, o
             <div className="pt-2 border-t border-border">
               <h4 className="text-sm font-medium text-foreground mb-2">Connect</h4>
               <div className="flex gap-3">
-                {userProfile.socialLinks?.linkedin && (
-                  <a href={userProfile.socialLinks.linkedin} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors">
+                {socialLinks.linkedin && (
+                  <a href={socialLinks.linkedin} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors">
                     <Linkedin className="w-5 h-5" />
                   </a>
                 )}
-                {userProfile.socialLinks?.instagram && (
-                  <a href={userProfile.socialLinks.instagram} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors">
+                {socialLinks.instagram && (
+                  <a href={socialLinks.instagram} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors">
                     <Instagram className="w-5 h-5" />
                   </a>
                 )}
-                {userProfile.socialLinks?.facebook && (
-                  <a href={userProfile.socialLinks.facebook} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors">
+                {socialLinks.facebook && (
+                  <a href={socialLinks.facebook} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors">
                     <Facebook className="w-5 h-5" />
                   </a>
                 )}
-                {userProfile.socialLinks?.twitter && (
-                  <a href={userProfile.socialLinks.twitter} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors">
+                {socialLinks.twitter && (
+                  <a href={socialLinks.twitter} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors">
                     <Twitter className="w-5 h-5" />
                   </a>
                 )}
-                {userProfile.socialLinks?.youtube && (
-                  <a href={userProfile.socialLinks.youtube} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors">
+                {socialLinks.youtube && (
+                  <a href={socialLinks.youtube} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors">
                     <Youtube className="w-5 h-5" />
                   </a>
                 )}

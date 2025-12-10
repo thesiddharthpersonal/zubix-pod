@@ -291,11 +291,13 @@ const Rooms = () => {
         <div className="space-y-3">
           {filteredRooms.map((room) => {
             const pod = joinedPods.find(p => p.id === room.podId);
+            const isPodOwner = pod?.ownerId === user?.id;
             return (
               <RoomCard 
                 key={room.id} 
                 room={room} 
                 podName={selectedPod === 'all' ? pod?.name : undefined}
+                isPodOwner={isPodOwner}
                 onClick={() => handleRoomClick(room)} 
               />
             );
@@ -314,8 +316,10 @@ const Rooms = () => {
   );
 };
 
-const RoomCard = ({ room, podName, onClick }: { room: Room; podName?: string; onClick: () => void }) => {
-  const isPrivateNotMember = room.privacy === 'PRIVATE' && !room.isMember;
+const RoomCard = ({ room, podName, isPodOwner, onClick }: { room: Room; podName?: string; isPodOwner?: boolean; onClick: () => void }) => {
+  // Pod owners and room members should not see "Request to Join"
+  const isMemberOrOwner = room.isMember || isPodOwner;
+  const isPrivateNotMember = room.privacy === 'PRIVATE' && !isMemberOrOwner;
   const hasPendingRequest = room.joinRequestStatus === 'PENDING';
 
   return (
@@ -351,7 +355,7 @@ const RoomCard = ({ room, podName, onClick }: { room: Room; podName?: string; on
                   Request to Join
                 </Badge>
               )}
-              {room._count && room.isMember && (
+              {room._count && isMemberOrOwner && (
                 <span className="flex items-center gap-1 text-sm text-muted-foreground">
                   <MessageSquare className="w-4 h-4" />
                   {room._count.messages}

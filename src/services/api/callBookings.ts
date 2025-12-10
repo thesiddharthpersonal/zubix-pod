@@ -12,7 +12,7 @@ export interface CreateCallBookingData {
 
 export interface RespondToBookingData {
   bookingId: string;
-  status: 'ACCEPTED' | 'REJECTED';
+  status: 'accepted' | 'rejected';
   remark?: string;
 }
 

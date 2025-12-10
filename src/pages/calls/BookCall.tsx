@@ -161,7 +161,7 @@ const BookCall = () => {
       setLoading(true);
       await callBookingApi.respondToBooking({
         bookingId: respondDialog.booking.id,
-        status: respondDialog.action === 'accept' ? 'ACCEPTED' : 'REJECTED',
+        status: respondDialog.action === 'accept' ? 'accepted' : 'rejected',
         remark: remark.trim() || undefined,
       });
 

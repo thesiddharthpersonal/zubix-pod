@@ -29,6 +29,8 @@ const PodOwnerRegistration = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [coOwnerUsername, setCoOwnerUsername] = useState('');
   const [coOwners, setCoOwners] = useState<string[]>([]);
+  const [additionalLinks, setAdditionalLinks] = useState<Array<{ id: number; url: string }>>([]);
+  const [nextLinkId, setNextLinkId] = useState(1);
   
   const [formData, setFormData] = useState({
     // Step A
@@ -231,6 +233,7 @@ const PodOwnerRegistration = () => {
         socialLinks: {
           linkedin: formData.linkedin,
           others: formData.others,
+          additionalLinks: additionalLinks.filter(link => link.url.trim()).map(link => link.url),
         },
         coOwnerUsernames: coOwners,
         // Advanced fields
@@ -790,6 +793,42 @@ const PodOwnerRegistration = () => {
                     placeholder="Any other social link or website"
                   />
                 </div>
+                
+                {/* Additional dynamic links */}
+                {additionalLinks.map((link) => (
+                  <div key={link.id} className="flex gap-2">
+                    <Input
+                      value={link.url}
+                      onChange={(e) => {
+                        setAdditionalLinks(additionalLinks.map(l => 
+                          l.id === link.id ? { ...l, url: e.target.value } : l
+                        ));
+                      }}
+                      placeholder="Enter additional link"
+                    />
+                    <Button 
+                      type="button"
+                      variant="outline" 
+                      size="icon"
+                      onClick={() => setAdditionalLinks(additionalLinks.filter(l => l.id !== link.id))}
+                    >
+                      <X className="w-4 h-4" />
+                    </Button>
+                  </div>
+                ))}
+                
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full"
+                  onClick={() => {
+                    setAdditionalLinks([...additionalLinks, { id: nextLinkId, url: '' }]);
+                    setNextLinkId(nextLinkId + 1);
+                  }}
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add Link
+                </Button>
               </CardContent>
             </>
           )}

@@ -44,6 +44,7 @@ export interface SocialLinks {
   github?: string;
   portfolio?: string;
   others?: string;
+  additionalLinks?: string[];
 }
 
 // Pod Types

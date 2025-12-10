@@ -276,7 +276,7 @@ export interface MessageRequest {
 }
 
 // Call Booking Types
-export type CallBookingStatus = 'pending' | 'accepted' | 'rejected';
+export type CallBookingStatus = 'PENDING' | 'ACCEPTED' | 'REJECTED';
 
 export interface CallBooking {
   id: string;

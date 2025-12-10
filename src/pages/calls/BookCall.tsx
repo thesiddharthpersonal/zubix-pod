@@ -161,7 +161,7 @@ const BookCall = () => {
       setLoading(true);
       await callBookingApi.respondToBooking({
         bookingId: respondDialog.booking.id,
-        status: respondDialog.action === 'accept' ? 'accepted' : 'rejected',
+        status: respondDialog.action === 'accept' ? 'ACCEPTED' : 'REJECTED',
         remark: remark.trim() || undefined,
       });
 
@@ -182,8 +182,8 @@ const BookCall = () => {
 
   const getStatusColor = (status: CallBooking['status']) => {
     switch (status) {
-      case 'accepted': return 'bg-success/10 text-success';
-      case 'rejected': return 'bg-destructive/10 text-destructive';
+      case 'ACCEPTED': return 'bg-success/10 text-success';
+      case 'REJECTED': return 'bg-destructive/10 text-destructive';
       default: return 'bg-warning/10 text-warning';
     }
   };
@@ -238,7 +238,7 @@ const BookCall = () => {
               <div className="flex items-center justify-between mt-3">
                 <span className="text-xs text-muted-foreground">{getTimeAgo(booking.createdAt)}</span>
                 
-                {type === 'received' && booking.status === 'pending' && (
+                {type === 'received' && booking.status === 'PENDING' && (
                   <div className="flex gap-2">
                     <Button
                       variant="outline"
@@ -266,7 +266,7 @@ const BookCall = () => {
     );
   };
 
-  const pendingReceivedCount = receivedBookings.filter(b => b.status === 'pending').length;
+  const pendingReceivedCount = receivedBookings.filter(b => b.status === 'PENDING').length;
 
   return (
     <div className="min-h-screen bg-background pb-20">

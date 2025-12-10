@@ -271,13 +271,23 @@ const RoomQA = () => {
               )}
             </div>
           </div>
-          <Dialog open={isAddQuestionOpen} onOpenChange={setIsAddQuestionOpen}>
-            <DialogTrigger asChild>
-              <Button variant="hero" size="sm">
-                <Plus className="w-4 h-4" />
-                Ask
+          <div className="flex items-center gap-2">
+            {room?.privacy === 'PRIVATE' && room?.pod?.ownerId === user?.id && (
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => navigate(`/rooms/${roomId}/join-requests`)}
+              >
+                Requests
               </Button>
-            </DialogTrigger>
+            )}
+            <Dialog open={isAddQuestionOpen} onOpenChange={setIsAddQuestionOpen}>
+              <DialogTrigger asChild>
+                <Button variant="hero" size="sm">
+                  <Plus className="w-4 h-4" />
+                  Ask
+                </Button>
+              </DialogTrigger>
             <DialogContent>
               <DialogHeader>
                 <DialogTitle>Ask a Question</DialogTitle>

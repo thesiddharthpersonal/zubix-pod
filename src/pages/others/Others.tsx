@@ -76,9 +76,19 @@ const Others = () => {
     const fetchPodPitches = async () => {
       if (!user || !isPodOwner || !joinedPods.length) return;
       try {
-        // Fetch pitches for all pods the user owns
+        // Fetch pitches only for pods where user is owner or co-owner
+        const ownedPods = joinedPods.filter(pod => 
+          pod.ownerId === user.id || 
+          (pod.coOwners && pod.coOwners.some((co: any) => co.id === user.id))
+        );
+        
+        if (ownedPods.length === 0) {
+          setPitches([]);
+          return;
+        }
+        
         const allPitches = await Promise.all(
-          joinedPods.map(pod => pitchesApi.getPodPitches(pod.id))
+          ownedPods.map(pod => pitchesApi.getPodPitches(pod.id))
         );
         setPitches(allPitches.flat());
       } catch (error) {
@@ -164,18 +174,18 @@ const Others = () => {
     
     try {
       setLoading(true);
-      const newReply: PitchReply = {
-        id: `r${Date.now()}`,
-        pitchId,
-        authorId: user?.id || '',
-        author: user!,
-        content: replyText,
-        createdAt: new Date(),
-      };
+      console.log('Sending reply to pitch:', pitchId);
+      console.log('Reply content:', replyText);
+      console.log('Current user:', user?.id);
+      
+      // Call the API to add the reply
+      const newReply = await pitchesApi.addPitchReply(pitchId, replyText);
+      console.log('Reply created successfully:', newReply);
 
+      // Update local state with the new reply
       setPitches(pitches.map((p) => 
         p.id === pitchId 
-          ? { ...p, replies: [...(p.replies || []), newReply], status: 'Replied' as PitchStatus } 
+          ? { ...p, replies: [...(p.replies || []), newReply], status: 'REPLIED' as PitchStatus } 
           : p
       ));
       
@@ -183,14 +193,18 @@ const Others = () => {
         setSelectedPitch({
           ...selectedPitch,
           replies: [...(selectedPitch.replies || []), newReply],
-          status: 'Replied' as PitchStatus
+          status: 'REPLIED' as PitchStatus
         });
       }
 
       setReplyText('');
-      toast.success('Reply sent!');
-    } catch (error) {
-      toast.error('Failed to send reply');
+      toast.success('Reply sent successfully!');
+    } catch (error: any) {
+      console.error('Failed to send reply - Full error:', error);
+      console.error('Error response:', error.response);
+      console.error('Error message:', error.message);
+      const errorMsg = error.message || error.response?.data?.error || 'Failed to send reply';
+      toast.error(errorMsg);
     } finally {
       setLoading(false);
     }

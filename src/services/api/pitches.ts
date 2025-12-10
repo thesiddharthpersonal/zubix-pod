@@ -113,4 +113,15 @@ export const pitchesApi = {
       throw new Error(handleApiError(error));
     }
   },
+
+  addPitchReply: async (pitchId: string, content: string): Promise<any> => {
+    try {
+      const response = await apiClient.post(`/api/pitches/${pitchId}/replies`, {
+        content,
+      });
+      return response.data.reply;
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
+  },
 };

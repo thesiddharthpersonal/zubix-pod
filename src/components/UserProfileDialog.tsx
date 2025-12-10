@@ -5,7 +5,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { User, UserProfile } from '@/types';
-import { Mail, Phone, Building2, MapPin, Briefcase, Calendar, Linkedin, Instagram, Facebook, Twitter, Youtube, MessageCircle, Clock } from 'lucide-react';
+import { Mail, Phone, Building2, MapPin, Briefcase, Calendar, Linkedin, Instagram, Facebook, Twitter, Youtube, MessageCircle, Clock, Globe, Tag, TrendingUp } from 'lucide-react';
 import { messageRequestApi, chatApi } from '@/services/api';
 import { toast } from 'sonner';
 
@@ -117,7 +117,7 @@ const UserProfileDialog = ({ user, currentUserId, podOwnerId, isOpen, onClose, o
           </div>
 
           {/* Professional Info (if available) */}
-          {(userProfile.organisationName || userProfile.designation || userProfile.operatingCity) && (
+          {(userProfile.organisationName || userProfile.designation || userProfile.operatingCity || userProfile.brandName || userProfile.startupSubcategory || userProfile.businessType || userProfile.website) && (
             <div className="space-y-2 pt-2 border-t border-border">
               {userProfile.organisationName && (
                 <div className="flex items-center gap-3 p-2">
@@ -125,7 +125,7 @@ const UserProfileDialog = ({ user, currentUserId, podOwnerId, isOpen, onClose, o
                   <div className="min-w-0">
                     <p className="text-sm font-medium text-foreground truncate">{userProfile.organisationName}</p>
                     {userProfile.brandName && (
-                      <p className="text-xs text-muted-foreground truncate">{userProfile.brandName}</p>
+                      <p className="text-xs text-muted-foreground truncate">Brand: {userProfile.brandName}</p>
                     )}
                   </div>
                 </div>
@@ -136,10 +136,40 @@ const UserProfileDialog = ({ user, currentUserId, podOwnerId, isOpen, onClose, o
                   <span className="text-sm text-foreground">{userProfile.designation}</span>
                 </div>
               )}
+              {(userProfile.workingExperienceFrom || userProfile.workingExperienceTo) && (
+                <div className="flex items-center gap-3 p-2">
+                  <Calendar className="w-4 h-4 text-muted-foreground shrink-0" />
+                  <span className="text-sm text-foreground">
+                    {userProfile.workingExperienceFrom && new Date(userProfile.workingExperienceFrom).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
+                    {userProfile.workingExperienceFrom && userProfile.workingExperienceTo && ' - '}
+                    {userProfile.workingExperienceTo ? new Date(userProfile.workingExperienceTo).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : (userProfile.workingExperienceFrom ? 'Present' : '')}
+                  </span>
+                </div>
+              )}
+              {userProfile.startupSubcategory && (
+                <div className="flex items-center gap-3 p-2">
+                  <Tag className="w-4 h-4 text-muted-foreground shrink-0" />
+                  <span className="text-sm text-foreground">{userProfile.startupSubcategory}</span>
+                </div>
+              )}
+              {userProfile.businessType && (
+                <div className="flex items-center gap-3 p-2">
+                  <TrendingUp className="w-4 h-4 text-muted-foreground shrink-0" />
+                  <span className="text-sm text-foreground">{userProfile.businessType}</span>
+                </div>
+              )}
               {userProfile.operatingCity && (
                 <div className="flex items-center gap-3 p-2">
                   <MapPin className="w-4 h-4 text-muted-foreground shrink-0" />
                   <span className="text-sm text-foreground">{userProfile.operatingCity}</span>
+                </div>
+              )}
+              {userProfile.website && (
+                <div className="flex items-center gap-3 p-2">
+                  <Globe className="w-4 h-4 text-muted-foreground shrink-0" />
+                  <a href={userProfile.website} target="_blank" rel="noopener noreferrer" className="text-sm text-primary hover:underline truncate">
+                    {userProfile.website.replace(/^https?:\/\//, '')}
+                  </a>
                 </div>
               )}
             </div>

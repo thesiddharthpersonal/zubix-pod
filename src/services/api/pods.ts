@@ -16,6 +16,27 @@ export interface CreatePodRequest {
   briefAboutOrganisation?: string;
   socialLinks: SocialLinks;
   coOwnerUsernames?: string[];
+  // Advanced fields
+  supportedDomains?: string[];
+  supportedStages?: string[];
+  communityType?: string;
+  investmentAreas?: string[];
+  investmentStages?: string[];
+  chequeSize?: string;
+  investmentThesis?: string;
+  serviceType?: string;
+  programmeDuration?: string;
+  numberOfStartups?: number;
+  focusedSectors?: string[];
+  benefits?: string;
+  innovationFocusArea?: string;
+  collaborationModel?: string;
+  fundingGrantSupport?: string;
+  schemeName?: string;
+  programmeObjectives?: string;
+  benefitsOffered?: string;
+  eligibilityCriteria?: string;
+  eventsConducted?: string[];
 }
 
 export interface UpdatePodRequest extends Partial<CreatePodRequest> {}

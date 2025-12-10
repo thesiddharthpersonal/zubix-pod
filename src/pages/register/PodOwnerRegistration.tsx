@@ -14,6 +14,14 @@ import { POD_SUBCATEGORIES, POD_SUBCATEGORY_DISPLAY, FOCUS_AREAS, PodSubcategory
 import { toast } from 'sonner';
 import { podsApi, usersApi, CreatePodRequest, authApi } from '@/services/api';
 
+// Constants for advanced details
+const DOMAINS = ['Fintech', 'Edtech', 'Healthtech', 'Deeptech', 'Cleantech', 'Consumer Tech', 'D2C', 'Enterprise', 'Consumer Product', 'SaaS', 'Hardware', 'Social Impact'];
+const STAGES = ['Pre-Seed', 'Seed', 'Series A', 'Series B+'];
+const COMMUNITY_TYPES = ['Tech', 'Finance', 'Entrepreneurs'];
+const SERVICE_TYPES = ['Legal & Compliances', 'Website', 'App', 'Tech Development', 'Designing & Branding', 'Sales & Marketing', 'Trademark & Patent Expert', 'Others'];
+const COLLABORATION_MODELS = ['POC', 'Pilot', 'Co-Building', 'Others'];
+const EVENTS = ['Hackathons', 'Bootcamps', 'Expo', 'Events'];
+
 const PodOwnerRegistration = () => {
   const navigate = useNavigate();
   const { user, updateUserProfile, setPendingPodOwner } = useAuth();
@@ -40,7 +48,37 @@ const PodOwnerRegistration = () => {
     totalInvestmentSize: '',
     numberOfInvestments: '',
     briefAboutOrganisation: '',
-    // Step D
+    // Step D - Advanced Details (subcategory-specific)
+    // Incubation
+    supportedDomains: [] as string[],
+    supportedStages: [] as string[],
+    // Community
+    communityType: '',
+    customCommunityType: '',
+    // Venture Capital, Angel Investor, Angel Network
+    investmentAreas: [] as string[],
+    investmentStages: [] as string[],
+    chequeSize: '',
+    investmentThesis: '',
+    // Service Provider
+    serviceType: '',
+    // Accelerator
+    programmeDuration: '',
+    numberOfStartups: '',
+    focusedSectors: [] as string[],
+    benefits: '',
+    // Corporate Innovation
+    innovationFocusArea: '',
+    collaborationModel: '',
+    fundingGrantSupport: '',
+    // Government Programme
+    schemeName: '',
+    programmeObjectives: '',
+    benefitsOffered: '',
+    eligibilityCriteria: '',
+    // University E Cell
+    eventsConducted: [] as string[],
+    // Step E - Social Links
     linkedin: '',
     instagram: '',
     facebook: '',
@@ -48,7 +86,7 @@ const PodOwnerRegistration = () => {
     youtube: '',
   });
 
-  const totalSteps = 5;
+  const totalSteps = 6;
   const progress = (step / totalSteps) * 100;
 
   const handleNext = () => {
@@ -64,7 +102,7 @@ const PodOwnerRegistration = () => {
       toast.error('Pod name and organisation name are required');
       return;
     }
-    if (step === 4 && !formData.linkedin) {
+    if (step === 5 && !formData.linkedin) {
       toast.error('LinkedIn profile is required');
       return;
     }
@@ -102,6 +140,60 @@ const PodOwnerRegistration = () => {
       focusAreas: prev.focusAreas.includes(area)
         ? prev.focusAreas.filter((a) => a !== area)
         : [...prev.focusAreas, area],
+    }));
+  };
+
+  const toggleDomain = (domain: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      supportedDomains: prev.supportedDomains.includes(domain)
+        ? prev.supportedDomains.filter((d) => d !== domain)
+        : [...prev.supportedDomains, domain],
+    }));
+  };
+
+  const toggleStage = (stage: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      supportedStages: prev.supportedStages.includes(stage)
+        ? prev.supportedStages.filter((s) => s !== stage)
+        : [...prev.supportedStages, stage],
+    }));
+  };
+
+  const toggleInvestmentArea = (area: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      investmentAreas: prev.investmentAreas.includes(area)
+        ? prev.investmentAreas.filter((a) => a !== area)
+        : [...prev.investmentAreas, area],
+    }));
+  };
+
+  const toggleInvestmentStage = (stage: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      investmentStages: prev.investmentStages.includes(stage)
+        ? prev.investmentStages.filter((s) => s !== stage)
+        : [...prev.investmentStages, stage],
+    }));
+  };
+
+  const toggleFocusedSector = (sector: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      focusedSectors: prev.focusedSectors.includes(sector)
+        ? prev.focusedSectors.filter((s) => s !== sector)
+        : [...prev.focusedSectors, sector],
+    }));
+  };
+
+  const toggleEvent = (event: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      eventsConducted: prev.eventsConducted.includes(event)
+        ? prev.eventsConducted.filter((e) => e !== event)
+        : [...prev.eventsConducted, event],
     }));
   };
 
@@ -150,6 +242,27 @@ const PodOwnerRegistration = () => {
           youtube: formData.youtube,
         },
         coOwnerUsernames: coOwners,
+        // Advanced fields
+        supportedDomains: formData.supportedDomains.length > 0 ? formData.supportedDomains : undefined,
+        supportedStages: formData.supportedStages.length > 0 ? formData.supportedStages : undefined,
+        communityType: formData.communityType === 'Others' ? formData.customCommunityType : formData.communityType || undefined,
+        investmentAreas: formData.investmentAreas.length > 0 ? formData.investmentAreas : undefined,
+        investmentStages: formData.investmentStages.length > 0 ? formData.investmentStages : undefined,
+        chequeSize: formData.chequeSize || undefined,
+        investmentThesis: formData.investmentThesis || undefined,
+        serviceType: formData.serviceType || undefined,
+        programmeDuration: formData.programmeDuration || undefined,
+        numberOfStartups: parseInt(formData.numberOfStartups) || undefined,
+        focusedSectors: formData.focusedSectors.length > 0 ? formData.focusedSectors : undefined,
+        benefits: formData.benefits || undefined,
+        innovationFocusArea: formData.innovationFocusArea || undefined,
+        collaborationModel: formData.collaborationModel || undefined,
+        fundingGrantSupport: formData.fundingGrantSupport || undefined,
+        schemeName: formData.schemeName || undefined,
+        programmeObjectives: formData.programmeObjectives || undefined,
+        benefitsOffered: formData.benefitsOffered || undefined,
+        eligibilityCriteria: formData.eligibilityCriteria || undefined,
+        eventsConducted: formData.eventsConducted.length > 0 ? formData.eventsConducted : undefined,
       };
 
       const pod = await podsApi.createPod(podData);
@@ -345,6 +458,325 @@ const PodOwnerRegistration = () => {
           {step === 4 && (
             <>
               <CardHeader>
+                <CardTitle>Advanced Details</CardTitle>
+                <CardDescription>
+                  {formData.podSubcategory === 'INCUBATION' && 'Share your incubation program details'}
+                  {formData.podSubcategory === 'COMMUNITY' && 'Tell us about your community'}
+                  {(formData.podSubcategory === 'VENTURE_CAPITALIST' || formData.podSubcategory === 'ANGEL_INVESTOR' || formData.podSubcategory === 'ANGEL_NETWORK') && 'Share your investment criteria'}
+                  {formData.podSubcategory === 'SERVICE_PROVIDER' && 'Tell us about your services'}
+                  {formData.podSubcategory === 'ACCELERATOR' && 'Share your accelerator program details'}
+                  {formData.podSubcategory === 'CORPORATE_INNOVATION' && 'Share your innovation details'}
+                  {formData.podSubcategory === 'GOVERNMENT_PROGRAM' && 'Share your program details'}
+                  {formData.podSubcategory === 'UNIVERSITY_ENTREPRENEURSHIP_CELL' && 'Share your E-Cell activities'}
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                
+                {/* Incubation */}
+                {formData.podSubcategory === 'INCUBATION' && (
+                  <>
+                    <div className="space-y-2">
+                      <Label>Supported Domains *</Label>
+                      <div className="flex flex-wrap gap-2">
+                        {DOMAINS.map((domain) => (
+                          <Badge
+                            key={domain}
+                            variant={formData.supportedDomains.includes(domain) ? 'default' : 'outline'}
+                            className="cursor-pointer"
+                            onClick={() => toggleDomain(domain)}
+                          >
+                            {domain}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Supported Stages *</Label>
+                      <div className="flex flex-wrap gap-2">
+                        {STAGES.map((stage) => (
+                          <Badge
+                            key={stage}
+                            variant={formData.supportedStages.includes(stage) ? 'default' : 'outline'}
+                            className="cursor-pointer"
+                            onClick={() => toggleStage(stage)}
+                          >
+                            {stage}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  </>
+                )}
+
+                {/* Community */}
+                {formData.podSubcategory === 'COMMUNITY' && (
+                  <>
+                    <div className="space-y-2">
+                      <Label>Community Type *</Label>
+                      <Select
+                        value={formData.communityType}
+                        onValueChange={(v) => setFormData({ ...formData, communityType: v, customCommunityType: v === 'Others' ? formData.customCommunityType : '' })}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {COMMUNITY_TYPES.map((type) => (
+                            <SelectItem key={type} value={type}>{type}</SelectItem>
+                          ))}
+                          <SelectItem value="Others">Others</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    {formData.communityType === 'Others' && (
+                      <div className="space-y-2">
+                        <Label htmlFor="customCommunityType">Specify Community Type</Label>
+                        <Input
+                          id="customCommunityType"
+                          value={formData.customCommunityType}
+                          onChange={(e) => setFormData({ ...formData, customCommunityType: e.target.value })}
+                          placeholder="Enter community type"
+                        />
+                      </div>
+                    )}
+                  </>
+                )}
+
+                {/* Venture Capital, Angel Investor, Angel Network */}
+                {(formData.podSubcategory === 'VENTURE_CAPITALIST' || formData.podSubcategory === 'ANGEL_INVESTOR' || formData.podSubcategory === 'ANGEL_NETWORK') && (
+                  <>
+                    <div className="space-y-2">
+                      <Label>Investment Areas *</Label>
+                      <div className="flex flex-wrap gap-2">
+                        {DOMAINS.map((area) => (
+                          <Badge
+                            key={area}
+                            variant={formData.investmentAreas.includes(area) ? 'default' : 'outline'}
+                            className="cursor-pointer"
+                            onClick={() => toggleInvestmentArea(area)}
+                          >
+                            {area}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Investment Stages *</Label>
+                      <div className="flex flex-wrap gap-2">
+                        {STAGES.map((stage) => (
+                          <Badge
+                            key={stage}
+                            variant={formData.investmentStages.includes(stage) ? 'default' : 'outline'}
+                            className="cursor-pointer"
+                            onClick={() => toggleInvestmentStage(stage)}
+                          >
+                            {stage}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="chequeSize">Cheque Size</Label>
+                      <Input
+                        id="chequeSize"
+                        value={formData.chequeSize}
+                        onChange={(e) => setFormData({ ...formData, chequeSize: e.target.value })}
+                        placeholder="e.g., $100K - $1M"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="investmentThesis">Investment Thesis</Label>
+                      <Textarea
+                        id="investmentThesis"
+                        value={formData.investmentThesis}
+                        onChange={(e) => setFormData({ ...formData, investmentThesis: e.target.value })}
+                        placeholder="Describe your investment philosophy..."
+                        rows={3}
+                      />
+                    </div>
+                  </>
+                )}
+
+                {/* Service Provider */}
+                {formData.podSubcategory === 'SERVICE_PROVIDER' && (
+                  <div className="space-y-2">
+                    <Label>Type of Services *</Label>
+                    <Select
+                      value={formData.serviceType}
+                      onValueChange={(v) => setFormData({ ...formData, serviceType: v })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select service type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {SERVICE_TYPES.map((type) => (
+                          <SelectItem key={type} value={type}>{type}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+
+                {/* Accelerator */}
+                {formData.podSubcategory === 'ACCELERATOR' && (
+                  <>
+                    <div className="space-y-2">
+                      <Label htmlFor="programmeDuration">Programme Duration</Label>
+                      <Input
+                        id="programmeDuration"
+                        value={formData.programmeDuration}
+                        onChange={(e) => setFormData({ ...formData, programmeDuration: e.target.value })}
+                        placeholder="e.g., 3 months, 6 months"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="numberOfStartups">Number of Startups</Label>
+                      <Input
+                        id="numberOfStartups"
+                        type="number"
+                        value={formData.numberOfStartups}
+                        onChange={(e) => setFormData({ ...formData, numberOfStartups: e.target.value })}
+                        placeholder="e.g., 10"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Focused Sectors</Label>
+                      <div className="flex flex-wrap gap-2">
+                        {DOMAINS.map((sector) => (
+                          <Badge
+                            key={sector}
+                            variant={formData.focusedSectors.includes(sector) ? 'default' : 'outline'}
+                            className="cursor-pointer"
+                            onClick={() => toggleFocusedSector(sector)}
+                          >
+                            {sector}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="benefits">Benefits</Label>
+                      <Textarea
+                        id="benefits"
+                        value={formData.benefits}
+                        onChange={(e) => setFormData({ ...formData, benefits: e.target.value })}
+                        placeholder="List the benefits provided to startups..."
+                        rows={3}
+                      />
+                    </div>
+                  </>
+                )}
+
+                {/* Corporate Innovation */}
+                {formData.podSubcategory === 'CORPORATE_INNOVATION' && (
+                  <>
+                    <div className="space-y-2">
+                      <Label htmlFor="innovationFocusArea">Innovation Focus Area</Label>
+                      <Input
+                        id="innovationFocusArea"
+                        value={formData.innovationFocusArea}
+                        onChange={(e) => setFormData({ ...formData, innovationFocusArea: e.target.value })}
+                        placeholder="e.g., AI, IoT, Blockchain"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Collaboration Model</Label>
+                      <Select
+                        value={formData.collaborationModel}
+                        onValueChange={(v) => setFormData({ ...formData, collaborationModel: v })}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select model" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {COLLABORATION_MODELS.map((model) => (
+                            <SelectItem key={model} value={model}>{model}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="fundingGrantSupport">Funding/Grant Support Amount</Label>
+                      <Input
+                        id="fundingGrantSupport"
+                        value={formData.fundingGrantSupport}
+                        onChange={(e) => setFormData({ ...formData, fundingGrantSupport: e.target.value })}
+                        placeholder="e.g., Up to $50K"
+                      />
+                    </div>
+                  </>
+                )}
+
+                {/* Government Programme */}
+                {formData.podSubcategory === 'GOVERNMENT_PROGRAM' && (
+                  <>
+                    <div className="space-y-2">
+                      <Label htmlFor="schemeName">Scheme Name</Label>
+                      <Input
+                        id="schemeName"
+                        value={formData.schemeName}
+                        onChange={(e) => setFormData({ ...formData, schemeName: e.target.value })}
+                        placeholder="Enter scheme name"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="programmeObjectives">Programme Objectives</Label>
+                      <Textarea
+                        id="programmeObjectives"
+                        value={formData.programmeObjectives}
+                        onChange={(e) => setFormData({ ...formData, programmeObjectives: e.target.value })}
+                        placeholder="Describe the objectives..."
+                        rows={3}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="benefitsOffered">Benefits Offered</Label>
+                      <Textarea
+                        id="benefitsOffered"
+                        value={formData.benefitsOffered}
+                        onChange={(e) => setFormData({ ...formData, benefitsOffered: e.target.value })}
+                        placeholder="List the benefits..."
+                        rows={3}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="eligibilityCriteria">Eligibility Criteria</Label>
+                      <Textarea
+                        id="eligibilityCriteria"
+                        value={formData.eligibilityCriteria}
+                        onChange={(e) => setFormData({ ...formData, eligibilityCriteria: e.target.value })}
+                        placeholder="Describe eligibility requirements..."
+                        rows={3}
+                      />
+                    </div>
+                  </>
+                )}
+
+                {/* University E Cell */}
+                {formData.podSubcategory === 'UNIVERSITY_ENTREPRENEURSHIP_CELL' && (
+                  <div className="space-y-2">
+                    <Label>Events Conducted</Label>
+                    <div className="flex flex-wrap gap-2">
+                      {EVENTS.map((event) => (
+                        <Badge
+                          key={event}
+                          variant={formData.eventsConducted.includes(event) ? 'default' : 'outline'}
+                          className="cursor-pointer"
+                          onClick={() => toggleEvent(event)}
+                        >
+                          {event}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </>
+          )}
+
+          {step === 5 && (
+            <>
+              <CardHeader>
                 <CardTitle>Social Links</CardTitle>
                 <CardDescription>Connect your social profiles</CardDescription>
               </CardHeader>
@@ -394,7 +826,7 @@ const PodOwnerRegistration = () => {
             </>
           )}
 
-          {step === 5 && (
+          {step === 6 && (
             <>
               <CardHeader>
                 <CardTitle>Add Co-Owners</CardTitle>

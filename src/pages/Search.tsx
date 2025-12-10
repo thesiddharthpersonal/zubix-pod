@@ -93,8 +93,13 @@ const Search = () => {
       {selectedPod && (
         <PodDetailsDialog
           pod={selectedPod}
-          open={!!selectedPod}
-          onOpenChange={(open) => !open && setSelectedPod(null)}
+          isOpen={!!selectedPod}
+          onClose={() => setSelectedPod(null)}
+          isJoined={false}
+          onJoin={() => {
+            toast.success('Join pod functionality coming soon');
+            setSelectedPod(null);
+          }}
         />
       )}
     </div>

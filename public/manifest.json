@@ -1,6 +1,6 @@
 {
-  "name": "StartupPod",
-  "short_name": "StartupPod",
+  "name": "Zubix",
+  "short_name": "Zubix",
   "description": "Connect, Collaborate & Grow with the Startup Ecosystem",
   "start_url": "/",
   "display": "standalone",
@@ -9,9 +9,19 @@
   "orientation": "portrait-primary",
   "icons": [
     {
-      "src": "/favicon.ico",
-      "sizes": "64x64",
-      "type": "image/x-icon"
+      "src": "/zubixfavicon.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/pwa-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/pwa-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
     }
   ]
 }

@@ -13,7 +13,7 @@ export default defineConfig(() => ({
     react(),
     VitePWA({
       registerType: "autoUpdate",
-      includeAssets: ["favicon.ico", "pwa-192x192.png", "pwa-512x512.png"],
+      includeAssets: ["zubixfavicon.png", "pwa-192x192.png", "pwa-512x512.png"],
       manifest: {
         name: "Zubix - Startup Ecosystem",
         short_name: "Zubix",

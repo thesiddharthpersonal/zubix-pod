@@ -25,7 +25,7 @@ const UserRegistration = () => {
     email: user?.email || '',
     // Step B - Profession Category
     professionCategory: '',
-    // Step C
+    // Step C - Professional/Student Details
     organisationName: '',
     brandName: '',
     designation: '',
@@ -36,7 +36,12 @@ const UserRegistration = () => {
     briefAboutOrganisation: '',
     operatingCity: '',
     website: '',
-    // Step C
+    // Student specific fields
+    collegeName: '',
+    currentCourse: '',
+    yearSemester: '',
+    interestDomain: '',
+    // Step D - Social Links
     linkedin: '',
     instagram: '',
     facebook: '',
@@ -103,6 +108,10 @@ const UserRegistration = () => {
       briefAboutOrganisation: formData.briefAboutOrganisation,
       operatingCity: formData.operatingCity,
       website: formData.website,
+      collegeName: formData.collegeName,
+      currentCourse: formData.currentCourse,
+      yearSemester: formData.yearSemester,
+      interestDomain: formData.interestDomain,
       socialLinks: {
         linkedin: formData.linkedin,
         instagram: formData.instagram,
@@ -202,7 +211,68 @@ const UserRegistration = () => {
             </>
           )}
 
-          {step === 3 && (
+          {step === 3 && formData.professionCategory === 'Student' && (
+            <>
+              <CardHeader>
+                <CardTitle>Student Details</CardTitle>
+                <CardDescription>Tell us about your education</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="collegeName">College/University Name</Label>
+                  <Input
+                    id="collegeName"
+                    value={formData.collegeName}
+                    onChange={(e) => setFormData({ ...formData, collegeName: e.target.value })}
+                    placeholder="Enter your college/university name"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="currentCourse">Current Course/Program</Label>
+                  <Input
+                    id="currentCourse"
+                    value={formData.currentCourse}
+                    onChange={(e) => setFormData({ ...formData, currentCourse: e.target.value })}
+                    placeholder="e.g., B.Tech in Computer Science"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="yearSemester">Year/Semester</Label>
+                  <Input
+                    id="yearSemester"
+                    value={formData.yearSemester}
+                    onChange={(e) => setFormData({ ...formData, yearSemester: e.target.value })}
+                    placeholder="e.g., 3rd Year, 5th Semester"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="interestDomain">Interest Domain</Label>
+                  <Input
+                    id="interestDomain"
+                    value={formData.interestDomain}
+                    onChange={(e) => setFormData({ ...formData, interestDomain: e.target.value })}
+                    placeholder="e.g., AI/ML, Web Development, Data Science"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="briefStudent">Brief about yourself</Label>
+                  <Textarea
+                    id="briefStudent"
+                    value={formData.briefAboutOrganisation}
+                    onChange={(e) => setFormData({ ...formData, briefAboutOrganisation: e.target.value })}
+                    placeholder="Tell us about yourself, your interests, and goals..."
+                    rows={3}
+                  />
+                </div>
+              </CardContent>
+            </>
+          )}
+
+          {step === 3 && formData.professionCategory !== 'Student' && (
             <>
               <CardHeader>
                 <CardTitle>Professional Details</CardTitle>

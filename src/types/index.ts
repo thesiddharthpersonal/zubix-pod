@@ -23,6 +23,11 @@ export interface UserProfile extends User {
   briefAboutOrganisation?: string;
   operatingCity?: string;
   website?: string;
+  // Student specific fields
+  collegeName?: string;
+  currentCourse?: string;
+  yearSemester?: string;
+  interestDomain?: string;
   socialLinks: SocialLinks;
 }
 

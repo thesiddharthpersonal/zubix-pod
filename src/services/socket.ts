@@ -55,6 +55,10 @@ class SocketClient {
     });
   }
 
+  isConnected(): boolean {
+    return this.socket?.connected || false;
+  }
+
   disconnect(): void {
     if (this.socket) {
       this.socket.disconnect();

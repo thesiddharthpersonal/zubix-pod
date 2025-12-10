@@ -25,25 +25,35 @@ const RoomChat = () => {
   useEffect(() => {
     if (!roomId) return;
 
+    // Ensure socket is connected
+    if (!socket.isConnected()) {
+      socket.connect();
+    }
+
     fetchRoomData();
     fetchMessages();
 
-    // Join the room via Socket.IO
-    socket.joinRoom(roomId);
+    // Small delay to ensure socket is ready
+    const joinTimeout = setTimeout(() => {
+      socket.joinRoom(roomId);
+    }, 100);
 
     // Listen for new messages
     const handleNewMessage = (message: Message) => {
       console.log('Received new message:', message);
       if (message.roomId === roomId) {
-        setMessages((prev) => [...prev, message]);
-      } else {
-        console.log('Message room ID mismatch:', message.roomId, 'vs', roomId);
+        setMessages((prev) => {
+          // Avoid duplicates
+          const exists = prev.some(m => m.id === message.id);
+          return exists ? prev : [...prev, message];
+        });
       }
     };
 
     socket.onRoomMessage(handleNewMessage);
 
     return () => {
+      clearTimeout(joinTimeout);
       socket.leaveRoom(roomId);
       socket.offRoomMessage(handleNewMessage);
     };
@@ -94,17 +104,39 @@ const RoomChat = () => {
   };
 
   const handleSend = async () => {
-    if (!newMessage.trim() || !roomId) return;
+    if (!newMessage.trim() || !roomId || !user) return;
 
     const tempMessage = newMessage;
     setNewMessage('');
     setSending(true);
 
+    // Optimistic update - add message immediately
+    const optimisticMessage: Message = {
+      id: `temp-${Date.now()}`,
+      content: tempMessage,
+      roomId: roomId,
+      senderId: user.id,
+      sender: user,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+
+    setMessages((prev) => [...prev, optimisticMessage]);
+
     try {
+      // Ensure socket is connected
+      if (!socket.isConnected()) {
+        socket.connect();
+        // Wait a bit for connection
+        await new Promise(resolve => setTimeout(resolve, 500));
+      }
+
       // Send message via Socket.IO
       socket.sendRoomMessage(roomId, tempMessage);
     } catch (error: any) {
       console.error('Error sending message:', error);
+      // Remove optimistic message on error
+      setMessages((prev) => prev.filter(m => m.id !== optimisticMessage.id));
       toast({
         title: 'Error',
         description: 'Failed to send message',

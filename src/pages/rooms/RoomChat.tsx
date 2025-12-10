@@ -43,9 +43,11 @@ const RoomChat = () => {
       console.log('Received new message:', message);
       if (message.roomId === roomId) {
         setMessages((prev) => {
-          // Avoid duplicates
-          const exists = prev.some(m => m.id === message.id);
-          return exists ? prev : [...prev, message];
+          // Remove temporary optimistic message and add real one
+          const filteredMessages = prev.filter(m => !m.id.toString().startsWith('temp-'));
+          // Check if real message already exists
+          const exists = filteredMessages.some(m => m.id === message.id);
+          return exists ? prev : [...filteredMessages, message];
         });
       }
     };

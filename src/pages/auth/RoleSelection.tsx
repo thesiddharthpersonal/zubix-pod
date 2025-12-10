@@ -26,8 +26,8 @@ const RoleSelection = () => {
           {/* Header */}
           <div className="text-center mb-12">
             <div className="flex items-center justify-center gap-2 mb-6">
-              <div className="w-12 h-12 rounded-xl bg-primary flex items-center justify-center">
-                <Rocket className="w-6 h-6 text-primary-foreground" />
+              <div className="w-16 h-16 rounded-xl flex items-center justify-center">
+                <img src="/zubixfavicon.png" alt="Zubix" className="w-16 h-16" />
               </div>
             </div>
             <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-4">

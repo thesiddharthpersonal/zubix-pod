@@ -50,8 +50,8 @@ const Login = () => {
         <div className="w-full max-w-md">
           {/* Logo */}
           <div className="flex items-center justify-center gap-2 mb-8">
-            <div className="w-12 h-12 rounded-xl bg-primary flex items-center justify-center">
-              <Rocket className="w-6 h-6 text-primary-foreground" />
+            <div className="w-12 h-12 rounded-xl flex items-center justify-center">
+              <img src="/zubixfavicon.png" alt="Zubix" className="w-12 h-12" />
             </div>
             <span className="text-2xl font-bold text-foreground">Zubix</span>
           </div>

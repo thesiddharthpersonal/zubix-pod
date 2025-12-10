@@ -5,7 +5,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { User, UserProfile } from '@/types';
-import { Mail, Phone, Building2, MapPin, Briefcase, Calendar, Linkedin, Instagram, Facebook, Twitter, Youtube, MessageCircle, Clock, Globe, Tag, TrendingUp } from 'lucide-react';
+import { Mail, Phone, Building2, MapPin, Briefcase, Calendar, Linkedin, Instagram, Facebook, Twitter, Youtube, MessageCircle, Clock, Globe, Tag, TrendingUp, Github, Folder } from 'lucide-react';
 import { messageRequestApi, chatApi } from '@/services/api';
 import { toast } from 'sonner';
 
@@ -74,6 +74,8 @@ const UserProfileDialog = ({ user, currentUserId, podOwnerId, isOpen, onClose, o
     facebook: (user as any).facebookUrl,
     twitter: (user as any).twitterUrl,
     youtube: (user as any).youtubeUrl,
+    github: (user as any).githubUrl,
+    portfolio: (user as any).portfolioUrl,
   };
   
   const hasSocialLinks = socialLinks && Object.values(socialLinks).some(Boolean);
@@ -223,6 +225,16 @@ const UserProfileDialog = ({ user, currentUserId, podOwnerId, isOpen, onClose, o
                 {socialLinks.youtube && (
                   <a href={socialLinks.youtube} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors">
                     <Youtube className="w-5 h-5" />
+                  </a>
+                )}
+                {socialLinks.github && (
+                  <a href={socialLinks.github} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors">
+                    <Github className="w-5 h-5" />
+                  </a>
+                )}
+                {socialLinks.portfolio && (
+                  <a href={socialLinks.portfolio} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors">
+                    <Folder className="w-5 h-5" />
                   </a>
                 )}
               </div>

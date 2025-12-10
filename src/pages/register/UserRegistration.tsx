@@ -47,6 +47,9 @@ const UserRegistration = () => {
     facebook: '',
     twitter: '',
     youtube: '',
+    // Student social links
+    github: '',
+    portfolio: '',
   });
 
   const totalSteps = 4;
@@ -66,7 +69,7 @@ const UserRegistration = () => {
       }
     }
     if (step === 4) {
-      if (!formData.linkedin) {
+      if (formData.professionCategory !== 'Student' && !formData.linkedin) {
         toast.error('LinkedIn profile is required');
         return;
       }
@@ -83,7 +86,7 @@ const UserRegistration = () => {
   };
 
   const handleSubmit = async () => {
-    if (!formData.linkedin) {
+    if (formData.professionCategory !== 'Student' && !formData.linkedin) {
       toast.error('LinkedIn profile is required');
       return;
     }
@@ -118,6 +121,8 @@ const UserRegistration = () => {
         facebook: formData.facebook,
         twitter: formData.twitter,
         youtube: formData.youtube,
+        github: formData.github,
+        portfolio: formData.portfolio,
       },
     });
     
@@ -392,7 +397,57 @@ const UserRegistration = () => {
             </>
           )}
 
-          {step === 4 && (
+          {step === 4 && formData.professionCategory === 'Student' && (
+            <>
+              <CardHeader>
+                <CardTitle>Social Links</CardTitle>
+                <CardDescription>Share your professional profiles (optional)</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="linkedin">LinkedIn</Label>
+                  <Input
+                    id="linkedin"
+                    value={formData.linkedin}
+                    onChange={(e) => setFormData({ ...formData, linkedin: e.target.value })}
+                    placeholder="https://linkedin.com/in/yourprofile"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="github">GitHub</Label>
+                  <Input
+                    id="github"
+                    value={formData.github}
+                    onChange={(e) => setFormData({ ...formData, github: e.target.value })}
+                    placeholder="https://github.com/yourusername"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="website">Personal Website</Label>
+                  <Input
+                    id="website"
+                    value={formData.website}
+                    onChange={(e) => setFormData({ ...formData, website: e.target.value })}
+                    placeholder="https://yourwebsite.com"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="portfolio">Portfolio</Label>
+                  <Input
+                    id="portfolio"
+                    value={formData.portfolio}
+                    onChange={(e) => setFormData({ ...formData, portfolio: e.target.value })}
+                    placeholder="https://yourportfolio.com"
+                  />
+                </div>
+              </CardContent>
+            </>
+          )}
+
+          {step === 4 && formData.professionCategory !== 'Student' && (
             <>
               <CardHeader>
                 <CardTitle>Social Links</CardTitle>

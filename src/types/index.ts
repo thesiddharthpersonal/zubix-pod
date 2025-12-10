@@ -37,6 +37,8 @@ export interface SocialLinks {
   facebook?: string;
   twitter?: string;
   youtube?: string;
+  github?: string;
+  portfolio?: string;
 }
 
 // Pod Types

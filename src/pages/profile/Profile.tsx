@@ -3,13 +3,48 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Edit, MapPin, Building2, Globe, Linkedin, Instagram, Twitter, MessageCircle } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import { POD_SUBCATEGORY_DISPLAY } from '@/types';
+import { ArrowLeft, Edit, MapPin, Building2, Globe, Linkedin, Instagram, Twitter, MessageCircle, Loader2 } from 'lucide-react';
+import { useNavigate, useParams } from 'react-router-dom';
+import { POD_SUBCATEGORY_DISPLAY, UserProfile } from '@/types';
+import { useEffect, useState } from 'react';
+import { usersApi } from '@/services/api';
+import { toast } from 'sonner';
 
 const Profile = () => {
   const navigate = useNavigate();
-  const { user, joinedPods } = useAuth();
+  const { userId } = useParams();
+  const { user: currentUser, joinedPods } = useAuth();
+  const [profileUser, setProfileUser] = useState<UserProfile | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const isOwnProfile = !userId || userId === currentUser?.id;
+  const user = isOwnProfile ? currentUser : profileUser;
+
+  useEffect(() => {
+    if (!isOwnProfile && userId) {
+      setIsLoading(true);
+      usersApi.getProfile(userId)
+        .then(setProfileUser)
+        .catch(() => toast.error('Failed to load profile'))
+        .finally(() => setIsLoading(false));
+    }
+  }, [userId, isOwnProfile]);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <p className="text-muted-foreground">User not found</p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -17,7 +52,8 @@ const Profile = () => {
         <div className="flex items-center justify-between p-4">
           <Button variant="ghost" size="icon" onClick={() => navigate(-1)}><ArrowLeft className="w-5 h-5" /></Button>
           <h1 className="font-semibold text-foreground">Profile</h1>
-          <Button variant="ghost" size="icon"><Edit className="w-5 h-5" /></Button>
+          {isOwnProfile && <Button variant="ghost" size="icon"><Edit className="w-5 h-5" /></Button>}
+          {!isOwnProfile && <div className="w-10" />}
         </div>
       </header>
 
@@ -67,9 +103,11 @@ const Profile = () => {
           </CardContent>
         </Card>
 
-        <div className="mt-6">
-          <Button variant="hero" className="w-full" onClick={() => navigate('/chat')}><MessageCircle className="w-4 h-4" />Send Message</Button>
-        </div>
+        {!isOwnProfile && (
+          <div className="mt-6">
+            <Button variant="hero" className="w-full" onClick={() => navigate('/chat')}><MessageCircle className="w-4 h-4" />Send Message</Button>
+          </div>
+        )}
       </main>
     </div>
   );

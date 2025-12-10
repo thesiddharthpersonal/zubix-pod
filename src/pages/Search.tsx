@@ -9,6 +9,7 @@ import { ArrowLeft, Search as SearchIcon, Building2, Loader2 } from 'lucide-reac
 import { usersApi, podsApi } from '@/services/api';
 import { UserProfile, Pod } from '@/types';
 import { toast } from 'sonner';
+import PodDetailsDialog from '@/components/PodDetailsDialog';
 
 const Search = () => {
   const navigate = useNavigate();
@@ -17,6 +18,7 @@ const Search = () => {
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [pods, setPods] = useState<Pod[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [selectedPod, setSelectedPod] = useState<Pod | null>(null);
 
   useEffect(() => {
     const searchData = async () => {
@@ -68,7 +70,7 @@ const Search = () => {
             </TabsList>
             <TabsContent value="all" className="space-y-3">
               {users.map((u) => <UserCard key={u.id} user={u} onClick={() => navigate(`/profile/${u.id}`)} />)}
-              {pods.map((p) => <PodCard key={p.id} pod={p} onClick={() => navigate(`/pod/${p.id}`)} />)}
+              {pods.map((p) => <PodCard key={p.id} pod={p} onClick={() => setSelectedPod(p)} />)}
               {query && users.length === 0 && pods.length === 0 && (
                 <p className="text-center text-muted-foreground py-8">No results found</p>
               )}
@@ -80,7 +82,7 @@ const Search = () => {
               )}
             </TabsContent>
             <TabsContent value="pods" className="space-y-3">
-              {pods.map((p) => <PodCard key={p.id} pod={p} onClick={() => navigate(`/pod/${p.id}`)} />)}
+              {pods.map((p) => <PodCard key={p.id} pod={p} onClick={() => setSelectedPod(p)} />)}
               {query && pods.length === 0 && (
                 <p className="text-center text-muted-foreground py-8">No pods found</p>
               )}
@@ -88,6 +90,13 @@ const Search = () => {
           </Tabs>
         )}
       </main>
+      {selectedPod && (
+        <PodDetailsDialog
+          pod={selectedPod}
+          open={!!selectedPod}
+          onOpenChange={(open) => !open && setSelectedPod(null)}
+        />
+      )}
     </div>
   );
 };

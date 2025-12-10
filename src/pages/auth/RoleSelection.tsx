@@ -34,7 +34,7 @@ const RoleSelection = () => {
               Welcome, {user?.fullName || 'there'}!
             </h1>
             <p className="text-muted-foreground text-lg">
-              How would you like to use StartupPod?
+              How would you like to use Zubix?
             </p>
           </div>
 

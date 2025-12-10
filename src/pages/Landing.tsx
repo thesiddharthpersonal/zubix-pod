@@ -18,7 +18,7 @@ const Landing = () => {
               <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center">
                 <Rocket className="w-5 h-5 text-primary-foreground" />
               </div>
-              <span className="text-xl font-bold text-foreground">StartupPod</span>
+              <span className="text-xl font-bold text-foreground">Zubix</span>
             </div>
             <div className="flex items-center gap-3">
               <Button variant="ghost" asChild>
@@ -124,7 +124,7 @@ const Landing = () => {
       <footer className="py-8 border-t border-border">
         <div className="container mx-auto px-4 text-center">
           <p className="text-muted-foreground text-sm">
-            © 2024 StartupPod. All rights reserved.
+            © 2024 Zubix. All rights reserved.
           </p>
         </div>
       </footer>

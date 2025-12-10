@@ -90,7 +90,7 @@ const ProfileSetup = () => {
             <div className="w-12 h-12 rounded-xl bg-primary flex items-center justify-center">
               <Rocket className="w-6 h-6 text-primary-foreground" />
             </div>
-            <span className="text-2xl font-bold text-foreground">StartupPod</span>
+            <span className="text-2xl font-bold text-foreground">Zubix</span>
           </div>
 
           <Card className="border-border/50 shadow-lg">

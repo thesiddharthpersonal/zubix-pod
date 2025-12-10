@@ -41,6 +41,8 @@ const UserRegistration = () => {
     currentCourse: '',
     yearSemester: '',
     interestDomain: '',
+    // Startup specific field
+    startupFoundedYear: '',
     // Step D - Social Links
     linkedin: '',
     instagram: '',
@@ -50,6 +52,7 @@ const UserRegistration = () => {
     // Student social links
     github: '',
     portfolio: '',
+    others: '',
   });
 
   const totalSteps = 4;
@@ -115,6 +118,7 @@ const UserRegistration = () => {
       currentCourse: formData.currentCourse,
       yearSemester: formData.yearSemester,
       interestDomain: formData.interestDomain,
+      startupFoundedYear: formData.startupFoundedYear,
       socialLinks: {
         linkedin: formData.linkedin,
         instagram: formData.instagram,
@@ -123,6 +127,7 @@ const UserRegistration = () => {
         youtube: formData.youtube,
         github: formData.github,
         portfolio: formData.portfolio,
+        others: formData.others,
       },
     });
     
@@ -277,7 +282,119 @@ const UserRegistration = () => {
             </>
           )}
 
-          {step === 3 && formData.professionCategory !== 'Student' && (
+          {step === 3 && formData.professionCategory === 'Startup' && (
+            <>
+              <CardHeader>
+                <CardTitle>Startup Details</CardTitle>
+                <CardDescription>Tell us about your startup</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="organisationName">Startup/Organisation Name</Label>
+                  <Input
+                    id="organisationName"
+                    value={formData.organisationName}
+                    onChange={(e) => setFormData({ ...formData, organisationName: e.target.value })}
+                    placeholder="Enter startup name"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="brandName">Brand Name</Label>
+                  <Input
+                    id="brandName"
+                    value={formData.brandName}
+                    onChange={(e) => setFormData({ ...formData, brandName: e.target.value })}
+                    placeholder="Enter brand name"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="designation">Designation</Label>
+                  <Input
+                    id="designation"
+                    value={formData.designation}
+                    onChange={(e) => setFormData({ ...formData, designation: e.target.value })}
+                    placeholder="e.g., Founder & CEO"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Startup Category</Label>
+                  <Select value={formData.startupSubcategory} onValueChange={(v) => setFormData({ ...formData, startupSubcategory: v })}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {STARTUP_SUBCATEGORIES.map((cat) => (
+                        <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Business Type</Label>
+                  <Select value={formData.businessType} onValueChange={(v) => setFormData({ ...formData, businessType: v })}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {BUSINESS_TYPES.map((type) => (
+                        <SelectItem key={type} value={type}>{type}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="city">Location</Label>
+                  <Input
+                    id="city"
+                    value={formData.operatingCity}
+                    onChange={(e) => setFormData({ ...formData, operatingCity: e.target.value })}
+                    placeholder="e.g., Bangalore"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="website">Website</Label>
+                  <Input
+                    id="website"
+                    value={formData.website}
+                    onChange={(e) => setFormData({ ...formData, website: e.target.value })}
+                    placeholder="https://yourwebsite.com"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="foundedYear">Startup Founded Year</Label>
+                  <Input
+                    id="foundedYear"
+                    type="number"
+                    value={formData.startupFoundedYear}
+                    onChange={(e) => setFormData({ ...formData, startupFoundedYear: e.target.value })}
+                    placeholder="e.g., 2020"
+                    min="1900"
+                    max={new Date().getFullYear()}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="brief">Brief about startup</Label>
+                  <Textarea
+                    id="brief"
+                    value={formData.briefAboutOrganisation}
+                    onChange={(e) => setFormData({ ...formData, briefAboutOrganisation: e.target.value })}
+                    placeholder="Tell us about your startup..."
+                    rows={3}
+                  />
+                </div>
+              </CardContent>
+            </>
+          )}
+
+          {step === 3 && formData.professionCategory === 'Working Professional' && (
             <>
               <CardHeader>
                 <CardTitle>Professional Details</CardTitle>
@@ -447,7 +564,47 @@ const UserRegistration = () => {
             </>
           )}
 
-          {step === 4 && formData.professionCategory !== 'Student' && (
+          {step === 4 && formData.professionCategory === 'Startup' && (
+            <>
+              <CardHeader>
+                <CardTitle>Social Links</CardTitle>
+                <CardDescription>Connect your startup profiles</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="linkedin">LinkedIn *</Label>
+                  <Input
+                    id="linkedin"
+                    value={formData.linkedin}
+                    onChange={(e) => setFormData({ ...formData, linkedin: e.target.value })}
+                    placeholder="https://linkedin.com/company/yourcompany"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="website">Personal Website</Label>
+                  <Input
+                    id="website"
+                    value={formData.website}
+                    onChange={(e) => setFormData({ ...formData, website: e.target.value })}
+                    placeholder="https://yourwebsite.com"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="others">Others</Label>
+                  <Input
+                    id="others"
+                    value={formData.others}
+                    onChange={(e) => setFormData({ ...formData, others: e.target.value })}
+                    placeholder="Any other social link"
+                  />
+                </div>
+              </CardContent>
+            </>
+          )}
+
+          {step === 4 && formData.professionCategory === 'Working Professional' && (
             <>
               <CardHeader>
                 <CardTitle>Social Links</CardTitle>

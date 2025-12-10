@@ -76,6 +76,7 @@ const UserProfileDialog = ({ user, currentUserId, podOwnerId, isOpen, onClose, o
     youtube: (user as any).youtubeUrl,
     github: (user as any).githubUrl,
     portfolio: (user as any).portfolioUrl,
+    others: (user as any).othersUrl,
   };
   
   const hasSocialLinks = socialLinks && Object.values(socialLinks).some(Boolean);

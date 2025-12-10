@@ -28,6 +28,8 @@ export interface UserProfile extends User {
   currentCourse?: string;
   yearSemester?: string;
   interestDomain?: string;
+  // Startup specific fields
+  startupFoundedYear?: string;
   socialLinks: SocialLinks;
 }
 
@@ -39,6 +41,7 @@ export interface SocialLinks {
   youtube?: string;
   github?: string;
   portfolio?: string;
+  others?: string;
 }
 
 // Pod Types

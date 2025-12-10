@@ -89,7 +89,7 @@ const Landing = () => {
               description="Submit your pitch deck directly to interested investors and get valuable feedback"
             />
             <FeatureCard
-              icon={<Rocket className="w-6 h-6" />}
+              icon={<Users className="w-6 h-6" />}
               title="Network & Learn"
               description="Participate in events, join rooms, and engage with the community to accelerate your growth"
             />

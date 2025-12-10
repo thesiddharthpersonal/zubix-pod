@@ -30,6 +30,8 @@ export interface UserProfile extends User {
   interestDomain?: string;
   // Startup specific fields
   startupFoundedYear?: string;
+  // Working professional specific fields
+  workingDomain?: string;
   socialLinks: SocialLinks;
 }
 

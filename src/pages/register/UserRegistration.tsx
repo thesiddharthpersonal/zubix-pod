@@ -43,6 +43,8 @@ const UserRegistration = () => {
     interestDomain: '',
     // Startup specific field
     startupFoundedYear: '',
+    // Working professional specific field
+    workingDomain: '',
     // Step D - Social Links
     linkedin: '',
     instagram: '',
@@ -119,6 +121,7 @@ const UserRegistration = () => {
       yearSemester: formData.yearSemester,
       interestDomain: formData.interestDomain,
       startupFoundedYear: formData.startupFoundedYear,
+      workingDomain: formData.workingDomain,
       socialLinks: {
         linkedin: formData.linkedin,
         instagram: formData.instagram,
@@ -402,112 +405,43 @@ const UserRegistration = () => {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="organisationName">Organisation Name</Label>
+                  <Label htmlFor="organisationName">Company Name</Label>
                   <Input
                     id="organisationName"
                     value={formData.organisationName}
                     onChange={(e) => setFormData({ ...formData, organisationName: e.target.value })}
-                    placeholder="Enter organisation name"
+                    placeholder="Enter company name"
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="brandName">Brand Name</Label>
-                  <Input
-                    id="brandName"
-                    value={formData.brandName}
-                    onChange={(e) => setFormData({ ...formData, brandName: e.target.value })}
-                    placeholder="Enter brand name"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="designation">Designation</Label>
+                  <Label htmlFor="designation">Job Title</Label>
                   <Input
                     id="designation"
                     value={formData.designation}
                     onChange={(e) => setFormData({ ...formData, designation: e.target.value })}
-                    placeholder="e.g., Founder & CEO"
+                    placeholder="e.g., Software Engineer, Product Manager"
                   />
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="workFrom">Experience From</Label>
-                    <Input
-                      id="workFrom"
-                      type="date"
-                      value={formData.workingExperienceFrom}
-                      onChange={(e) => setFormData({ ...formData, workingExperienceFrom: e.target.value })}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="workTo">Experience To</Label>
-                    <Input
-                      id="workTo"
-                      type="date"
-                      value={formData.workingExperienceTo}
-                      onChange={(e) => setFormData({ ...formData, workingExperienceTo: e.target.value })}
-                    />
-                  </div>
+                <div className="space-y-2">
+                  <Label htmlFor="workingDomain">Working Domain</Label>
+                  <Input
+                    id="workingDomain"
+                    value={formData.workingDomain}
+                    onChange={(e) => setFormData({ ...formData, workingDomain: e.target.value })}
+                    placeholder="e.g., Technology, Finance, Healthcare"
+                  />
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Startup Subcategory</Label>
-                  <Select value={formData.startupSubcategory} onValueChange={(v) => setFormData({ ...formData, startupSubcategory: v })}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select category" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {STARTUP_SUBCATEGORIES.map((cat) => (
-                        <SelectItem key={cat} value={cat}>{cat}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label>Business Type</Label>
-                  <Select value={formData.businessType} onValueChange={(v) => setFormData({ ...formData, businessType: v })}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {BUSINESS_TYPES.map((type) => (
-                        <SelectItem key={type} value={type}>{type}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="brief">Brief About Organisation</Label>
+                  <Label htmlFor="brief">Brief about you</Label>
                   <Textarea
                     id="brief"
                     value={formData.briefAboutOrganisation}
                     onChange={(e) => setFormData({ ...formData, briefAboutOrganisation: e.target.value })}
-                    placeholder="Tell us about your organisation..."
+                    placeholder="Tell us about your professional background and expertise..."
                     rows={3}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="city">Operating City</Label>
-                  <Input
-                    id="city"
-                    value={formData.operatingCity}
-                    onChange={(e) => setFormData({ ...formData, operatingCity: e.target.value })}
-                    placeholder="e.g., Bangalore"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="website">Website</Label>
-                  <Input
-                    id="website"
-                    value={formData.website}
-                    onChange={(e) => setFormData({ ...formData, website: e.target.value })}
-                    placeholder="https://yourwebsite.com"
                   />
                 </div>
               </CardContent>
@@ -608,7 +542,7 @@ const UserRegistration = () => {
             <>
               <CardHeader>
                 <CardTitle>Social Links</CardTitle>
-                <CardDescription>Connect your social profiles</CardDescription>
+                <CardDescription>Connect your professional profiles</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
@@ -622,42 +556,22 @@ const UserRegistration = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="instagram">Instagram</Label>
+                  <Label htmlFor="website">Personal Website</Label>
                   <Input
-                    id="instagram"
-                    value={formData.instagram}
-                    onChange={(e) => setFormData({ ...formData, instagram: e.target.value })}
-                    placeholder="https://instagram.com/yourprofile"
+                    id="website"
+                    value={formData.website}
+                    onChange={(e) => setFormData({ ...formData, website: e.target.value })}
+                    placeholder="https://yourwebsite.com"
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="facebook">Facebook</Label>
+                  <Label htmlFor="others">Others</Label>
                   <Input
-                    id="facebook"
-                    value={formData.facebook}
-                    onChange={(e) => setFormData({ ...formData, facebook: e.target.value })}
-                    placeholder="https://facebook.com/yourprofile"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="twitter">Twitter</Label>
-                  <Input
-                    id="twitter"
-                    value={formData.twitter}
-                    onChange={(e) => setFormData({ ...formData, twitter: e.target.value })}
-                    placeholder="https://twitter.com/yourprofile"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="youtube">YouTube</Label>
-                  <Input
-                    id="youtube"
-                    value={formData.youtube}
-                    onChange={(e) => setFormData({ ...formData, youtube: e.target.value })}
-                    placeholder="https://youtube.com/yourchannel"
+                    id="others"
+                    value={formData.others}
+                    onChange={(e) => setFormData({ ...formData, others: e.target.value })}
+                    placeholder="Any other social link"
                   />
                 </div>
               </CardContent>

@@ -2,8 +2,8 @@
 export interface User {
   id: string;
   fullName: string;
-  email: string;
-  mobile: string;
+  email?: string; // Only available for own profile
+  mobile?: string; // Only available for own profile
   username: string;
   profilePhoto?: string;
   role: 'user' | 'pod_owner' | 'USER' | 'POD_OWNER';

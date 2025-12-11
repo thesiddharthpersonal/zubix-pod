@@ -6,7 +6,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { ArrowLeft, Search, Send, MailPlus, Loader2 } from 'lucide-react';
+import { ArrowLeft, Search, Send, MailPlus, Loader2, X, Reply } from 'lucide-react';
 import { Chat as ChatType, Message, User } from '@/types';
 import { chatApi } from '@/services/api';
 import { socketClient } from '@/services/socket';
@@ -30,6 +30,7 @@ const Chat = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoadingMessages, setIsLoadingMessages] = useState(false);
   const [newMessage, setNewMessage] = useState('');
+  const [replyingTo, setReplyingTo] = useState<Message | null>(null);
   const [showRequestDialog, setShowRequestDialog] = useState(false);
   const [targetUser, setTargetUser] = useState<User | null>(null);
   const [requestMessage, setRequestMessage] = useState('');
@@ -221,7 +222,9 @@ const Chat = () => {
     if (!newMessage.trim() || !selectedChat?.id) return;
 
     const content = newMessage.trim();
+    const replyId = replyingTo?.id;
     setNewMessage('');
+    setReplyingTo(null);
 
     // Optimistic update
     const optimisticMessage: Message = {
@@ -230,6 +233,13 @@ const Chat = () => {
       chatId: selectedChat.id,
       senderId: user!.id,
       sender: user!,
+      replyToId: replyId,
+      replyTo: replyingTo ? {
+        id: replyingTo.id,
+        content: replyingTo.content,
+        senderId: replyingTo.senderId,
+        sender: replyingTo.sender
+      } : undefined,
       createdAt: new Date(),
       updatedAt: new Date()
     };
@@ -259,7 +269,7 @@ const Chat = () => {
 
       console.log('Sending DM via socket');
       // Send via socket for real-time delivery
-      socketClient.sendDirectMessage(selectedChat.id, content);
+      socketClient.sendDirectMessage(selectedChat.id, content, replyId);
       
       // Set a timeout to remove optimistic message if real one doesn't arrive
       setTimeout(() => {
@@ -278,6 +288,9 @@ const Chat = () => {
       toast.error('Failed to send message. Please try again.');
       // Restore message on error
       setNewMessage(content);
+      if (replyId && replyingTo) {
+        setReplyingTo(replyingTo);
+      }
     }
   };
 
@@ -316,9 +329,23 @@ const Chat = () => {
               {messages.map((msg) => {
                 const isOwn = msg.senderId === user?.id;
                 return (
-                  <div key={msg.id} className={`flex ${isOwn ? 'justify-end' : 'justify-start'}`}>
+                  <div key={msg.id} className={`flex ${isOwn ? 'justify-end' : 'justify-start'} group`}>
                     <div className={`max-w-[75%] rounded-2xl px-4 py-2 ${isOwn ? 'bg-primary text-primary-foreground rounded-br-md' : 'bg-secondary text-secondary-foreground rounded-bl-md'}`}>
+                      {msg.replyTo && (
+                        <div className={`mb-2 pl-2 border-l-2 ${isOwn ? 'border-primary-foreground/30' : 'border-secondary-foreground/30'} text-xs opacity-70`}>
+                          <p className="font-medium">{msg.replyTo.sender.fullName}</p>
+                          <p className="truncate">{msg.replyTo.content}</p>
+                        </div>
+                      )}
                       <p className="text-sm">{msg.content}</p>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className={`h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity mt-1 ${isOwn ? 'text-primary-foreground hover:bg-primary-foreground/20' : 'text-secondary-foreground hover:bg-secondary-foreground/20'}`}
+                        onClick={() => setReplyingTo(msg)}
+                      >
+                        <Reply className="w-3 h-3" />
+                      </Button>
                     </div>
                   </div>
                 );
@@ -328,6 +355,25 @@ const Chat = () => {
           )}
         </main>
         <div className="sticky bottom-0 bg-background border-t border-border p-4">
+          {replyingTo && (
+            <div className="mb-2 bg-secondary/50 rounded-lg p-2 flex items-start justify-between">
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-1">
+                  <Reply className="w-3 h-3 text-muted-foreground" />
+                  <p className="text-xs font-medium text-muted-foreground">Replying to {replyingTo.sender.fullName}</p>
+                </div>
+                <p className="text-sm truncate text-foreground">{replyingTo.content}</p>
+              </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-6 w-6 shrink-0"
+                onClick={() => setReplyingTo(null)}
+              >
+                <X className="w-4 h-4" />
+              </Button>
+            </div>
+          )}
           <div className="flex gap-2">
             <Input value={newMessage} onChange={(e) => setNewMessage(e.target.value)} placeholder="Type a message..." onKeyDown={(e) => e.key === 'Enter' && handleSend()} />
             <Button variant="hero" size="icon" onClick={handleSend}><Send className="w-5 h-5" /></Button>

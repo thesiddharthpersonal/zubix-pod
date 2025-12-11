@@ -180,6 +180,13 @@ export interface Message {
   senderId: string;
   sender: User;
   content: string;
+  replyToId?: string;
+  replyTo?: {
+    id: string;
+    content: string;
+    senderId: string;
+    sender: User;
+  };
   createdAt: Date;
 }
 

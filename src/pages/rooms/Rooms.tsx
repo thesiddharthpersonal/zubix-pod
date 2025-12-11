@@ -66,21 +66,29 @@ const Rooms = () => {
     }
   };
 
-  const filteredRooms = rooms.filter((room) => {
-    const matchesPod = selectedPod === 'all' || room.podId === selectedPod;
-    const matchesSearch = room.name.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesPod && matchesSearch;
-  });
+  let filteredRooms: Room[] = [];
+  let managedPods: any[] = [];
+  let canCreateRoom = false;
 
-  // Check if user owns or co-owns any pods
-  const managedPods = getManagedPods(joinedPods, user?.id);
-  const canCreateRoom = managedPods.length > 0;
-  
-  // Debug logging
-  console.log('Rooms - Current User ID:', user?.id);
-  console.log('Rooms - Joined Pods:', joinedPods);
-  console.log('Rooms - Managed Pods:', managedPods);
-  console.log('Rooms - Can Create Room:', canCreateRoom);
+  try {
+    filteredRooms = rooms.filter((room) => {
+      const matchesPod = selectedPod === 'all' || room.podId === selectedPod;
+      const matchesSearch = room.name.toLowerCase().includes(searchQuery.toLowerCase());
+      return matchesPod && matchesSearch;
+    });
+
+    // Check if user owns or co-owns any pods
+    managedPods = getManagedPods(joinedPods, user?.id);
+    canCreateRoom = managedPods.length > 0;
+    
+    // Debug logging
+    console.log('Rooms - Current User ID:', user?.id);
+    console.log('Rooms - Joined Pods:', joinedPods);
+    console.log('Rooms - Managed Pods:', managedPods);
+    console.log('Rooms - Can Create Room:', canCreateRoom);
+  } catch (error) {
+    console.error('Error in Rooms component logic:', error);
+  }
 
   const handleCreateRoom = async () => {
     if (!newRoom.name.trim() || !newRoom.podId) {
@@ -156,18 +164,24 @@ const Rooms = () => {
     }
   };
 
+  // TEMPORARY TEST - Remove after debugging
+  // return <div style={{padding: '20px', background: 'white', color: 'black'}}>TEST: Rooms component is rendering. Loading: {loading ? 'true' : 'false'}</div>;
+
   if (loading) {
+    console.log('🏠 Rooms - Showing loading spinner');
     return (
       <div className="min-h-screen bg-background pb-20">
         <TopNav />
         <div className="flex items-center justify-center h-[50vh]">
           <Loader2 className="w-8 h-8 animate-spin text-primary" />
+          <p className="ml-2">Loading rooms...</p>
         </div>
         <BottomNav />
       </div>
     );
   }
 
+  console.log('🏠 Rooms - Rendering main content');
   return (
     <div className="min-h-screen bg-background pb-20">
       <TopNav />

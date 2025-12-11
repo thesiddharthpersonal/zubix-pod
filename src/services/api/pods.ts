@@ -182,9 +182,9 @@ export const podsApi = {
     }
   },
 
-  getJoinedPods: async (userId: string): Promise<Pod[]> => {
+  getJoinedPods: async (): Promise<Pod[]> => {
     try {
-      const response = await apiClient.get<{ pods: Pod[] }>(`/api/users/${userId}/pods`);
+      const response = await apiClient.get<{ pods: Pod[] }>('/api/pods/joined');
       return response.data.pods;
     } catch (error) {
       throw new Error(handleApiError(error));

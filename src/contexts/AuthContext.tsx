@@ -52,7 +52,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           });
           
           // Load user's pods
-          const pods = await podsApi.getJoinedPods(userData.id);
+          const pods = await podsApi.getJoinedPods();
           setJoinedPods(pods);
           
           // Initialize socket connection
@@ -87,7 +87,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       });
       
       // Load user's pods
-      const pods = await podsApi.getJoinedPods(response.user.id);
+      const pods = await podsApi.getJoinedPods();
       setJoinedPods(pods);
       
       // Initialize socket connection
@@ -164,7 +164,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       });
       
       // Refresh pods
-      const pods = await podsApi.getJoinedPods(userData.id);
+      const pods = await podsApi.getJoinedPods();
       setJoinedPods(pods);
     } catch (error) {
       console.error('Failed to refresh user:', error);

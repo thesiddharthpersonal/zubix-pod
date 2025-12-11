@@ -48,18 +48,14 @@ const RoomChat = () => {
 
     // Ensure socket is connected
     if (!socket.isConnected()) {
+      console.log('Socket not connected, connecting...');
       socket.connect();
     }
 
     fetchRoomData();
     fetchMessages();
 
-    // Small delay to ensure socket is ready
-    const joinTimeout = setTimeout(() => {
-      socket.joinRoom(roomId);
-    }, 100);
-
-    // Listen for new messages
+    // Listen for new messages - set up listener first
     const handleNewMessage = (message: Message) => {
       console.log('Received new message:', message);
       if (message.roomId === roomId) {
@@ -75,10 +71,35 @@ const RoomChat = () => {
 
     socket.onRoomMessage(handleNewMessage);
 
+    // Join room after setting up listener
+    const joinTimeout = setTimeout(() => {
+      if (socket.isConnected()) {
+        socket.joinRoom(roomId);
+      } else {
+        console.log('Socket still not connected, retrying...');
+        socket.connect();
+        setTimeout(() => socket.joinRoom(roomId), 500);
+      }
+    }, 100);
+
+    // Set up reconnection handler
+    const socketInstance = socket.getSocket();
+    const handleReconnect = () => {
+      console.log('Socket reconnected, rejoining room');
+      socket.joinRoom(roomId);
+    };
+
+    if (socketInstance) {
+      socketInstance.on('connect', handleReconnect);
+    }
+
     return () => {
       clearTimeout(joinTimeout);
       socket.leaveRoom(roomId);
       socket.offRoomMessage(handleNewMessage);
+      if (socketInstance) {
+        socketInstance.off('connect', handleReconnect);
+      }
     };
   }, [roomId]);
 
@@ -147,22 +168,47 @@ const RoomChat = () => {
     setMessages((prev) => [...prev, optimisticMessage]);
 
     try {
-      // Ensure socket is connected
+      // Ensure socket is connected before sending
       if (!socket.isConnected()) {
+        console.log('Socket disconnected, reconnecting...');
         socket.connect();
-        // Wait a bit for connection
-        await new Promise(resolve => setTimeout(resolve, 500));
+        // Wait for connection with timeout
+        let attempts = 0;
+        while (!socket.isConnected() && attempts < 10) {
+          await new Promise(resolve => setTimeout(resolve, 200));
+          attempts++;
+        }
+        
+        if (!socket.isConnected()) {
+          throw new Error('Failed to connect to server');
+        }
+        
+        // Rejoin room after reconnection
+        socket.joinRoom(roomId);
+        await new Promise(resolve => setTimeout(resolve, 200));
       }
 
+      console.log('Sending message via socket');
       // Send message via Socket.IO
       socket.sendRoomMessage(roomId, tempMessage);
+      
+      // Set a timeout to remove optimistic message if real one doesn't arrive
+      setTimeout(() => {
+        setMessages((prev) => {
+          const hasReal = prev.some(m => m.content === tempMessage && !m.id.toString().startsWith('temp-'));
+          if (!hasReal) {
+            console.warn('Real message not received, keeping optimistic message');
+          }
+          return prev;
+        });
+      }, 3000);
     } catch (error: any) {
       console.error('Error sending message:', error);
       // Remove optimistic message on error
       setMessages((prev) => prev.filter(m => m.id !== optimisticMessage.id));
       toast({
         title: 'Error',
-        description: 'Failed to send message',
+        description: error.message || 'Failed to send message. Please try again.',
         variant: 'destructive',
       });
       setNewMessage(tempMessage); // Restore message on error

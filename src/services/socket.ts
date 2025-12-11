@@ -5,6 +5,7 @@ class SocketClient {
   private socket: Socket | null = null;
   private reconnectAttempts = 0;
   private maxReconnectAttempts = 5;
+  private currentRoomId: string | null = null;
 
   connect(): Socket {
     if (this.socket?.connected) {
@@ -34,6 +35,12 @@ class SocketClient {
     this.socket.on('connect', () => {
       console.log('WebSocket connected');
       this.reconnectAttempts = 0;
+      
+      // Rejoin room if we were in one before disconnect
+      if (this.currentRoomId) {
+        console.log('Rejoining room after reconnect:', this.currentRoomId);
+        this.socket?.emit('join-room', { roomId: this.currentRoomId });
+      }
     });
 
     this.socket.on('disconnect', (reason) => {
@@ -70,25 +77,44 @@ class SocketClient {
     return this.socket;
   }
 
-  isConnected(): boolean {
-    return this.socket?.connected ?? false;
-  }
-
   // Room events
   joinRoom(roomId: string): void {
+    this.currentRoomId = roomId;
     if (this.socket?.connected) {
+      console.log('Joining room:', roomId);
       this.socket.emit('join-room', { roomId });
+    } else {
+      console.warn('Socket not connected, attempting to connect...');
+      this.connect();
+      setTimeout(() => {
+        if (this.socket?.connected) {
+          this.socket.emit('join-room', { roomId });
+        }
+      }, 500);
     }
   }
 
   leaveRoom(roomId: string): void {
+    if (this.currentRoomId === roomId) {
+      this.currentRoomId = null;
+    }
     if (this.socket?.connected) {
+      console.log('Leaving room:', roomId);
       this.socket.emit('leave-room', { roomId });
     }
   }
 
   sendRoomMessage(roomId: string, content: string): void {
-    if (this.socket?.connected) {
+    if (!this.socket?.connected) {
+      console.warn('Socket not connected, attempting to reconnect...');
+      this.connect();
+      setTimeout(() => {
+        if (this.socket?.connected) {
+          this.socket.emit('send-message', { roomId, content });
+        }
+      }, 500);
+    } else {
+      console.log('Sending message to room:', roomId);
       this.socket.emit('send-message', { roomId, content });
     }
   }

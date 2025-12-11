@@ -11,9 +11,10 @@ import { Badge } from '@/components/ui/badge';
 import { ArrowLeft, Save, Loader2, X, Plus } from 'lucide-react';
 import { POD_SUBCATEGORIES, POD_SUBCATEGORY_DISPLAY, FOCUS_AREAS, PodSubcategory, Pod } from '@/types';
 import { toast } from 'sonner';
-import { podsApi } from '@/services/api';
+import { podsApi, usersApi } from '@/services/api';
 import { Separator } from '@/components/ui/separator';
 import { getManagedPods } from '@/lib/utils';
+import { UserProfile } from '@/types';
 
 // Constants for advanced details
 const DOMAINS = ['Fintech', 'Edtech', 'Healthtech', 'Deeptech', 'Cleantech', 'Consumer Tech', 'D2C', 'Enterprise', 'Consumer Product', 'SaaS', 'Hardware', 'Social Impact'];
@@ -34,6 +35,9 @@ const EditPod = () => {
   const [coOwners, setCoOwners] = useState<string[]>([]);
   const [additionalLinks, setAdditionalLinks] = useState<Array<{ id: number; url: string }>>([]);
   const [nextLinkId, setNextLinkId] = useState(1);
+  const [searchResults, setSearchResults] = useState<UserProfile[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [showDropdown, setShowDropdown] = useState(false);
   
   const [formData, setFormData] = useState({
     podName: '',
@@ -160,6 +164,42 @@ const EditPod = () => {
     loadPod();
   }, [podId, user, navigate]);
 
+  const handleSearchCoOwners = async (query: string) => {
+    setCoOwnerUsername(query);
+    
+    if (query.length < 2) {
+      setSearchResults([]);
+      setShowDropdown(false);
+      return;
+    }
+
+    try {
+      setIsSearching(true);
+      const results = await usersApi.searchUsers(query);
+      // Filter out current user and already added co-owners
+      const filtered = results.filter(
+        u => u.id !== user?.id && !coOwners.includes(u.username)
+      );
+      setSearchResults(filtered);
+      setShowDropdown(filtered.length > 0);
+    } catch (error) {
+      console.error('Search error:', error);
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  const selectCoOwner = (username: string) => {
+    if (coOwners.includes(username)) {
+      toast.error('This user is already added');
+      return;
+    }
+    setCoOwners([...coOwners, username]);
+    setCoOwnerUsername('');
+    setSearchResults([]);
+    setShowDropdown(false);
+  };
+
   const addCoOwner = () => {
     if (!coOwnerUsername.trim()) {
       toast.error('Please enter a username');
@@ -171,6 +211,8 @@ const EditPod = () => {
     }
     setCoOwners([...coOwners, coOwnerUsername]);
     setCoOwnerUsername('');
+    setSearchResults([]);
+    setShowDropdown(false);
   };
 
   const removeCoOwner = (username: string) => {
@@ -864,17 +906,68 @@ const EditPod = () => {
               <CardDescription>Add co-owners by username</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="flex gap-2">
-                <Input
-                  value={coOwnerUsername}
-                  onChange={(e) => setCoOwnerUsername(e.target.value)}
-                  placeholder="Enter username"
-                  onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addCoOwner())}
-                />
-                <Button type="button" onClick={addCoOwner}>
-                  <Plus className="w-4 h-4 mr-2" />
-                  Add
-                </Button>
+              <div className="relative">
+                <div className="flex gap-2">
+                  <div className="relative flex-1">
+                    <Input
+                      value={coOwnerUsername}
+                      onChange={(e) => handleSearchCoOwners(e.target.value)}
+                      placeholder="Search by username or name..."
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          addCoOwner();
+                        }
+                        if (e.key === 'Escape') {
+                          setShowDropdown(false);
+                        }
+                      }}
+                      onFocus={() => {
+                        if (searchResults.length > 0) {
+                          setShowDropdown(true);
+                        }
+                      }}
+                    />
+                    {isSearching && (
+                      <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                        <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
+                      </div>
+                    )}
+                  </div>
+                  <Button type="button" onClick={addCoOwner}>
+                    <Plus className="w-4 h-4 mr-2" />
+                    Add
+                  </Button>
+                </div>
+                
+                {/* Search Results Dropdown */}
+                {showDropdown && searchResults.length > 0 && (
+                  <Card className="absolute z-50 w-full mt-1 max-h-60 overflow-y-auto shadow-lg">
+                    <CardContent className="p-2">
+                      {searchResults.map((userResult) => (
+                        <div
+                          key={userResult.id}
+                          className="flex items-center gap-3 p-3 rounded-lg hover:bg-accent cursor-pointer transition-colors"
+                          onClick={() => selectCoOwner(userResult.username)}
+                        >
+                          <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center overflow-hidden">
+                            {userResult.profilePhoto ? (
+                              <img src={userResult.profilePhoto} alt={userResult.fullName} className="w-full h-full object-cover" />
+                            ) : (
+                              <span className="text-primary font-medium">
+                                {userResult.fullName?.charAt(0) || userResult.username.charAt(0)}
+                              </span>
+                            )}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="font-medium text-foreground truncate">{userResult.fullName}</p>
+                            <p className="text-sm text-muted-foreground truncate">@{userResult.username}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </CardContent>
+                  </Card>
+                )}
               </div>
               {coOwners.length > 0 && (
                 <div className="flex flex-wrap gap-2">

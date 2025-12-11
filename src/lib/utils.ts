@@ -10,20 +10,58 @@ export function cn(...inputs: ClassValue[]) {
  * Check if a user can manage a pod (is owner or co-owner)
  */
 export function canManagePod(pod: Pod | undefined | null, userId: string | undefined): boolean {
-  if (!pod || !userId) return false;
+  if (!pod || !userId) {
+    console.log('canManagePod: No pod or userId', { pod: !!pod, userId });
+    return false;
+  }
   
   // Check if user is the owner
-  if (pod.ownerId === userId) return true;
+  if (pod.ownerId === userId) {
+    console.log('canManagePod: User is owner', { podId: pod.id, podName: pod.name });
+    return true;
+  }
   
   // Check if user is a co-owner (from userRole or isCoOwner flag from backend)
-  if (pod.userRole === 'co-owner' || pod.isCoOwner === true) return true;
+  if (pod.userRole === 'co-owner' || pod.isCoOwner === true) {
+    console.log('canManagePod: User is co-owner (from userRole/isCoOwner)', { 
+      podId: pod.id, 
+      podName: pod.name,
+      userRole: pod.userRole,
+      isCoOwner: pod.isCoOwner 
+    });
+    return true;
+  }
   
   // Fallback: Check coOwnerIds array (for backward compatibility)
-  if (pod.coOwnerIds && pod.coOwnerIds.includes(userId)) return true;
+  if (pod.coOwnerIds && pod.coOwnerIds.includes(userId)) {
+    console.log('canManagePod: User is co-owner (from coOwnerIds)', { 
+      podId: pod.id, 
+      podName: pod.name,
+      coOwnerIds: pod.coOwnerIds 
+    });
+    return true;
+  }
   
   // Fallback: Check coOwners array
-  if (pod.coOwners && pod.coOwners.some(co => co.id === userId)) return true;
+  if (pod.coOwners && pod.coOwners.some(co => co.id === userId)) {
+    console.log('canManagePod: User is co-owner (from coOwners array)', { 
+      podId: pod.id, 
+      podName: pod.name,
+      coOwners: pod.coOwners.map(co => co.id)
+    });
+    return true;
+  }
   
+  console.log('canManagePod: User has no management rights', { 
+    podId: pod.id, 
+    podName: pod.name,
+    userId,
+    ownerId: pod.ownerId,
+    userRole: pod.userRole,
+    isCoOwner: pod.isCoOwner,
+    coOwnerIds: pod.coOwnerIds,
+    coOwnersCount: pod.coOwners?.length
+  });
   return false;
 }
 

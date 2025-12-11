@@ -73,6 +73,12 @@ const Rooms = () => {
   // Check if user owns or co-owns any pods
   const managedPods = getManagedPods(joinedPods, user?.id);
   const canCreateRoom = managedPods.length > 0;
+  
+  // Debug logging
+  console.log('Rooms - Current User ID:', user?.id);
+  console.log('Rooms - Joined Pods:', joinedPods);
+  console.log('Rooms - Managed Pods:', managedPods);
+  console.log('Rooms - Can Create Room:', canCreateRoom);
 
   const handleCreateRoom = async () => {
     if (!newRoom.name.trim() || !newRoom.podId) {

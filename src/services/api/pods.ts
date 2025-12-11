@@ -122,6 +122,22 @@ export const podsApi = {
     }
   },
 
+  promoteToCoOwner: async (podId: string, userId: string): Promise<void> => {
+    try {
+      await apiClient.post(`/api/pods/${podId}/members/${userId}/promote`);
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
+  },
+
+  demoteCoOwner: async (podId: string, userId: string): Promise<void> => {
+    try {
+      await apiClient.post(`/api/pods/${podId}/members/${userId}/demote`);
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
+  },
+
   addCoOwner: async (podId: string, username: string): Promise<void> => {
     try {
       await apiClient.post(`/api/pods/${podId}/co-owners`, { username });

@@ -5,24 +5,27 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { User, UserProfile } from '@/types';
-import { Mail, Phone, Building2, MapPin, Briefcase, Calendar, Linkedin, Instagram, Facebook, Twitter, Youtube, MessageCircle, Clock, Globe, Tag, TrendingUp, Github, Folder } from 'lucide-react';
-import { messageRequestApi, chatApi } from '@/services/api';
+import { Mail, Phone, Building2, MapPin, Briefcase, Calendar, Linkedin, Instagram, Facebook, Twitter, Youtube, MessageCircle, Clock, Globe, Tag, TrendingUp, Github, Folder, Crown, CrownOff } from 'lucide-react';
+import { messageRequestApi, chatApi, podsApi } from '@/services/api';
 import { toast } from 'sonner';
 
 interface UserProfileDialogProps {
   user: User | UserProfile | null;
   currentUserId?: string;
   podOwnerId?: string;
+  podId?: string;
   isOpen: boolean;
   onClose: () => void;
   onMessage?: () => void;
+  onCoOwnerChange?: () => void;
 }
 
-const UserProfileDialog = ({ user, currentUserId, podOwnerId, isOpen, onClose, onMessage }: UserProfileDialogProps) => {
+const UserProfileDialog = ({ user, currentUserId, podOwnerId, podId, isOpen, onClose, onMessage, onCoOwnerChange }: UserProfileDialogProps) => {
   const navigate = useNavigate();
   const [hasExistingRequest, setHasExistingRequest] = useState(false);
   const [isCheckingRequest, setIsCheckingRequest] = useState(false);
   const [existingChatId, setExistingChatId] = useState<string | null>(null);
+  const [isUpdatingCoOwner, setIsUpdatingCoOwner] = useState(false);
 
   useEffect(() => {
     const checkExistingRequest = async () => {
@@ -92,6 +95,41 @@ const UserProfileDialog = ({ user, currentUserId, podOwnerId, isOpen, onClose, o
     }
   };
 
+  const handlePromoteToCoOwner = async () => {
+    if (!podId || !user) return;
+    
+    setIsUpdatingCoOwner(true);
+    try {
+      await podsApi.promoteToCoOwner(podId, user.id);
+      toast.success(`${user.fullName} has been promoted to co-owner`);
+      onCoOwnerChange?.();
+      onClose();
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to promote to co-owner');
+    } finally {
+      setIsUpdatingCoOwner(false);
+    }
+  };
+
+  const handleDemoteCoOwner = async () => {
+    if (!podId || !user) return;
+    
+    setIsUpdatingCoOwner(true);
+    try {
+      await podsApi.demoteCoOwner(podId, user.id);
+      toast.success(`${user.fullName} has been demoted to regular member`);
+      onCoOwnerChange?.();
+      onClose();
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to demote co-owner');
+    } finally {
+      setIsUpdatingCoOwner(false);
+    }
+  };
+
+  const isCurrentUserPodOwner = podOwnerId && currentUserId === podOwnerId;
+  const canManageCoOwners = isCurrentUserPodOwner && user && user.id !== podOwnerId;
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-sm max-h-[90vh] overflow-y-auto">
@@ -110,11 +148,19 @@ const UserProfileDialog = ({ user, currentUserId, podOwnerId, isOpen, onClose, o
             </Avatar>
             <h2 className="text-xl font-bold text-foreground">{user.fullName}</h2>
             <p className="text-sm text-muted-foreground">@{user.username}</p>
-            {podOwnerId && (
-              <Badge variant={user.id === podOwnerId ? 'default' : 'secondary'} className="mt-2">
-                {user.id === podOwnerId ? 'Pod Owner' : 'Member'}
-              </Badge>
-            )}
+            <div className="flex gap-2 mt-2">
+              {podOwnerId && user.id === podOwnerId && (
+                <Badge variant="default">Pod Owner</Badge>
+              )}
+              {user.isCoOwner && (
+                <Badge variant="secondary" className="bg-blue-100 text-blue-700 border-blue-200">
+                  Co-Owner
+                </Badge>
+              )}
+              {podOwnerId && user.id !== podOwnerId && !user.isCoOwner && (
+                <Badge variant="secondary">Member</Badge>
+              )}
+            </div>
           </div>
 
           {/* Contact Info */}
@@ -247,6 +293,51 @@ const UserProfileDialog = ({ user, currentUserId, podOwnerId, isOpen, onClose, o
             <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground pt-2">
               <Calendar className="w-3 h-3" />
               <span>Member since {new Date(user.createdAt).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}</span>
+            </div>
+          )}
+
+          {/* Co-Owner Management (Pod Owner Only) */}
+          {canManageCoOwners && podId && (
+            <div className="space-y-2">
+              {user.isCoOwner ? (
+                <Button 
+                  variant="outline" 
+                  className="w-full" 
+                  onClick={handleDemoteCoOwner}
+                  disabled={isUpdatingCoOwner}
+                >
+                  {isUpdatingCoOwner ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-muted-foreground/30 border-t-muted-foreground rounded-full animate-spin mr-2" />
+                      Demoting...
+                    </>
+                  ) : (
+                    <>
+                      <CrownOff className="w-4 h-4 mr-2" />
+                      Remove Co-Owner Status
+                    </>
+                  )}
+                </Button>
+              ) : (
+                <Button 
+                  variant="outline" 
+                  className="w-full border-blue-200 hover:bg-blue-50" 
+                  onClick={handlePromoteToCoOwner}
+                  disabled={isUpdatingCoOwner}
+                >
+                  {isUpdatingCoOwner ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-blue-300 border-t-blue-600 rounded-full animate-spin mr-2" />
+                      Promoting...
+                    </>
+                  ) : (
+                    <>
+                      <Crown className="w-4 h-4 mr-2 text-blue-600" />
+                      Make Co-Owner
+                    </>
+                  )}
+                </Button>
+              )}
             </div>
           )}
 

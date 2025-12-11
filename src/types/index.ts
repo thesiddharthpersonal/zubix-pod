@@ -8,6 +8,8 @@ export interface User {
   profilePhoto?: string;
   role: 'user' | 'pod_owner' | 'USER' | 'POD_OWNER';
   createdAt: Date;
+  isCoOwner?: boolean; // Available when fetched as pod member
+  joinedAt?: Date; // Available when fetched as pod member
 }
 
 export interface UserProfile extends User {

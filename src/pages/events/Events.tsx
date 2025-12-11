@@ -193,7 +193,7 @@ const Events = () => {
     try {
       const eventData = {
         ...newEvent,
-        type: newEvent.type as 'ONLINE' | 'OFFLINE',
+        type: newEvent.type.toLowerCase() as 'online' | 'offline',
         description: newEvent.description || undefined,
         location: newEvent.type === 'OFFLINE' ? newEvent.location : undefined,
         helpline: newEvent.helpline || undefined,
@@ -242,7 +242,7 @@ const Events = () => {
     try {
       const eventData = {
         name: newEvent.name,
-        type: newEvent.type as 'ONLINE' | 'OFFLINE',
+        type: newEvent.type.toLowerCase() as 'online' | 'offline',
         date: newEvent.date,
         time: newEvent.time,
         description: newEvent.description || undefined,

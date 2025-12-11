@@ -111,18 +111,18 @@ class SocketClient {
     }
   }
 
-  sendRoomMessage(roomId: string, content: string): void {
+  sendRoomMessage(roomId: string, content: string, replyToId?: string): void {
     if (!this.socket?.connected) {
       console.warn('Socket not connected, attempting to reconnect...');
       this.connect();
       setTimeout(() => {
         if (this.socket?.connected) {
-          this.socket.emit('send-message', { roomId, content });
+          this.socket.emit('send-message', { roomId, content, replyToId });
         }
       }, 500);
     } else {
       console.log('Sending message to room:', roomId);
-      this.socket.emit('send-message', { roomId, content });
+      this.socket.emit('send-message', { roomId, content, replyToId });
     }
   }
 

@@ -22,7 +22,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { ArrowLeft, Send, MoreVertical, Loader2, Pencil, Trash2 } from 'lucide-react';
+import { ArrowLeft, Send, MoreVertical, Loader2, Pencil, Trash2, Reply, X } from 'lucide-react';
 import { Message, Room } from '@/types';
 import { roomsApi } from '@/services/api/rooms';
 import socket from '@/services/socket';
@@ -37,6 +37,7 @@ const RoomChat = () => {
   const [room, setRoom] = useState<Room | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
+  const [replyingTo, setReplyingTo] = useState<Message | null>(null);
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -152,7 +153,9 @@ const RoomChat = () => {
     if (!newMessage.trim() || !roomId || !user) return;
 
     const tempMessage = newMessage;
+    const replyId = replyingTo?.id;
     setNewMessage('');
+    setReplyingTo(null);
     setSending(true);
 
     // Optimistic update - add message immediately
@@ -162,6 +165,13 @@ const RoomChat = () => {
       roomId: roomId,
       senderId: user.id,
       sender: user,
+      replyToId: replyId,
+      replyTo: replyingTo ? {
+        id: replyingTo.id,
+        content: replyingTo.content,
+        senderId: replyingTo.senderId,
+        sender: replyingTo.sender
+      } : undefined,
       createdAt: new Date(),
       updatedAt: new Date()
     };
@@ -191,7 +201,7 @@ const RoomChat = () => {
 
       console.log('Sending message via socket');
       // Send message via Socket.IO
-      socket.sendRoomMessage(roomId, tempMessage);
+      socket.sendRoomMessage(roomId, tempMessage, replyId);
       
       // Set a timeout to remove optimistic message if real one doesn't arrive
       setTimeout(() => {
@@ -213,6 +223,9 @@ const RoomChat = () => {
         variant: 'destructive',
       });
       setNewMessage(tempMessage); // Restore message on error
+      if (replyId && replyingTo) {
+        setReplyingTo(replyingTo);
+      }
     } finally {
       setSending(false);
     }
@@ -323,7 +336,7 @@ const RoomChat = () => {
             const messageDate = new Date(message.createdAt);
             
             return (
-              <div key={message.id} className={`flex gap-3 ${isOwn ? 'flex-row-reverse' : ''}`}>
+              <div key={message.id} className={`flex gap-3 ${isOwn ? 'flex-row-reverse' : ''} group`}>
                 {!isOwn && (
                   <Avatar className="w-8 h-8 shrink-0">
                     <AvatarImage src={message.sender.profilePhoto} />
@@ -339,11 +352,27 @@ const RoomChat = () => {
                       ? 'bg-primary text-primary-foreground rounded-br-md' 
                       : 'bg-secondary text-secondary-foreground rounded-bl-md'
                   }`}>
+                    {message.replyTo && (
+                      <div className={`mb-2 pl-2 border-l-2 ${isOwn ? 'border-primary-foreground/30' : 'border-secondary-foreground/30'} text-xs opacity-70`}>
+                        <p className="font-medium">{message.replyTo.sender.fullName}</p>
+                        <p className="truncate">{message.replyTo.content}</p>
+                      </div>
+                    )}
                     <p className="text-sm">{message.content}</p>
                   </div>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {messageDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                  </p>
+                  <div className="flex items-center gap-2 mt-1">
+                    <p className="text-xs text-muted-foreground">
+                      {messageDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </p>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-5 w-5 opacity-0 group-hover:opacity-100 transition-opacity"
+                      onClick={() => setReplyingTo(message)}
+                    >
+                      <Reply className="w-3 h-3" />
+                    </Button>
+                  </div>
                 </div>
               </div>
             );
@@ -354,6 +383,25 @@ const RoomChat = () => {
 
       {/* Input */}
       <div className="sticky bottom-0 bg-background border-t border-border p-4">
+        {replyingTo && (
+          <div className="mb-2 bg-secondary/50 rounded-lg p-2 flex items-start justify-between max-w-2xl mx-auto">
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 mb-1">
+                <Reply className="w-3 h-3 text-muted-foreground" />
+                <p className="text-xs font-medium text-muted-foreground">Replying to {replyingTo.sender.fullName}</p>
+              </div>
+              <p className="text-sm truncate text-foreground">{replyingTo.content}</p>
+            </div>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-6 w-6 shrink-0"
+              onClick={() => setReplyingTo(null)}
+            >
+              <X className="w-4 h-4" />
+            </Button>
+          </div>
+        )}
         <div className="flex gap-2 max-w-2xl mx-auto">
           <Input
             value={newMessage}

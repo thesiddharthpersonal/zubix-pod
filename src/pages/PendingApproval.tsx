@@ -42,9 +42,6 @@ const PendingApproval = () => {
         </Card>
 
         <div className="space-y-3">
-          <Button variant="hero" className="w-full" asChild>
-            <Link to="/discover">Explore Pods While You Wait</Link>
-          </Button>
           <Button variant="ghost" className="w-full" asChild>
             <Link to="/">Back to Home</Link>
           </Button>

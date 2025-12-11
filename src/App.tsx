@@ -27,6 +27,7 @@ import Chat from "@/pages/chat/Chat";
 import MessageRequests from "@/pages/chat/MessageRequests";
 import BookCall from "@/pages/calls/BookCall";
 import Profile from "@/pages/profile/Profile";
+import EditProfile from "@/pages/profile/EditProfile";
 import Search from "@/pages/Search";
 import Notifications from "@/pages/Notifications";
 import NotFound from "@/pages/NotFound";
@@ -99,6 +100,7 @@ const AppRoutes = () => {
       <Route path="/message-requests" element={<ProtectedRoute><MessageRequests /></ProtectedRoute>} />
       <Route path="/book-call" element={<ProtectedRoute><BookCall /></ProtectedRoute>} />
       <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+      <Route path="/profile/edit" element={<ProtectedRoute><EditProfile /></ProtectedRoute>} />
       <Route path="/profile/:userId" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
       <Route path="/pod/:podId" element={<ProtectedRoute><PodDiscovery /></ProtectedRoute>} />
       <Route path="/search" element={<ProtectedRoute><Search /></ProtectedRoute>} />

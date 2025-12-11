@@ -61,7 +61,7 @@ const Profile = () => {
         <div className="flex items-center justify-between p-4">
           <Button variant="ghost" size="icon" onClick={() => navigate(-1)}><ArrowLeft className="w-5 h-5" /></Button>
           <h1 className="font-semibold text-foreground">Profile</h1>
-          {isOwnProfile && <Button variant="ghost" size="icon"><Edit className="w-5 h-5" /></Button>}
+          {isOwnProfile && <Button variant="ghost" size="icon" onClick={() => navigate('/profile/edit')}><Edit className="w-5 h-5" /></Button>}
           {!isOwnProfile && <div className="w-10" />}
         </div>
       </header>

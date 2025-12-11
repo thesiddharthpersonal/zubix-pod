@@ -1057,6 +1057,44 @@ const EditPod = () => {
                   placeholder="Any other relevant link"
                 />
               </div>
+
+              <Separator />
+
+              {/* Additional dynamic links */}
+              {additionalLinks.map((link) => (
+                <div key={link.id} className="flex gap-2">
+                  <Input
+                    value={link.url}
+                    onChange={(e) => {
+                      setAdditionalLinks(additionalLinks.map(l => 
+                        l.id === link.id ? { ...l, url: e.target.value } : l
+                      ));
+                    }}
+                    placeholder="Enter additional link"
+                  />
+                  <Button 
+                    type="button"
+                    variant="outline" 
+                    size="icon"
+                    onClick={() => setAdditionalLinks(additionalLinks.filter(l => l.id !== link.id))}
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
+                </div>
+              ))}
+              
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full"
+                onClick={() => {
+                  setAdditionalLinks([...additionalLinks, { id: nextLinkId, url: '' }]);
+                  setNextLinkId(nextLinkId + 1);
+                }}
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Add More Links
+              </Button>
             </CardContent>
           </Card>
 

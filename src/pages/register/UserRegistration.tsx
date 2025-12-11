@@ -8,7 +8,8 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Progress } from '@/components/ui/progress';
-import { ArrowLeft, ArrowRight, Check, Loader2 } from 'lucide-react';
+import { Separator } from '@/components/ui/separator';
+import { ArrowLeft, ArrowRight, Check, Loader2, Plus, X } from 'lucide-react';
 import { STARTUP_SUBCATEGORIES, BUSINESS_TYPES } from '@/types';
 import { toast } from 'sonner';
 import { usersApi } from '@/services/api';
@@ -18,6 +19,8 @@ const UserRegistration = () => {
   const { user, updateUserProfile, refreshUser } = useAuth();
   const [step, setStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [additionalLinks, setAdditionalLinks] = useState<{ id: number; url: string }[]>([]);
+  const [nextLinkId, setNextLinkId] = useState(1);
   
   const [formData, setFormData] = useState({
     // Step A
@@ -507,6 +510,44 @@ const UserRegistration = () => {
                     placeholder="https://yourportfolio.com"
                   />
                 </div>
+
+                <Separator />
+
+                {/* Additional dynamic links */}
+                {additionalLinks.map((link) => (
+                  <div key={link.id} className="flex gap-2">
+                    <Input
+                      value={link.url}
+                      onChange={(e) => {
+                        setAdditionalLinks(additionalLinks.map(l => 
+                          l.id === link.id ? { ...l, url: e.target.value } : l
+                        ));
+                      }}
+                      placeholder="Enter additional link"
+                    />
+                    <Button 
+                      type="button"
+                      variant="outline" 
+                      size="icon"
+                      onClick={() => setAdditionalLinks(additionalLinks.filter(l => l.id !== link.id))}
+                    >
+                      <X className="w-4 h-4" />
+                    </Button>
+                  </div>
+                ))}
+                
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full"
+                  onClick={() => {
+                    setAdditionalLinks([...additionalLinks, { id: nextLinkId, url: '' }]);
+                    setNextLinkId(nextLinkId + 1);
+                  }}
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add More Links
+                </Button>
               </CardContent>
             </>
           )}
@@ -547,6 +588,44 @@ const UserRegistration = () => {
                     placeholder="Any other social link"
                   />
                 </div>
+
+                <Separator />
+
+                {/* Additional dynamic links */}
+                {additionalLinks.map((link) => (
+                  <div key={link.id} className="flex gap-2">
+                    <Input
+                      value={link.url}
+                      onChange={(e) => {
+                        setAdditionalLinks(additionalLinks.map(l => 
+                          l.id === link.id ? { ...l, url: e.target.value } : l
+                        ));
+                      }}
+                      placeholder="Enter additional link"
+                    />
+                    <Button 
+                      type="button"
+                      variant="outline" 
+                      size="icon"
+                      onClick={() => setAdditionalLinks(additionalLinks.filter(l => l.id !== link.id))}
+                    >
+                      <X className="w-4 h-4" />
+                    </Button>
+                  </div>
+                ))}
+                
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full"
+                  onClick={() => {
+                    setAdditionalLinks([...additionalLinks, { id: nextLinkId, url: '' }]);
+                    setNextLinkId(nextLinkId + 1);
+                  }}
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add More Links
+                </Button>
               </CardContent>
             </>
           )}
@@ -587,6 +666,44 @@ const UserRegistration = () => {
                     placeholder="Any other social link"
                   />
                 </div>
+
+                <Separator />
+
+                {/* Additional dynamic links */}
+                {additionalLinks.map((link) => (
+                  <div key={link.id} className="flex gap-2">
+                    <Input
+                      value={link.url}
+                      onChange={(e) => {
+                        setAdditionalLinks(additionalLinks.map(l => 
+                          l.id === link.id ? { ...l, url: e.target.value } : l
+                        ));
+                      }}
+                      placeholder="Enter additional link"
+                    />
+                    <Button 
+                      type="button"
+                      variant="outline" 
+                      size="icon"
+                      onClick={() => setAdditionalLinks(additionalLinks.filter(l => l.id !== link.id))}
+                    >
+                      <X className="w-4 h-4" />
+                    </Button>
+                  </div>
+                ))}
+                
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full"
+                  onClick={() => {
+                    setAdditionalLinks([...additionalLinks, { id: nextLinkId, url: '' }]);
+                    setNextLinkId(nextLinkId + 1);
+                  }}
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add More Links
+                </Button>
               </CardContent>
             </>
           )}

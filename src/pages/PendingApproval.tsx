@@ -1,9 +1,17 @@
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Clock, CheckCircle2, Mail } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
 
 const PendingApproval = () => {
+  const navigate = useNavigate();
+  const { logout } = useAuth();
+
+  const handleBackToHome = () => {
+    logout();
+    navigate('/');
+  };
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <div className="w-full max-w-md text-center">
@@ -42,8 +50,8 @@ const PendingApproval = () => {
         </Card>
 
         <div className="space-y-3">
-          <Button variant="ghost" className="w-full" asChild>
-            <Link to="/">Back to Home</Link>
+          <Button variant="ghost" className="w-full" onClick={handleBackToHome}>
+            Back to Home
           </Button>
         </div>
       </div>

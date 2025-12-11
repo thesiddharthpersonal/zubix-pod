@@ -261,26 +261,34 @@ const EditPod = () => {
     setIsSubmitting(true);
     
     try {
-      const updateData = {
+      const updateData: any = {
         name: formData.podName,
         organisationName: formData.organisationName,
-        organisationType: formData.organisationType.toUpperCase() as 'GOVERNMENT' | 'PRIVATE',
-        organisationEmail: formData.organisationEmail,
-        operatingCity: formData.operatingCity,
-        website: formData.website,
+        organisationEmail: formData.organisationEmail || undefined,
+        operatingCity: formData.operatingCity || undefined,
+        website: formData.website || undefined,
         focusAreas: formData.focusAreas,
-        totalInvestmentSize: formData.totalInvestmentSize,
+        totalInvestmentSize: formData.totalInvestmentSize || undefined,
         numberOfInvestments: formData.numberOfInvestments ? parseInt(formData.numberOfInvestments) : undefined,
-        briefAboutOrganisation: formData.briefAboutOrganisation,
+        briefAboutOrganisation: formData.briefAboutOrganisation || undefined,
         socialLinks: {
           linkedin: formData.linkedin,
-          instagram: formData.instagram,
-          facebook: formData.facebook,
-          twitter: formData.twitter,
-          youtube: formData.youtube,
-          others: formData.others,
+          instagram: formData.instagram || undefined,
+          facebook: formData.facebook || undefined,
+          twitter: formData.twitter || undefined,
+          youtube: formData.youtube || undefined,
+          others: formData.others || undefined,
         },
         coOwnerUsernames: coOwners,
+      };
+
+      // Only add organisationType if it's set
+      if (formData.organisationType) {
+        updateData.organisationType = formData.organisationType.toUpperCase() as 'GOVERNMENT' | 'PRIVATE';
+      }
+
+      const finalUpdateData = {
+        ...updateData,
         // Advanced fields based on subcategory
         supportedDomains: formData.supportedDomains.length > 0 ? formData.supportedDomains : undefined,
         supportedStages: formData.supportedStages.length > 0 ? formData.supportedStages : undefined,
@@ -304,7 +312,9 @@ const EditPod = () => {
         eventsConducted: formData.eventsConducted.length > 0 ? formData.eventsConducted : undefined,
       };
 
-      await podsApi.updatePod(podId, updateData);
+      console.log('Sending pod update:', finalUpdateData);
+
+      await podsApi.updatePod(podId, finalUpdateData);
       
       toast.success('Pod updated successfully!');
       navigate('/others');

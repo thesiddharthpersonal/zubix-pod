@@ -227,7 +227,7 @@ const Rooms = () => {
                         <SelectValue placeholder="Select pod" />
                       </SelectTrigger>
                       <SelectContent>
-                        {ownedPods.map((pod) => (
+                        {managedPods.map((pod) => (
                           <SelectItem key={pod.id} value={pod.id}>{pod.name}</SelectItem>
                         ))}
                       </SelectContent>

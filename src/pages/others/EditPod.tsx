@@ -72,9 +72,6 @@ const EditPod = () => {
     others: '',
   });
 
-  const managedPods = getManagedPods(joinedPods, user?.id);
-  const canEdit = managedPods.some(p => p.id === podId);
-
   useEffect(() => {
     const loadPod = async () => {
       if (!podId) {
@@ -83,15 +80,23 @@ const EditPod = () => {
         return;
       }
 
-      if (!canEdit) {
-        toast.error('You do not have permission to edit this pod');
-        navigate('/others');
-        return;
+      if (!user) {
+        return; // Wait for user to load
       }
 
       try {
         setIsLoading(true);
         const podData = await podsApi.getPodById(podId);
+        
+        // Check if user is owner or co-owner
+        const isOwner = podData.ownerId === user.id;
+        const isCoOwner = podData.coOwners?.some(co => co.id === user.id) || false;
+        
+        if (!isOwner && !isCoOwner) {
+          toast.error('You do not have permission to edit this pod');
+          navigate('/others');
+          return;
+        }
         setPod(podData);
 
         // Populate form with existing data
@@ -145,7 +150,7 @@ const EditPod = () => {
     };
 
     loadPod();
-  }, [podId, canEdit, navigate]);
+  }, [podId, user, navigate]);
 
   const addCoOwner = () => {
     if (!coOwnerUsername.trim()) {

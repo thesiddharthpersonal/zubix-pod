@@ -31,6 +31,7 @@ import Profile from "@/pages/profile/Profile";
 import EditProfile from "@/pages/profile/EditProfile";
 import Search from "@/pages/Search";
 import Notifications from "@/pages/Notifications";
+import StartupIdeas from "@/pages/StartupIdeas";
 import NotFound from "@/pages/NotFound";
 import Install from "@/pages/Install";
 
@@ -98,6 +99,7 @@ const AppRoutes = () => {
       <Route path="/events" element={<ProtectedRoute><Events /></ProtectedRoute>} />
       <Route path="/others" element={<ProtectedRoute><Others /></ProtectedRoute>} />
       <Route path="/pods/:podId/edit" element={<ProtectedRoute><EditPod /></ProtectedRoute>} />
+      <Route path="/startup-ideas" element={<ProtectedRoute><StartupIdeas /></ProtectedRoute>} />
       <Route path="/chat" element={<ProtectedRoute><Chat /></ProtectedRoute>} />
       <Route path="/message-requests" element={<ProtectedRoute><MessageRequests /></ProtectedRoute>} />
       <Route path="/book-call" element={<ProtectedRoute><BookCall /></ProtectedRoute>} />

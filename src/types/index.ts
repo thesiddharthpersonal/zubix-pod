@@ -434,3 +434,22 @@ export const SECTORS = [
   'Media',
   'Other',
 ];
+
+// Startup Idea Types
+export interface StartupIdea {
+  id: string;
+  userId: string;
+  title: string;
+  description: string;
+  category?: string;
+  tags: string[];
+  createdAt: Date;
+  updatedAt: Date;
+  user: {
+    id: string;
+    username: string;
+    fullName: string;
+    profilePhoto?: string;
+    role: string;
+  };
+}

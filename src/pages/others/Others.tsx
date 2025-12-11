@@ -9,7 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Rocket, Upload, Send, MessageCircle, ChevronRight, ArrowLeft, Settings, HelpCircle, FileText, Users, Eye, Reply, PhoneCall } from 'lucide-react';
+import { Rocket, Upload, Send, MessageCircle, ChevronRight, ArrowLeft, Settings, HelpCircle, FileText, Users, Eye, Reply, PhoneCall, Lightbulb } from 'lucide-react';
 import { Pitch, PitchReply, STARTUP_STAGES, PITCH_STATUSES, STARTUP_STAGE_DISPLAY, PITCH_STATUS_DISPLAY, SECTORS, StartupStage, PitchStatus } from '@/types';
 import TopNav from '@/components/layout/TopNav';
 import BottomNav from '@/components/layout/BottomNav';
@@ -20,6 +20,7 @@ import { getManagedPods } from '@/lib/utils';
 // Feature list for Others section
 const FEATURES = [
   { id: 'book-call', name: 'Book a Call', description: 'Book a call with pod owners or co-owners', icon: PhoneCall, available: true, forAll: true, path: '/book-call' },
+  { id: 'startup-ideas', name: 'Startup Ideas', description: 'Share and discover innovative startup ideas', icon: Lightbulb, available: true, forAll: true, path: '/startup-ideas' },
   { id: 'pitch', name: 'Pitch', description: 'Submit your startup pitch to investors', icon: Rocket, available: true, forAll: true },
   { id: 'view-pitches', name: 'View Pitches', description: 'Review pitches received from startups', icon: Eye, available: true, forPodOwner: true },
   { id: 'edit-pod', name: 'Edit Pod Details', description: 'Update your pod information and settings', icon: Settings, available: true, forPodOwner: true },

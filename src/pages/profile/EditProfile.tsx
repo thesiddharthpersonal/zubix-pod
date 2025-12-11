@@ -85,6 +85,12 @@ const EditProfile = () => {
         portfolio: user.socialLinks?.portfolio || '',
         others: user.socialLinks?.others || '',
       });
+      
+      // Load additional links
+      if (user.socialLinks?.additionalLinks && user.socialLinks.additionalLinks.length > 0) {
+        setAdditionalLinks(user.socialLinks.additionalLinks.map((url, index) => ({ id: index + 1, url })));
+        setNextLinkId(user.socialLinks.additionalLinks.length + 1);
+      }
     }
   }, [user]);
 
@@ -133,6 +139,7 @@ const EditProfile = () => {
           github: formData.github,
           portfolio: formData.portfolio,
           others: formData.others,
+          additionalLinks: additionalLinks.filter(link => link.url.trim()).map(link => link.url),
         },
       });
       

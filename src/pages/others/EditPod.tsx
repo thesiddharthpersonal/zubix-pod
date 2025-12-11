@@ -152,6 +152,12 @@ const EditPod = () => {
         if (podData.coOwners) {
           setCoOwners(podData.coOwners.map(co => co.username));
         }
+
+        // Load additional links
+        if (podData.socialLinks?.additionalLinks && podData.socialLinks.additionalLinks.length > 0) {
+          setAdditionalLinks(podData.socialLinks.additionalLinks.map((url, index) => ({ id: index + 1, url })));
+          setNextLinkId(podData.socialLinks.additionalLinks.length + 1);
+        }
       } catch (error) {
         console.error('Failed to load pod:', error);
         toast.error('Failed to load pod details');
@@ -320,6 +326,7 @@ const EditPod = () => {
           twitter: formData.twitter || undefined,
           youtube: formData.youtube || undefined,
           others: formData.others || undefined,
+          additionalLinks: additionalLinks.filter(link => link.url.trim()).map(link => link.url),
         },
         coOwnerUsernames: coOwners,
       };

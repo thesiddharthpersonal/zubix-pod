@@ -137,6 +137,7 @@ const UserRegistration = () => {
           github: formData.github,
           portfolio: formData.portfolio,
           others: formData.others,
+          additionalLinks: additionalLinks.filter(link => link.url.trim()).map(link => link.url),
         },
       });
 

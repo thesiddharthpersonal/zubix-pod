@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { canManagePod } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
@@ -194,12 +195,8 @@ const RoomQA = () => {
   };
 
   // Check if user can manage the room (is owner or co-owner of the pod)
-  const podFromContext = room?.pod;
-  const isPodOwnerOrCoOwner = podFromContext && user?.id && (
-    podFromContext.ownerId === user.id || 
-    joinedPods.find(p => p.id === podFromContext.id)?.isCoOwner === true ||
-    joinedPods.find(p => p.id === podFromContext.id)?.userRole === 'co-owner'
-  );
+  const podForRoom = joinedPods.find(p => p.id === room?.podId);
+  const isPodOwnerOrCoOwner = podForRoom && user?.id ? canManagePod(podForRoom, user.id) : false;
 
   if (loading) {
     return (

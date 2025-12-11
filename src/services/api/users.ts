@@ -20,8 +20,23 @@ export interface UpdateProfileRequest {
 export const usersApi = {
   getProfile: async (userId: string): Promise<UserProfile> => {
     try {
-      const response = await apiClient.get<{ user: UserProfile }>(`/api/users/${userId}`);
-      return response.data.user;
+      const response = await apiClient.get<{ user: any }>(`/api/users/${userId}`);
+      const userData = response.data.user;
+      
+      // Map backend URLs to socialLinks object
+      return {
+        ...userData,
+        socialLinks: {
+          linkedin: userData.linkedinUrl,
+          instagram: userData.instagramUrl,
+          facebook: userData.facebookUrl,
+          twitter: userData.twitterUrl,
+          youtube: userData.youtubeUrl,
+          github: userData.githubUrl,
+          portfolio: userData.portfolioUrl,
+          others: userData.othersUrl,
+        }
+      };
     } catch (error) {
       throw new Error(handleApiError(error));
     }

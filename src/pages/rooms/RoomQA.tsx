@@ -179,7 +179,7 @@ const RoomQA = () => {
         title: 'Success',
         description: 'Room deleted successfully',
       });
-      navigate(`/pods/${room?.podId}`);
+      navigate('/rooms');
     } catch (error: any) {
       console.error('Error deleting room:', error);
       toast({

@@ -44,6 +44,7 @@ const RoomChat = () => {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!roomId) return;
@@ -104,6 +105,13 @@ const RoomChat = () => {
       }
     };
   }, [roomId]);
+
+  // Auto-focus input when replying
+  useEffect(() => {
+    if (replyingTo && inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, [replyingTo]);
 
   useEffect(() => {
     scrollToBottom();
@@ -404,6 +412,7 @@ const RoomChat = () => {
         )}
         <div className="flex gap-2 max-w-2xl mx-auto">
           <Input
+            ref={inputRef}
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
             placeholder="Type a message..."

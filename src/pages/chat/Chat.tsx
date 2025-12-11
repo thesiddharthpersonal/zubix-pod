@@ -35,6 +35,7 @@ const Chat = () => {
   const [targetUser, setTargetUser] = useState<User | null>(null);
   const [requestMessage, setRequestMessage] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   // Initialize socket connection
   useEffect(() => {
@@ -43,6 +44,13 @@ const Chat = () => {
       socketClient.connect();
     }
   }, []);
+
+  // Auto-focus input when replying
+  useEffect(() => {
+    if (replyingTo && inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, [replyingTo]);
 
   // Handle incoming messages via socket
   useEffect(() => {
@@ -375,7 +383,7 @@ const Chat = () => {
             </div>
           )}
           <div className="flex gap-2">
-            <Input value={newMessage} onChange={(e) => setNewMessage(e.target.value)} placeholder="Type a message..." onKeyDown={(e) => e.key === 'Enter' && handleSend()} />
+            <Input ref={inputRef} value={newMessage} onChange={(e) => setNewMessage(e.target.value)} placeholder="Type a message..." onKeyDown={(e) => e.key === 'Enter' && handleSend()} />
             <Button variant="hero" size="icon" onClick={handleSend}><Send className="w-5 h-5" /></Button>
           </div>
         </div>

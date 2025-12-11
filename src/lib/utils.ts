@@ -68,7 +68,13 @@ export function canManagePod(pod: Pod | undefined | null, userId: string | undef
 /**
  * Get pods that the user can manage (owned or co-owner)
  */
-export function getManagedPods(pods: Pod[], userId: string | undefined): Pod[] {
-  if (!userId) return [];
-  return pods.filter(pod => canManagePod(pod, userId));
+export function getManagedPods(pods: Pod[] | undefined | null, userId: string | undefined): Pod[] {
+  console.log('getManagedPods called', { podsCount: pods?.length, userId });
+  if (!userId || !pods || pods.length === 0) {
+    console.log('getManagedPods: returning empty - no userId or pods');
+    return [];
+  }
+  const managed = pods.filter(pod => canManagePod(pod, userId));
+  console.log('getManagedPods: result', { managedCount: managed.length });
+  return managed;
 }

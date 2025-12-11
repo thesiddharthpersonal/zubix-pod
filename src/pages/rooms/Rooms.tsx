@@ -18,8 +18,10 @@ import { useToast } from '@/hooks/use-toast';
 import { getManagedPods } from '@/lib/utils';
 
 const Rooms = () => {
+  console.log('🏠 Rooms component rendering');
   const navigate = useNavigate();
   const { joinedPods, user } = useAuth();
+  console.log('🏠 Rooms - Auth data:', { user: user?.id, joinedPodsCount: joinedPods?.length });
   const { toast } = useToast();
   const [rooms, setRooms] = useState<Room[]>([]);
   const [loading, setLoading] = useState(true);

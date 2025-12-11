@@ -15,8 +15,14 @@ export function canManagePod(pod: Pod | undefined | null, userId: string | undef
   // Check if user is the owner
   if (pod.ownerId === userId) return true;
   
-  // Check if user is a co-owner (from userRole or isCoOwner flag)
+  // Check if user is a co-owner (from userRole or isCoOwner flag from backend)
   if (pod.userRole === 'co-owner' || pod.isCoOwner === true) return true;
+  
+  // Fallback: Check coOwnerIds array (for backward compatibility)
+  if (pod.coOwnerIds && pod.coOwnerIds.includes(userId)) return true;
+  
+  // Fallback: Check coOwners array
+  if (pod.coOwners && pod.coOwners.some(co => co.id === userId)) return true;
   
   return false;
 }

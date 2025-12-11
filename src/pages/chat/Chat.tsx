@@ -35,21 +35,24 @@ const Chat = () => {
   const [requestMessage, setRequestMessage] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Cleanup on unmount
+  // Initialize socket connection
   useEffect(() => {
-    return () => {
-      // Cleanup: leave current chat if any
-      if (selectedChat?.id) {
-        socketClient.getSocket()?.emit('leave-chat', { chatId: selectedChat.id });
-      }
-    };
-  }, [selectedChat?.id]);
+    if (!socketClient.isConnected()) {
+      console.log('Socket not connected, connecting...');
+      socketClient.connect();
+    }
+  }, []);
 
   // Handle incoming messages via socket
   useEffect(() => {
     const handleNewMessage = (message: Message) => {
+      console.log('Received new DM:', message);
       if (selectedChat?.id === message.chatId) {
-        setMessages(prev => [...prev, message]);
+        setMessages(prev => {
+          // Check if message already exists
+          const exists = prev.some(m => m.id === message.id);
+          return exists ? prev : [...prev, message];
+        });
         // Scroll to bottom
         setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
       }
@@ -74,16 +77,39 @@ const Chat = () => {
   // Join chat room when chat is selected
   useEffect(() => {
     if (selectedChat?.id) {
-      socketClient.joinChat(selectedChat.id);
+      if (!socketClient.isConnected()) {
+        console.log('Socket not connected, connecting...');
+        socketClient.connect();
+        setTimeout(() => {
+          if (socketClient.isConnected()) {
+            socketClient.joinChat(selectedChat.id);
+          }
+        }, 500);
+      } else {
+        socketClient.joinChat(selectedChat.id);
+      }
+      
       // Scroll to bottom when messages load
       setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: 'auto' }), 100);
-    }
 
-    return () => {
-      if (selectedChat?.id) {
-        socketClient.getSocket()?.emit('leave-chat', { chatId: selectedChat.id });
+      // Set up reconnection handler
+      const socketInstance = socketClient.getSocket();
+      const handleReconnect = () => {
+        console.log('Socket reconnected, rejoining chat');
+        socketClient.joinChat(selectedChat.id);
+      };
+
+      if (socketInstance) {
+        socketInstance.on('connect', handleReconnect);
       }
-    };
+
+      return () => {
+        socketClient.leaveChat(selectedChat.id);
+        if (socketInstance) {
+          socketInstance.off('connect', handleReconnect);
+        }
+      };
+    }
   }, [selectedChat?.id]);
 
   // Fetch user's chats
@@ -197,12 +223,59 @@ const Chat = () => {
     const content = newMessage.trim();
     setNewMessage('');
 
+    // Optimistic update
+    const optimisticMessage: Message = {
+      id: `temp-${Date.now()}`,
+      content: content,
+      chatId: selectedChat.id,
+      senderId: user!.id,
+      sender: user!,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+
+    setMessages(prev => [...prev, optimisticMessage]);
+
     try {
+      // Ensure socket is connected before sending
+      if (!socketClient.isConnected()) {
+        console.log('Socket disconnected, reconnecting...');
+        socketClient.connect();
+        // Wait for connection with timeout
+        let attempts = 0;
+        while (!socketClient.isConnected() && attempts < 10) {
+          await new Promise(resolve => setTimeout(resolve, 200));
+          attempts++;
+        }
+        
+        if (!socketClient.isConnected()) {
+          throw new Error('Failed to connect to server');
+        }
+        
+        // Rejoin chat after reconnection
+        socketClient.joinChat(selectedChat.id);
+        await new Promise(resolve => setTimeout(resolve, 200));
+      }
+
+      console.log('Sending DM via socket');
       // Send via socket for real-time delivery
       socketClient.sendDirectMessage(selectedChat.id, content);
+      
+      // Set a timeout to remove optimistic message if real one doesn't arrive
+      setTimeout(() => {
+        setMessages((prev) => {
+          const hasReal = prev.some(m => m.content === content && !m.id.toString().startsWith('temp-'));
+          if (!hasReal) {
+            console.warn('Real message not received, keeping optimistic message');
+          }
+          return prev;
+        });
+      }, 3000);
     } catch (error) {
       console.error('Failed to send message:', error);
-      toast.error('Failed to send message');
+      // Remove optimistic message on error
+      setMessages(prev => prev.filter(m => m.id !== optimisticMessage.id));
+      toast.error('Failed to send message. Please try again.');
       // Restore message on error
       setNewMessage(content);
     }

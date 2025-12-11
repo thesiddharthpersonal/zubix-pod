@@ -6,6 +6,7 @@ class SocketClient {
   private reconnectAttempts = 0;
   private maxReconnectAttempts = 5;
   private currentRoomId: string | null = null;
+  private currentChatId: string | null = null;
 
   connect(): Socket {
     if (this.socket?.connected) {
@@ -40,6 +41,12 @@ class SocketClient {
       if (this.currentRoomId) {
         console.log('Rejoining room after reconnect:', this.currentRoomId);
         this.socket?.emit('join-room', { roomId: this.currentRoomId });
+      }
+      
+      // Rejoin chat if we were in one before disconnect
+      if (this.currentChatId) {
+        console.log('Rejoining chat after reconnect:', this.currentChatId);
+        this.socket?.emit('join-chat', { chatId: this.currentChatId });
       }
     });
 
@@ -121,13 +128,42 @@ class SocketClient {
 
   // Chat events
   joinChat(chatId: string): void {
+    this.currentChatId = chatId;
     if (this.socket?.connected) {
+      console.log('Joining chat:', chatId);
       this.socket.emit('join-chat', { chatId });
+    } else {
+      console.warn('Socket not connected, attempting to connect...');
+      this.connect();
+      setTimeout(() => {
+        if (this.socket?.connected) {
+          this.socket.emit('join-chat', { chatId });
+        }
+      }, 500);
+    }
+  }
+
+  leaveChat(chatId: string): void {
+    if (this.currentChatId === chatId) {
+      this.currentChatId = null;
+    }
+    if (this.socket?.connected) {
+      console.log('Leaving chat:', chatId);
+      this.socket.emit('leave-chat', { chatId });
     }
   }
 
   sendDirectMessage(chatId: string, content: string): void {
-    if (this.socket?.connected) {
+    if (!this.socket?.connected) {
+      console.warn('Socket not connected, attempting to reconnect...');
+      this.connect();
+      setTimeout(() => {
+        if (this.socket?.connected) {
+          this.socket.emit('send-dm', { chatId, content });
+        }
+      }, 500);
+    } else {
+      console.log('Sending DM to chat:', chatId);
       this.socket.emit('send-dm', { chatId, content });
     }
   }

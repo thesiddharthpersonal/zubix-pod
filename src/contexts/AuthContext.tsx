@@ -53,6 +53,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           
           // Load user's pods
           const pods = await podsApi.getJoinedPods();
+          console.log('AuthContext: Loaded joined pods on init', pods);
           setJoinedPods(pods);
           
           // Initialize socket connection
@@ -88,6 +89,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       
       // Load user's pods
       const pods = await podsApi.getJoinedPods();
+      console.log('AuthContext: Loaded joined pods on login', pods);
       setJoinedPods(pods);
       
       // Initialize socket connection

@@ -48,7 +48,16 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           setUser({
             ...userData,
             createdAt: new Date(userData.createdAt),
-            socialLinks: {},
+            socialLinks: {
+              linkedin: (userData as any).linkedinUrl,
+              instagram: (userData as any).instagramUrl,
+              facebook: (userData as any).facebookUrl,
+              twitter: (userData as any).twitterUrl,
+              youtube: (userData as any).youtubeUrl,
+              github: (userData as any).githubUrl,
+              portfolio: (userData as any).portfolioUrl,
+              others: (userData as any).othersUrl,
+            },
           });
           
           // Load user's pods
@@ -84,7 +93,16 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       setUser({
         ...response.user,
         createdAt: new Date(response.user.createdAt),
-        socialLinks: {},
+        socialLinks: {
+          linkedin: (response.user as any).linkedinUrl,
+          instagram: (response.user as any).instagramUrl,
+          facebook: (response.user as any).facebookUrl,
+          twitter: (response.user as any).twitterUrl,
+          youtube: (response.user as any).youtubeUrl,
+          github: (response.user as any).githubUrl,
+          portfolio: (response.user as any).portfolioUrl,
+          others: (response.user as any).othersUrl,
+        },
       });
       
       // Load user's pods
@@ -115,7 +133,16 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       setUser({
         ...response.user,
         createdAt: new Date(response.user.createdAt),
-        socialLinks: {},
+        socialLinks: {
+          linkedin: (response.user as any).linkedinUrl,
+          instagram: (response.user as any).instagramUrl,
+          facebook: (response.user as any).facebookUrl,
+          twitter: (response.user as any).twitterUrl,
+          youtube: (response.user as any).youtubeUrl,
+          github: (response.user as any).githubUrl,
+          portfolio: (response.user as any).portfolioUrl,
+          others: (response.user as any).othersUrl,
+        },
       });
       
       toast.success('Account created successfully!');
@@ -162,7 +189,16 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       setUser({
         ...userData,
         createdAt: new Date(userData.createdAt),
-        socialLinks: {},
+        socialLinks: {
+          linkedin: (userData as any).linkedinUrl,
+          instagram: (userData as any).instagramUrl,
+          facebook: (userData as any).facebookUrl,
+          twitter: (userData as any).twitterUrl,
+          youtube: (userData as any).youtubeUrl,
+          github: (userData as any).githubUrl,
+          portfolio: (userData as any).portfolioUrl,
+          others: (userData as any).othersUrl,
+        },
       });
       
       // Refresh pods

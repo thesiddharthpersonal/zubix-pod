@@ -32,7 +32,7 @@ import EditRoomDialog from '@/components/EditRoomDialog';
 const RoomQA = () => {
   const { roomId } = useParams();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, joinedPods } = useAuth();
   const { toast } = useToast();
   const [room, setRoom] = useState<Room | null>(null);
   const [questions, setQuestions] = useState<Question[]>([]);

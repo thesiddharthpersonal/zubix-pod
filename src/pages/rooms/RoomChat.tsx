@@ -31,7 +31,7 @@ import EditRoomDialog from '@/components/EditRoomDialog';
 const RoomChat = () => {
   const { roomId } = useParams();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, joinedPods } = useAuth();
   const { toast } = useToast();
   const [room, setRoom] = useState<Room | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);

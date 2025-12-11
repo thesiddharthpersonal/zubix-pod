@@ -190,7 +190,12 @@ const Rooms = () => {
         <div className="flex items-center justify-between mb-4">
           <h1 className="text-2xl font-bold text-foreground">Rooms</h1>
           {canCreateRoom && (
-            <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+            <Dialog open={isCreateDialogOpen} onOpenChange={(open) => {
+              setIsCreateDialogOpen(open);
+              if (open && managedPods.length > 0 && !newRoom.podId) {
+                setNewRoom({ ...newRoom, podId: managedPods[0].id });
+              }
+            }}>
               <DialogTrigger asChild>
                 <Button variant="hero" size="sm">
                   <Plus className="w-4 h-4" />

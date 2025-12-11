@@ -22,12 +22,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { ArrowLeft, Send, MoreVertical, Loader2, Pencil, Trash2, Reply, X } from 'lucide-react';
+import { ArrowLeft, Send, MoreVertical, Loader2, Pencil, Trash2, Reply, X, Users } from 'lucide-react';
 import { Message, Room } from '@/types';
 import { roomsApi } from '@/services/api/rooms';
 import socket from '@/services/socket';
 import { useToast } from '@/hooks/use-toast';
 import EditRoomDialog from '@/components/EditRoomDialog';
+import MentionInput from '@/components/MentionInput';
 
 const RoomChat = () => {
   const { roomId } = useParams();
@@ -296,6 +297,16 @@ const RoomChat = () => {
             </div>
           </div>
           <div className="flex items-center gap-2">
+            {isPodOwnerOrCoOwner && (
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => navigate(`/rooms/${roomId}/members`)}
+              >
+                <Users className="w-4 h-4 mr-1" />
+                Members
+              </Button>
+            )}
             {room?.privacy === 'PRIVATE' && isPodOwnerOrCoOwner && (
               <Button 
                 variant="outline" 
@@ -410,21 +421,23 @@ const RoomChat = () => {
             </Button>
           </div>
         )}
-        <div className="flex gap-2 max-w-2xl mx-auto">
-          <Input
-            ref={inputRef}
-            value={newMessage}
-            onChange={(e) => setNewMessage(e.target.value)}
-            placeholder="Type a message..."
-            className="flex-1"
-            onKeyDown={(e) => e.key === 'Enter' && !sending && handleSend()}
-            disabled={sending}
-          />
+        <div className="flex gap-2 max-w-2xl mx-auto items-end">
+          <div className="flex-1">
+            <MentionInput
+              value={newMessage}
+              onChange={setNewMessage}
+              placeholder="Type a message... (use @ to mention)"
+              rows={1}
+              className="min-h-[40px]"
+              disabled={sending}
+            />
+          </div>
           <Button 
             variant="hero" 
             size="icon" 
             onClick={handleSend} 
             disabled={!newMessage.trim() || sending}
+            className="h-10 w-10"
           >
             {sending ? (
               <Loader2 className="w-5 h-5 animate-spin" />

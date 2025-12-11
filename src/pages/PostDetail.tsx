@@ -14,6 +14,7 @@ import TopNav from '@/components/layout/TopNav';
 import BottomNav from '@/components/layout/BottomNav';
 import UserProfileDialog from '@/components/UserProfileDialog';
 import SendMessageDialog from '@/components/SendMessageDialog';
+import MentionInput from '@/components/MentionInput';
 
 const PostDetail = () => {
   const { postId } = useParams<{ postId: string }>();
@@ -291,36 +292,33 @@ const PostDetail = () => {
 
                   {/* Add Comment */}
                   {user && (
-                    <div className="flex gap-2">
+                    <div className="flex gap-2 items-end">
                       <Avatar className="w-8 h-8">
                         <AvatarImage src={user.profilePhoto} />
                         <AvatarFallback>{user.fullName?.charAt(0) || 'U'}</AvatarFallback>
                       </Avatar>
-                      <div className="flex-1 flex gap-2">
-                        <Input
+                      <div className="flex-1">
+                        <MentionInput
                           value={newComment}
-                          onChange={(e) => setNewComment(e.target.value)}
-                          placeholder="Write a comment..."
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter' && !e.shiftKey) {
-                              e.preventDefault();
-                              handleAddComment();
-                            }
-                          }}
+                          onChange={setNewComment}
+                          placeholder="Write a comment... (use @ to mention)"
+                          rows={1}
+                          className="min-h-[40px]"
                           disabled={submittingComment}
                         />
-                        <Button 
-                          size="sm" 
-                          onClick={handleAddComment}
-                          disabled={!newComment.trim() || submittingComment}
-                        >
-                          {submittingComment ? (
-                            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                          ) : (
-                            <Send className="w-4 h-4" />
-                          )}
-                        </Button>
                       </div>
+                      <Button 
+                        size="sm" 
+                        onClick={handleAddComment}
+                        disabled={!newComment.trim() || submittingComment}
+                        className="h-10"
+                      >
+                        {submittingComment ? (
+                          <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        ) : (
+                          <Send className="w-4 h-4" />
+                        )}
+                      </Button>
                     </div>
                   )}
                 </div>

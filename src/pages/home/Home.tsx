@@ -17,6 +17,7 @@ import SendMessageDialog from '@/components/SendMessageDialog';
 import { postsApi, reactionsApi, uploadApi, commentsApi, Comment } from '@/services/api';
 import { toast } from 'sonner';
 import { Input } from '@/components/ui/input';
+import MentionInput from '@/components/MentionInput';
 
 const Home = () => {
   const navigate = useNavigate();
@@ -284,11 +285,12 @@ const Home = () => {
                 <AvatarFallback>{user?.fullName?.charAt(0) || 'U'}</AvatarFallback>
               </Avatar>
               <div className="flex-1">
-                <Textarea
+                <MentionInput
                   value={newPostContent}
-                  onChange={(e) => setNewPostContent(e.target.value)}
-                  placeholder="Share an update..."
+                  onChange={setNewPostContent}
+                  placeholder="Share an update... (use @ to mention)"
                   className="min-h-[80px] resize-none border-0 p-0 focus-visible:ring-0"
+                  rows={3}
                 />
                 {/* Media Preview */}
                 {mediaFiles.length > 0 && (

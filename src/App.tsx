@@ -21,6 +21,7 @@ import Rooms from "@/pages/rooms/Rooms";
 import RoomChat from "@/pages/rooms/RoomChat";
 import RoomQA from "@/pages/rooms/RoomQA";
 import RoomJoinRequests from "@/pages/rooms/RoomJoinRequests";
+import RoomMembers from "@/pages/rooms/RoomMembers";
 import Events from "@/pages/events/Events";
 import Others from "@/pages/others/Others";
 import EditPod from "@/pages/others/EditPod";
@@ -32,6 +33,8 @@ import EditProfile from "@/pages/profile/EditProfile";
 import Search from "@/pages/Search";
 import Notifications from "@/pages/Notifications";
 import StartupIdeas from "@/pages/StartupIdeas";
+import JobsInternships from "@/pages/JobsInternships";
+import IdolPitchDecks from "@/pages/IdolPitchDecks";
 import NotFound from "@/pages/NotFound";
 import Install from "@/pages/Install";
 
@@ -96,10 +99,13 @@ const AppRoutes = () => {
       <Route path="/rooms/:roomId/chat" element={<ProtectedRoute><RoomChat /></ProtectedRoute>} />
       <Route path="/rooms/:roomId/qa" element={<ProtectedRoute><RoomQA /></ProtectedRoute>} />
       <Route path="/rooms/:roomId/join-requests" element={<ProtectedRoute><RoomJoinRequests /></ProtectedRoute>} />
+      <Route path="/rooms/:roomId/members" element={<ProtectedRoute><RoomMembers /></ProtectedRoute>} />
       <Route path="/events" element={<ProtectedRoute><Events /></ProtectedRoute>} />
       <Route path="/others" element={<ProtectedRoute><Others /></ProtectedRoute>} />
       <Route path="/pods/:podId/edit" element={<ProtectedRoute><EditPod /></ProtectedRoute>} />
       <Route path="/startup-ideas" element={<ProtectedRoute><StartupIdeas /></ProtectedRoute>} />
+      <Route path="/jobs-internships" element={<ProtectedRoute><JobsInternships /></ProtectedRoute>} />
+      <Route path="/idol-pitch-decks" element={<ProtectedRoute><IdolPitchDecks /></ProtectedRoute>} />
       <Route path="/chat" element={<ProtectedRoute><Chat /></ProtectedRoute>} />
       <Route path="/message-requests" element={<ProtectedRoute><MessageRequests /></ProtectedRoute>} />
       <Route path="/book-call" element={<ProtectedRoute><BookCall /></ProtectedRoute>} />

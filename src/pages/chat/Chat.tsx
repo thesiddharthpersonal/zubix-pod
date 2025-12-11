@@ -11,6 +11,8 @@ import { Chat as ChatType, Message, User } from '@/types';
 import { chatApi } from '@/services/api';
 import { socketClient } from '@/services/socket';
 import { toast } from 'sonner';
+import MentionInput from '@/components/MentionInput';
+import UserProfileDialog from '@/components/UserProfileDialog';
 import {
   Dialog,
   DialogContent,
@@ -34,6 +36,7 @@ const Chat = () => {
   const [showRequestDialog, setShowRequestDialog] = useState(false);
   const [targetUser, setTargetUser] = useState<User | null>(null);
   const [requestMessage, setRequestMessage] = useState('');
+  const [selectedUserForProfile, setSelectedUserForProfile] = useState<User | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -314,12 +317,30 @@ const Chat = () => {
       <div className="min-h-screen bg-background flex flex-col">
         <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border">
           <div className="flex items-center gap-3 p-4">
-            <Button variant="ghost" size="icon" onClick={() => setSelectedChat(null)}><ArrowLeft className="w-5 h-5" /></Button>
-            <Avatar className="w-10 h-10">
+            <Button variant="ghost" size="icon" onClick={() => {
+              setSelectedChat(null);
+              setSelectedUserForProfile(null);
+            }}><ArrowLeft className="w-5 h-5" /></Button>
+            <Avatar 
+              className="w-10 h-10 cursor-pointer" 
+              onClick={(e) => {
+                e.stopPropagation();
+                setSelectedUserForProfile(otherUser);
+              }}
+            >
               <AvatarImage src={otherUser.profilePhoto} />
               <AvatarFallback>{otherUser.fullName.charAt(0)}</AvatarFallback>
             </Avatar>
-            <div><p className="font-semibold text-foreground">{otherUser.fullName}</p><p className="text-xs text-muted-foreground">@{otherUser.username}</p></div>
+            <div 
+              className="cursor-pointer hover:opacity-80 transition-opacity"
+              onClick={(e) => {
+                e.stopPropagation();
+                setSelectedUserForProfile(otherUser);
+              }}
+            >
+              <p className="font-semibold text-foreground">{otherUser.fullName}</p>
+              <p className="text-xs text-muted-foreground">@{otherUser.username}</p>
+            </div>
           </div>
         </header>
         <main className="flex-1 overflow-y-auto p-4 space-y-4">
@@ -382,11 +403,29 @@ const Chat = () => {
               </Button>
             </div>
           )}
-          <div className="flex gap-2">
-            <Input ref={inputRef} value={newMessage} onChange={(e) => setNewMessage(e.target.value)} placeholder="Type a message..." onKeyDown={(e) => e.key === 'Enter' && handleSend()} />
-            <Button variant="hero" size="icon" onClick={handleSend}><Send className="w-5 h-5" /></Button>
+          <div className="flex gap-2 items-end">
+            <div className="flex-1">
+              <MentionInput
+                value={newMessage}
+                onChange={setNewMessage}
+                placeholder="Type a message... (use @ to mention)"
+                rows={1}
+                className="min-h-[40px]"
+              />
+            </div>
+            <Button variant="hero" size="icon" onClick={handleSend} className="h-10 w-10">
+              <Send className="w-5 h-5" />
+            </Button>
           </div>
         </div>
+
+        {/* User Profile Dialog for Chat Conversation */}
+        <UserProfileDialog
+          user={selectedUserForProfile}
+          currentUserId={user?.id}
+          isOpen={!!selectedUserForProfile}
+          onClose={() => setSelectedUserForProfile(null)}
+        />
       </div>
     );
   }
@@ -501,6 +540,14 @@ const Chat = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* User Profile Dialog */}
+      <UserProfileDialog
+        user={selectedUserForProfile}
+        currentUserId={user?.id}
+        isOpen={!!selectedUserForProfile}
+        onClose={() => setSelectedUserForProfile(null)}
+      />
     </div>
   );
 };

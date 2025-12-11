@@ -453,3 +453,44 @@ export interface StartupIdea {
     role: string;
   };
 }
+
+// Job Application Types
+export type JobType = 'JOB' | 'INTERNSHIP';
+
+export interface JobApplication {
+  id: string;
+  userId: string;
+  candidateName: string;
+  type: JobType;
+  domain: string;
+  brief: string;
+  resumeUrl: string;
+  contactEmail?: string;
+  contactPhone?: string;
+  createdAt: Date;
+  updatedAt: Date;
+  user: {
+    id: string;
+    username: string;
+    fullName: string;
+    profilePhoto?: string;
+    role: string;
+    email?: string;
+    mobile?: string;
+  };
+}
+
+// Idol Pitch Deck Types
+export interface IdolPitchDeck {
+  id: string;
+  title: string;
+  description?: string;
+  companyName: string;
+  pdfUrl: string;
+  thumbnailUrl?: string;
+  uploadedBy?: string;
+  isActive: boolean;
+  viewCount: number;
+  createdAt: Date;
+  updatedAt: Date;
+}

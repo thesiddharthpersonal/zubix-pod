@@ -15,3 +15,6 @@ export * from './reactions';
 export * from './upload';
 export * from './comments';
 export * from './startupIdeas';
+export * from './jobs';
+export * from './idolPitchDecks';
+export * from './idolPitchDecks';

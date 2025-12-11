@@ -88,7 +88,17 @@ export const roomsApi = {
     try {
       await apiClient.delete(`/api/rooms/${roomId}/members/${userId}`);
     } catch (error) {
-      throw new Error(handleApiError(error));
+      throw error;
+    }
+  },
+
+  // Get room members (pod owner/co-owner only)
+  getRoomMembers: async (roomId: string): Promise<{ members: any[]; totalCount: number }> => {
+    try {
+      const response = await apiClient.get<{ members: any[]; totalCount: number }>(`/api/rooms/${roomId}/members`);
+      return response.data;
+    } catch (error) {
+      throw error;
     }
   },
 

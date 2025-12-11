@@ -10,7 +10,7 @@ const BottomNav = () => {
     { icon: Home, label: 'Home', path: '/home' },
     { icon: Users, label: 'Rooms', path: '/rooms' },
     { icon: Calendar, label: 'Events', path: '/events' },
-    { icon: MoreHorizontal, label: 'Others', path: '/others' },
+    { icon: MoreHorizontal, label: 'More', path: '/more' },
   ];
 
   return (
@@ -20,7 +20,8 @@ const BottomNav = () => {
           const isActive = location.pathname === item.path || 
             (item.path === '/home' && location.pathname.startsWith('/home')) ||
             (item.path === '/rooms' && location.pathname.startsWith('/rooms')) ||
-            (item.path === '/events' && location.pathname.startsWith('/events'));
+            (item.path === '/events' && location.pathname.startsWith('/events')) ||
+            (item.path === '/more' && location.pathname.startsWith('/more'));
           
           return (
             <button

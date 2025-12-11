@@ -17,7 +17,7 @@ import { toast } from 'sonner';
 import { pitchesApi } from '@/services/api/pitches';
 import { getManagedPods } from '@/lib/utils';
 
-// Feature list for Others section
+// Feature list for More section
 const FEATURES = [
   { id: 'book-call', name: 'Book a Call', description: 'Book a call with pod owners or co-owners', icon: PhoneCall, available: true, forAll: true, path: '/book-call' },
   { id: 'startup-ideas', name: 'Startup Ideas', description: 'Share and discover innovative startup ideas', icon: Lightbulb, available: true, forAll: true, path: '/startup-ideas' },
@@ -31,7 +31,7 @@ const FEATURES = [
   { id: 'settings', name: 'Settings', description: 'Manage your preferences', icon: Settings, available: false, forAll: true },
 ];
 
-const Others = () => {
+const More = () => {
   const navigate = useNavigate();
   const { user, joinedPods } = useAuth();
   const [pitches, setPitches] = useState<Pitch[]>([]);
@@ -766,4 +766,4 @@ const Others = () => {
   return null;
 };
 
-export default Others;
+export default More;

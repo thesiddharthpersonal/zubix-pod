@@ -84,7 +84,7 @@ const EditPod = () => {
     const loadPod = async () => {
       if (!podId) {
         toast.error('Pod ID is required');
-        navigate('/others');
+        navigate('/more');
         return;
       }
 
@@ -102,7 +102,7 @@ const EditPod = () => {
         
         if (!isOwner && !isCoOwner) {
           toast.error('You do not have permission to edit this pod');
-          navigate('/others');
+          navigate('/more');
           return;
         }
         setPod(podData);
@@ -161,7 +161,7 @@ const EditPod = () => {
       } catch (error) {
         console.error('Failed to load pod:', error);
         toast.error('Failed to load pod details');
-        navigate('/others');
+        navigate('/more');
       } finally {
         setIsLoading(false);
       }
@@ -366,7 +366,7 @@ const EditPod = () => {
       await podsApi.updatePod(podId, finalUpdateData);
       
       toast.success('Pod updated successfully!');
-      navigate('/others');
+      navigate('/more');
     } catch (error) {
       console.error('Pod update error:', error);
       toast.error(error instanceof Error ? error.message : 'Failed to update pod');
@@ -396,7 +396,7 @@ const EditPod = () => {
       <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <Button variant="ghost" size="sm" onClick={() => navigate('/others')}>
+            <Button variant="ghost" size="sm" onClick={() => navigate('/more')}>
               <ArrowLeft className="w-4 h-4 mr-2" />
               Back
             </Button>
@@ -1107,7 +1107,7 @@ const EditPod = () => {
 
           {/* Submit Button */}
           <div className="flex justify-end gap-3 pt-4">
-            <Button type="button" variant="outline" onClick={() => navigate('/others')} disabled={isSubmitting}>
+            <Button type="button" variant="outline" onClick={() => navigate('/more')} disabled={isSubmitting}>
               Cancel
             </Button>
             <Button type="submit" disabled={isSubmitting}>

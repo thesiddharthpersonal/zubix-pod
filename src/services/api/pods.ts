@@ -113,9 +113,9 @@ export const podsApi = {
     }
   },
 
-  getPodMembers: async (podId: string): Promise<string[]> => {
+  getPodMembers: async (podId: string): Promise<import('@/types').User[]> => {
     try {
-      const response = await apiClient.get<{ members: string[] }>(`/api/pods/${podId}/members`);
+      const response = await apiClient.get<{ members: import('@/types').User[] }>(`/api/pods/${podId}/members`);
       return response.data.members;
     } catch (error) {
       throw new Error(handleApiError(error));

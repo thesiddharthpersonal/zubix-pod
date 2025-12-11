@@ -20,7 +20,8 @@ const PodDiscovery = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedPodForDetails, setSelectedPodForDetails] = useState<Pod | null>(null);
   const [selectedUserForProfile, setSelectedUserForProfile] = useState<User | null>(null);
-  const [podOwnerIdForProfile, setPodOwnerIdForProfile] = useState<string | undefined>(undefined);
+  const [podOwnerIdForProfile, setPodOwnerIdForProfile] = useState<string | undefined>();
+  const [podIdForProfile, setPodIdForProfile] = useState<string | undefined>();
   const [showSendMessageDialog, setShowSendMessageDialog] = useState(false);
   const [pods, setPods] = useState<Pod[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -202,6 +203,7 @@ const PodDiscovery = () => {
         currentUserId={user?.id}
         onUserClick={(user) => {
           setPodOwnerIdForProfile(selectedPodForDetails?.ownerId);
+          setPodIdForProfile(selectedPodForDetails?.id);
           setSelectedPodForDetails(null);
           setSelectedUserForProfile(user);
         }}
@@ -214,11 +216,19 @@ const PodDiscovery = () => {
         onClose={() => {
           setSelectedUserForProfile(null);
           setPodOwnerIdForProfile(undefined);
+          setPodIdForProfile(undefined);
         }}
         currentUserId={user?.id}
         podOwnerId={podOwnerIdForProfile}
+        podId={podIdForProfile}
         onMessage={() => {
           setShowSendMessageDialog(true);
+        }}
+        onCoOwnerChange={() => {
+          // Refresh the members list if pod details dialog is reopened
+          if (selectedPodForDetails) {
+            setSelectedPodForDetails({ ...selectedPodForDetails });
+          }
         }}
       />
 
@@ -229,6 +239,7 @@ const PodDiscovery = () => {
           setShowSendMessageDialog(false);
           setSelectedUserForProfile(null);
           setPodOwnerIdForProfile(undefined);
+          setPodIdForProfile(undefined);
         }}
         user={selectedUserForProfile}
         currentUserId={user?.id}

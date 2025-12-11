@@ -29,6 +29,8 @@ const Home = () => {
   const [uploadingMedia, setUploadingMedia] = useState(false);
   const [selectedPodForDetails, setSelectedPodForDetails] = useState<Pod | null>(null);
   const [selectedUserForProfile, setSelectedUserForProfile] = useState<User | null>(null);
+  const [podOwnerIdForProfile, setPodOwnerIdForProfile] = useState<string | undefined>();
+  const [podIdForProfile, setPodIdForProfile] = useState<string | undefined>();
   const [showSendMessageDialog, setShowSendMessageDialog] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -411,6 +413,8 @@ const Home = () => {
         onLeave={() => selectedPodForDetails && leavePod(selectedPodForDetails.id)}
         currentUserId={user?.id}
         onUserClick={(user) => {
+          setPodOwnerIdForProfile(selectedPodForDetails?.ownerId);
+          setPodIdForProfile(selectedPodForDetails?.id);
           setSelectedPodForDetails(null);
           setSelectedUserForProfile(user);
         }}
@@ -420,11 +424,23 @@ const Home = () => {
       <UserProfileDialog
         user={selectedUserForProfile}
         currentUserId={user?.id}
+        podOwnerId={podOwnerIdForProfile}
+        podId={podIdForProfile}
         isOpen={!!selectedUserForProfile}
-        onClose={() => setSelectedUserForProfile(null)}
+        onClose={() => {
+          setSelectedUserForProfile(null);
+          setPodOwnerIdForProfile(undefined);
+          setPodIdForProfile(undefined);
+        }}
         onMessage={() => {
           if (selectedUserForProfile) {
             setShowSendMessageDialog(true);
+          }
+        }}
+        onCoOwnerChange={() => {
+          // Refresh the members list if pod details dialog is reopened
+          if (selectedPodForDetails) {
+            setSelectedPodForDetails({ ...selectedPodForDetails });
           }
         }}
       />
@@ -437,6 +453,8 @@ const Home = () => {
         onClose={() => {
           setShowSendMessageDialog(false);
           setSelectedUserForProfile(null);
+          setPodOwnerIdForProfile(undefined);
+          setPodIdForProfile(undefined);
         }}
       />
     </div>

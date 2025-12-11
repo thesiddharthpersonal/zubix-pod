@@ -2,8 +2,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { Pod, User, POD_SUBCATEGORY_DISPLAY } from '@/types';
-import { Building2, MapPin, Target, Users, Linkedin, Instagram, Facebook, Twitter, Youtube, DollarSign, Briefcase, Crown, BadgeCheck } from 'lucide-react';
+import { Building2, MapPin, Target, Users, Linkedin, Instagram, Facebook, Twitter, Youtube, DollarSign, Briefcase, Crown, BadgeCheck, ShieldCheck } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { podsApi } from '@/services/api/pods';
 
 interface PodDetailsDialogProps {
   pod: Pod | null;
@@ -17,9 +20,32 @@ interface PodDetailsDialogProps {
 }
 
 const PodDetailsDialog = ({ pod, isOpen, onClose, isJoined, onJoin, onLeave, onUserClick, currentUserId }: PodDetailsDialogProps) => {
+  const [members, setMembers] = useState<User[]>([]);
+  const [loadingMembers, setLoadingMembers] = useState(false);
+
+  useEffect(() => {
+    const fetchMembers = async () => {
+      if (!pod || !isOpen) return;
+      
+      try {
+        setLoadingMembers(true);
+        const membersData = await podsApi.getPodMembers(pod.id);
+        setMembers(membersData);
+      } catch (error) {
+        console.error('Failed to fetch members:', error);
+      } finally {
+        setLoadingMembers(false);
+      }
+    };
+
+    fetchMembers();
+  }, [pod, isOpen]);
+
   if (!pod) return null;
 
   const isOwner = currentUserId && pod.ownerId === currentUserId;
+  const coOwners = members.filter(m => m.isCoOwner && m.id !== pod.ownerId);
+  const regularMembers = members.filter(m => !m.isCoOwner && m.id !== pod.ownerId);
 
   const handleJoin = () => {
     onJoin();
@@ -144,6 +170,75 @@ const PodDetailsDialog = ({ pod, isOpen, onClose, isJoined, onJoin, onLeave, onU
                   <p className="text-sm text-muted-foreground truncate">@{pod.owner.username}</p>
                 </div>
               </div>
+            </div>
+          )}
+
+          {/* Co-Owners */}
+          {coOwners.length > 0 && (
+            <div>
+              <div className="flex items-center gap-2 mb-3">
+                <ShieldCheck className="w-4 h-4 text-blue-500" />
+                <span className="text-sm font-medium text-foreground">Co-Owners ({coOwners.length})</span>
+              </div>
+              <div className="space-y-2">
+                {coOwners.map(member => (
+                  <div 
+                    key={member.id}
+                    className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg cursor-pointer hover:bg-muted transition-colors"
+                    onClick={() => onUserClick?.(member)}
+                  >
+                    <Avatar className="w-10 h-10">
+                      <AvatarImage src={member.profilePhoto} />
+                      <AvatarFallback className="bg-blue-100 text-blue-700 font-semibold">
+                        {member.fullName.charAt(0)}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="min-w-0 flex-1">
+                      <p className="font-medium text-foreground truncate text-sm hover:text-primary transition-colors">{member.fullName}</p>
+                      <p className="text-xs text-muted-foreground truncate">@{member.username}</p>
+                    </div>
+                    <Badge variant="secondary" className="bg-blue-100 text-blue-700 text-xs">Co-Owner</Badge>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Members */}
+          {regularMembers.length > 0 && (
+            <div>
+              <div className="flex items-center gap-2 mb-3">
+                <Users className="w-4 h-4 text-muted-foreground" />
+                <span className="text-sm font-medium text-foreground">Members ({regularMembers.length})</span>
+              </div>
+              <ScrollArea className="h-[200px] pr-4">
+                <div className="space-y-2">
+                  {regularMembers.map(member => (
+                    <div 
+                      key={member.id}
+                      className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg cursor-pointer hover:bg-muted transition-colors"
+                      onClick={() => onUserClick?.(member)}
+                    >
+                      <Avatar className="w-10 h-10">
+                        <AvatarImage src={member.profilePhoto} />
+                        <AvatarFallback className="bg-primary/10 text-primary font-semibold">
+                          {member.fullName.charAt(0)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="min-w-0 flex-1">
+                        <p className="font-medium text-foreground truncate text-sm hover:text-primary transition-colors">{member.fullName}</p>
+                        <p className="text-xs text-muted-foreground truncate">@{member.username}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </ScrollArea>
+            </div>
+          )}
+
+          {loadingMembers && (
+            <div className="text-center py-4">
+              <p className="text-sm text-muted-foreground">Loading members...</p>
             </div>
           )}
 

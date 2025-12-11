@@ -7,9 +7,11 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { ArrowLeft, Search as SearchIcon, Building2, Loader2 } from 'lucide-react';
 import { usersApi, podsApi } from '@/services/api';
-import { UserProfile, Pod } from '@/types';
+import { UserProfile, Pod, User } from '@/types';
 import { toast } from 'sonner';
 import PodDetailsDialog from '@/components/PodDetailsDialog';
+import UserProfileDialog from '@/components/UserProfileDialog';
+import SendMessageDialog from '@/components/SendMessageDialog';
 import { useAuth } from '@/contexts/AuthContext';
 
 const Search = () => {
@@ -21,6 +23,10 @@ const Search = () => {
   const [pods, setPods] = useState<Pod[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedPod, setSelectedPod] = useState<Pod | null>(null);
+  const [selectedUserForProfile, setSelectedUserForProfile] = useState<User | null>(null);
+  const [podOwnerIdForProfile, setPodOwnerIdForProfile] = useState<string | undefined>();
+  const [podIdForProfile, setPodIdForProfile] = useState<string | undefined>();
+  const [showSendMessageDialog, setShowSendMessageDialog] = useState(false);
 
   useEffect(() => {
     const searchData = async () => {
@@ -121,8 +127,50 @@ const Search = () => {
             }
           }}
           currentUserId={user?.id}
+          onUserClick={(clickedUser) => {
+            setPodOwnerIdForProfile(selectedPod?.ownerId);
+            setPodIdForProfile(selectedPod?.id);
+            setSelectedPod(null);
+            setSelectedUserForProfile(clickedUser);
+          }}
         />
       )}
+
+      {/* User Profile Dialog */}
+      <UserProfileDialog
+        user={selectedUserForProfile}
+        isOpen={!!selectedUserForProfile}
+        onClose={() => {
+          setSelectedUserForProfile(null);
+          setPodOwnerIdForProfile(undefined);
+          setPodIdForProfile(undefined);
+        }}
+        currentUserId={user?.id}
+        podOwnerId={podOwnerIdForProfile}
+        podId={podIdForProfile}
+        onMessage={() => {
+          setShowSendMessageDialog(true);
+        }}
+        onCoOwnerChange={() => {
+          // Refresh the members list if pod details dialog is reopened
+          if (selectedPod) {
+            setSelectedPod({ ...selectedPod });
+          }
+        }}
+      />
+
+      {/* Send Message Dialog */}
+      <SendMessageDialog
+        isOpen={showSendMessageDialog}
+        onClose={() => {
+          setShowSendMessageDialog(false);
+          setSelectedUserForProfile(null);
+          setPodOwnerIdForProfile(undefined);
+          setPodIdForProfile(undefined);
+        }}
+        user={selectedUserForProfile}
+        currentUserId={user?.id}
+      />
     </div>
   );
 };

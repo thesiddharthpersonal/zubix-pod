@@ -4,11 +4,29 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { ArrowLeft, Send, MoreVertical, Loader2 } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { ArrowLeft, Send, MoreVertical, Loader2, Pencil, Trash2 } from 'lucide-react';
 import { Message, Room } from '@/types';
 import { roomsApi } from '@/services/api/rooms';
 import socket from '@/services/socket';
 import { useToast } from '@/hooks/use-toast';
+import EditRoomDialog from '@/components/EditRoomDialog';
 
 const RoomChat = () => {
   const { roomId } = useParams();
@@ -20,6 +38,9 @@ const RoomChat = () => {
   const [newMessage, setNewMessage] = useState('');
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -150,6 +171,36 @@ const RoomChat = () => {
     }
   };
 
+  const handleUpdateRoom = (updatedRoom: Room) => {
+    setRoom(updatedRoom);
+  };
+
+  const handleDeleteRoom = async () => {
+    if (!roomId) return;
+
+    setIsDeleting(true);
+    try {
+      await roomsApi.deleteRoom(roomId);
+      toast({
+        title: 'Success',
+        description: 'Room deleted successfully',
+      });
+      navigate(`/pods/${room?.podId}`);
+    } catch (error: any) {
+      console.error('Error deleting room:', error);
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to delete room',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsDeleting(false);
+      setIsDeleteDialogOpen(false);
+    }
+  };
+
+  const isPodOwner = room?.pod?.ownerId === user?.id;
+
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -175,7 +226,7 @@ const RoomChat = () => {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            {room?.privacy === 'PRIVATE' && room?.pod?.ownerId === user?.id && (
+            {room?.privacy === 'PRIVATE' && isPodOwner && (
               <Button 
                 variant="outline" 
                 size="sm"
@@ -184,9 +235,29 @@ const RoomChat = () => {
                 Requests
               </Button>
             )}
-            <Button variant="ghost" size="icon">
-              <MoreVertical className="w-5 h-5" />
-            </Button>
+            {isPodOwner && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon">
+                    <MoreVertical className="w-5 h-5" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => setIsEditDialogOpen(true)}>
+                    <Pencil className="w-4 h-4 mr-2" />
+                    Edit Room
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem 
+                    onClick={() => setIsDeleteDialogOpen(true)}
+                    className="text-destructive focus:text-destructive"
+                  >
+                    <Trash2 className="w-4 h-4 mr-2" />
+                    Delete Room
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
           </div>
         </div>
       </header>
@@ -257,6 +328,39 @@ const RoomChat = () => {
           </Button>
         </div>
       </div>
+
+      {/* Edit Room Dialog */}
+      {room && (
+        <EditRoomDialog
+          room={room}
+          open={isEditDialogOpen}
+          onOpenChange={setIsEditDialogOpen}
+          onUpdate={handleUpdateRoom}
+        />
+      )}
+
+      {/* Delete Room Confirmation */}
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Room?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete "{room?.name}"? This action cannot be undone.
+              All messages and data in this room will be permanently deleted.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteRoom}
+              disabled={isDeleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isDeleting ? 'Deleting...' : 'Delete Room'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

@@ -76,13 +76,19 @@ apiClient.interceptors.response.use(
           console.error('Server error - Please try again later');
           break;
         default:
-          console.error('API Error:', error.response.data);
+          console.error('API Error:', JSON.stringify(error.response.data, null, 2));
       }
     } else if (error.request) {
       console.error('Network error - Please check your connection');
     } else {
       console.error('Error:', error.message);
     }
+    
+    // Log full error details for debugging
+    if (error.response?.data) {
+      console.error('Full error response:', error.response.data);
+    }
+    
     return Promise.reject(error);
   }
 );

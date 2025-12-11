@@ -8,7 +8,9 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Calendar, MapPin, Clock, Users, Plus, Video, Building2, Ticket, ClipboardList, Mail, Phone, User as UserIcon } from 'lucide-react';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { Calendar, MapPin, Clock, Users, Plus, Video, Building2, Ticket, ClipboardList, Mail, Phone, User as UserIcon, MoreVertical, Pencil, Trash2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { PodEvent, User } from '@/types';
 import TopNav from '@/components/layout/TopNav';
@@ -30,6 +32,10 @@ const Events = () => {
   const [isRegisterOpen, setIsRegisterOpen] = useState(false);
   const [registeringEvent, setRegisteringEvent] = useState<PodEvent | null>(null);
   const [eventParticipants, setEventParticipants] = useState<{ [eventId: string]: any[] }>({});
+  const [isEditOpen, setIsEditOpen] = useState(false);
+  const [editingEvent, setEditingEvent] = useState<PodEvent | null>(null);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [deletingEvent, setDeletingEvent] = useState<PodEvent | null>(null);
 
   // Check if user owns or co-owns any pods
   const managedPods = useMemo(() => getManagedPods(joinedPods, user?.id), [joinedPods, user?.id]);
@@ -212,6 +218,79 @@ const Events = () => {
     }
   };
 
+  const openEditDialog = (event: PodEvent) => {
+    setEditingEvent(event);
+    setNewEvent({
+      name: event.name,
+      type: event.type,
+      date: format(new Date(event.date), 'yyyy-MM-dd'),
+      time: event.time,
+      location: event.location || '',
+      description: event.description || '',
+      helpline: event.helpline || '',
+      podId: event.podId
+    });
+    setIsEditOpen(true);
+  };
+
+  const handleUpdate = async () => {
+    if (!editingEvent || !newEvent.name || !newEvent.date || !newEvent.time) {
+      toast.error('Please fill in all required fields');
+      return;
+    }
+
+    try {
+      const eventData = {
+        name: newEvent.name,
+        type: newEvent.type as 'ONLINE' | 'OFFLINE',
+        date: newEvent.date,
+        time: newEvent.time,
+        description: newEvent.description || undefined,
+        location: newEvent.type === 'OFFLINE' ? newEvent.location : undefined,
+        helpline: newEvent.helpline || undefined,
+      };
+
+      const updated = await eventsApi.updateEvent(editingEvent.id, eventData);
+      setEvents(prev => prev.map(e => e.id === editingEvent.id ? updated : e));
+      
+      setIsEditOpen(false);
+      setEditingEvent(null);
+      setNewEvent({ name: '', type: 'ONLINE', date: '', time: '', location: '', description: '', helpline: '', podId: '' });
+      toast.success('Event updated!');
+    } catch (error: any) {
+      console.error('Failed to update event:', error);
+      toast.error(error.response?.data?.message || 'Failed to update event');
+    }
+  };
+
+  const openDeleteDialog = (event: PodEvent) => {
+    setDeletingEvent(event);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const handleDelete = async () => {
+    if (!deletingEvent) return;
+
+    try {
+      await eventsApi.deleteEvent(deletingEvent.id);
+      setEvents(prev => prev.filter(e => e.id !== deletingEvent.id));
+      
+      setIsDeleteDialogOpen(false);
+      setDeletingEvent(null);
+      toast.success('Event deleted!');
+    } catch (error: any) {
+      console.error('Failed to delete event:', error);
+      toast.error(error.response?.data?.message || 'Failed to delete event');
+    }
+  };
+
+  const canManageEvent = (event: PodEvent) => {
+    if (!user) return false;
+    const eventPod = joinedPods.find(p => p.id === event.podId);
+    if (!eventPod) return false;
+    return eventPod.ownerId === user.id || eventPod.isCoOwner === true || eventPod.userRole === 'co-owner';
+  };
+
   return (
     <div className="min-h-screen bg-background pb-20">
       <TopNav />
@@ -372,8 +451,34 @@ const Events = () => {
                               </div>
                               <div className="flex-1 min-w-0">
                                 <div className="flex items-start justify-between gap-2">
-                                  <h3 className="font-semibold text-foreground">{event.name}</h3>
-                                  <Badge variant="secondary" className="shrink-0">{event.type}</Badge>
+                                  <div className="flex-1">
+                                    <h3 className="font-semibold text-foreground">{event.name}</h3>
+                                  </div>
+                                  <div className="flex items-center gap-2 shrink-0">
+                                    <Badge variant="secondary">{event.type}</Badge>
+                                    {canManageEvent(event) && (
+                                      <DropdownMenu>
+                                        <DropdownMenuTrigger asChild>
+                                          <Button variant="ghost" size="icon" className="h-8 w-8">
+                                            <MoreVertical className="w-4 h-4" />
+                                          </Button>
+                                        </DropdownMenuTrigger>
+                                        <DropdownMenuContent align="end">
+                                          <DropdownMenuItem onClick={() => openEditDialog(event)}>
+                                            <Pencil className="w-4 h-4 mr-2" />
+                                            Edit
+                                          </DropdownMenuItem>
+                                          <DropdownMenuItem 
+                                            onClick={() => openDeleteDialog(event)}
+                                            className="text-destructive focus:text-destructive"
+                                          >
+                                            <Trash2 className="w-4 h-4 mr-2" />
+                                            Delete
+                                          </DropdownMenuItem>
+                                        </DropdownMenuContent>
+                                      </DropdownMenu>
+                                    )}
+                                  </div>
                                 </div>
                                 <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{event.description}</p>
                                 <div className="flex flex-wrap gap-3 mt-2 text-sm text-muted-foreground">
@@ -562,6 +667,72 @@ const Events = () => {
             )}
           </DialogContent>
         </Dialog>
+
+        {/* Edit Event Dialog */}
+        <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
+          <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Edit Event</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4 mt-4">
+              <div>
+                <Label>Event Name *</Label>
+                <Input value={newEvent.name} onChange={(e) => setNewEvent({ ...newEvent, name: e.target.value })} placeholder="Enter event name" />
+              </div>
+              <div>
+                <Label>Type *</Label>
+                <Select value={newEvent.type} onValueChange={(v) => setNewEvent({ ...newEvent, type: v })}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="ONLINE">Online</SelectItem>
+                    <SelectItem value="OFFLINE">Offline</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>Date *</Label>
+                <Input type="date" value={newEvent.date} onChange={(e) => setNewEvent({ ...newEvent, date: e.target.value })} />
+              </div>
+              <div>
+                <Label>Time *</Label>
+                <Input type="time" value={newEvent.time} onChange={(e) => setNewEvent({ ...newEvent, time: e.target.value })} />
+              </div>
+              {newEvent.type === 'OFFLINE' && (
+                <div>
+                  <Label>Location</Label>
+                  <Input value={newEvent.location} onChange={(e) => setNewEvent({ ...newEvent, location: e.target.value })} placeholder="Enter location" />
+                </div>
+              )}
+              <div>
+                <Label>Description</Label>
+                <Textarea value={newEvent.description} onChange={(e) => setNewEvent({ ...newEvent, description: e.target.value })} placeholder="Event description" rows={3} />
+              </div>
+              <div>
+                <Label>Helpline</Label>
+                <Input value={newEvent.helpline} onChange={(e) => setNewEvent({ ...newEvent, helpline: e.target.value })} placeholder="Contact number" />
+              </div>
+              <Button variant="hero" className="w-full" onClick={handleUpdate}>Update Event</Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Delete Confirmation Dialog */}
+        <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete Event</AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to delete "{deletingEvent?.name}"? This action cannot be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                Delete
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
         </>
         )}
       </main>

@@ -11,6 +11,7 @@ import { Progress } from '@/components/ui/progress';
 import { ArrowLeft, ArrowRight, Check, Loader2 } from 'lucide-react';
 import { STARTUP_SUBCATEGORIES, BUSINESS_TYPES } from '@/types';
 import { toast } from 'sonner';
+import { usersApi } from '@/services/api';
 
 const UserRegistration = () => {
   const navigate = useNavigate();
@@ -96,47 +97,86 @@ const UserRegistration = () => {
       return;
     }
 
+    if (!user?.id) {
+      toast.error('User not found. Please log in again.');
+      return;
+    }
+
     setIsSubmitting(true);
     
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-    
-    updateUserProfile({
-      fullName: formData.fullName,
-      mobile: formData.mobile,
-      email: formData.email,
-      professionCategory: formData.professionCategory,
-      organisationName: formData.organisationName,
-      brandName: formData.brandName,
-      designation: formData.designation,
-      workingExperienceFrom: formData.workingExperienceFrom ? new Date(formData.workingExperienceFrom) : undefined,
-      workingExperienceTo: formData.workingExperienceTo ? new Date(formData.workingExperienceTo) : undefined,
-      startupSubcategory: formData.startupSubcategory,
-      businessType: formData.businessType,
-      briefAboutOrganisation: formData.briefAboutOrganisation,
-      operatingCity: formData.operatingCity,
-      website: formData.website,
-      collegeName: formData.collegeName,
-      currentCourse: formData.currentCourse,
-      yearSemester: formData.yearSemester,
-      interestDomain: formData.interestDomain,
-      startupFoundedYear: formData.startupFoundedYear,
-      workingDomain: formData.workingDomain,
-      socialLinks: {
-        linkedin: formData.linkedin,
-        instagram: formData.instagram,
-        facebook: formData.facebook,
-        twitter: formData.twitter,
-        youtube: formData.youtube,
-        github: formData.github,
-        portfolio: formData.portfolio,
-        others: formData.others,
-      },
-    });
-    
-    toast.success('Profile created successfully!');
-    navigate('/discover');
-    setIsSubmitting(false);
+    try {
+      // Save to backend
+      await usersApi.updateProfile(user.id, {
+        fullName: formData.fullName,
+        professionCategory: formData.professionCategory,
+        organisationName: formData.organisationName,
+        brandName: formData.brandName,
+        designation: formData.designation,
+        workingExperienceFrom: formData.workingExperienceFrom ? new Date(formData.workingExperienceFrom) : undefined,
+        workingExperienceTo: formData.workingExperienceTo ? new Date(formData.workingExperienceTo) : undefined,
+        startupSubcategory: formData.startupSubcategory,
+        businessType: formData.businessType,
+        briefAboutOrganisation: formData.briefAboutOrganisation,
+        operatingCity: formData.operatingCity,
+        website: formData.website,
+        collegeName: formData.collegeName,
+        currentCourse: formData.currentCourse,
+        yearSemester: formData.yearSemester,
+        interestDomain: formData.interestDomain,
+        startupFoundedYear: formData.startupFoundedYear,
+        workingDomain: formData.workingDomain,
+        socialLinks: {
+          linkedin: formData.linkedin,
+          instagram: formData.instagram,
+          facebook: formData.facebook,
+          twitter: formData.twitter,
+          youtube: formData.youtube,
+          github: formData.github,
+          portfolio: formData.portfolio,
+          others: formData.others,
+        },
+      });
+
+      // Update local state
+      updateUserProfile({
+        fullName: formData.fullName,
+        professionCategory: formData.professionCategory,
+        organisationName: formData.organisationName,
+        brandName: formData.brandName,
+        designation: formData.designation,
+        workingExperienceFrom: formData.workingExperienceFrom ? new Date(formData.workingExperienceFrom) : undefined,
+        workingExperienceTo: formData.workingExperienceTo ? new Date(formData.workingExperienceTo) : undefined,
+        startupSubcategory: formData.startupSubcategory,
+        businessType: formData.businessType,
+        briefAboutOrganisation: formData.briefAboutOrganisation,
+        operatingCity: formData.operatingCity,
+        website: formData.website,
+        collegeName: formData.collegeName,
+        currentCourse: formData.currentCourse,
+        yearSemester: formData.yearSemester,
+        interestDomain: formData.interestDomain,
+        startupFoundedYear: formData.startupFoundedYear,
+        workingDomain: formData.workingDomain,
+        socialLinks: {
+          linkedin: formData.linkedin,
+          instagram: formData.instagram,
+          facebook: formData.facebook,
+          twitter: formData.twitter,
+          youtube: formData.youtube,
+          github: formData.github,
+          portfolio: formData.portfolio,
+          others: formData.others,
+        },
+      });
+      
+      toast.success('Profile created successfully!');
+      navigate('/discover');
+    } catch (error) {
+      console.error('Profile update error:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to save profile');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (

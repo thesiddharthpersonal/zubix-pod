@@ -4,6 +4,7 @@ import { UserProfile, SocialLinks } from '@/types';
 export interface UpdateProfileRequest {
   fullName?: string;
   profilePhoto?: string;
+  professionCategory?: string;
   organisationName?: string;
   brandName?: string;
   designation?: string;
@@ -14,6 +15,15 @@ export interface UpdateProfileRequest {
   briefAboutOrganisation?: string;
   operatingCity?: string;
   website?: string;
+  // Student fields
+  collegeName?: string;
+  currentCourse?: string;
+  yearSemester?: string;
+  interestDomain?: string;
+  // Startup field
+  startupFoundedYear?: string;
+  // Working professional field
+  workingDomain?: string;
   socialLinks?: SocialLinks;
 }
 

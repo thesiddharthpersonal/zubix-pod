@@ -54,9 +54,29 @@ export const usersApi = {
 
   updateProfile: async (userId: string, data: UpdateProfileRequest): Promise<UserProfile> => {
     try {
-      const response = await apiClient.put<{ user: UserProfile }>(`/api/users/${userId}`, data);
-      return response.data.user;
+      console.log('Updating profile with data:', data);
+      const response = await apiClient.put<{ user: any }>(`/api/users/${userId}`, data);
+      const userData = response.data.user;
+      console.log('Backend returned user data:', userData);
+      
+      // Map backend URLs to socialLinks object
+      const mappedUser = {
+        ...userData,
+        socialLinks: {
+          linkedin: userData.linkedinUrl,
+          instagram: userData.instagramUrl,
+          facebook: userData.facebookUrl,
+          twitter: userData.twitterUrl,
+          youtube: userData.youtubeUrl,
+          github: userData.githubUrl,
+          portfolio: userData.portfolioUrl,
+          others: userData.othersUrl,
+        }
+      };
+      console.log('Mapped user data with social links:', mappedUser);
+      return mappedUser;
     } catch (error) {
+      console.error('Update profile error:', error);
       throw new Error(handleApiError(error));
     }
   },

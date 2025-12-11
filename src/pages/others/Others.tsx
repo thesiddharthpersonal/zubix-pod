@@ -22,6 +22,7 @@ const FEATURES = [
   { id: 'book-call', name: 'Book a Call', description: 'Book a call with pod owners or co-owners', icon: PhoneCall, available: true, forAll: true, path: '/book-call' },
   { id: 'pitch', name: 'Pitch', description: 'Submit your startup pitch to investors', icon: Rocket, available: true, forAll: true },
   { id: 'view-pitches', name: 'View Pitches', description: 'Review pitches received from startups', icon: Eye, available: true, forPodOwner: true },
+  { id: 'edit-pod', name: 'Edit Pod Details', description: 'Update your pod information and settings', icon: Settings, available: true, forPodOwner: true },
   { id: 'resources', name: 'Resources', description: 'Access helpful startup resources', icon: FileText, available: false, forAll: true },
   { id: 'mentors', name: 'Mentors', description: 'Connect with experienced mentors', icon: Users, available: false, forAll: true },
   { id: 'support', name: 'Support', description: 'Get help and support', icon: HelpCircle, available: false, forAll: true },
@@ -478,6 +479,56 @@ const Others = () => {
                 <p className="text-muted-foreground">No pitches received yet</p>
               </div>
             )}
+          </div>
+        </main>
+        <BottomNav />
+      </div>
+    );
+  }
+
+  // Edit Pod (Pod Owner/Co-Owner Only)
+  if (selectedFeature === 'edit-pod' && canManagePods) {
+    return (
+      <div className="min-h-screen bg-background pb-20">
+        <TopNav />
+        <main className="container mx-auto px-4 py-4 max-w-2xl">
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="mb-4 -ml-2"
+            onClick={() => setSelectedFeature(null)}
+          >
+            <ArrowLeft className="w-4 h-4 mr-1" />
+            Back
+          </Button>
+          <h1 className="text-2xl font-bold text-foreground mb-2">Edit Pod Details</h1>
+          <p className="text-muted-foreground mb-6">Select a pod to edit its information</p>
+
+          <div className="space-y-3">
+            {managedPods.map((pod) => (
+              <Card 
+                key={pod.id} 
+                className="cursor-pointer card-hover"
+                onClick={() => navigate(`/pods/${pod.id}/edit`)}
+              >
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-xl overflow-hidden bg-muted flex items-center justify-center">
+                      {pod.logo ? (
+                        <img src={pod.logo} alt={pod.name} className="w-full h-full object-cover" />
+                      ) : (
+                        <Settings className="w-6 h-6 text-muted-foreground" />
+                      )}
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-foreground">{pod.name}</h3>
+                      <p className="text-sm text-muted-foreground">{pod.organisationName}</p>
+                    </div>
+                    <ChevronRight className="w-5 h-5 text-muted-foreground" />
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
           </div>
         </main>
         <BottomNav />

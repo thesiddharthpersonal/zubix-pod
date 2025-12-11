@@ -15,6 +15,7 @@ import TopNav from '@/components/layout/TopNav';
 import BottomNav from '@/components/layout/BottomNav';
 import { toast } from 'sonner';
 import { pitchesApi } from '@/services/api/pitches';
+import { getManagedPods } from '@/lib/utils';
 
 // Feature list for Others section
 const FEATURES = [
@@ -52,6 +53,8 @@ const Others = () => {
   });
 
   const isPodOwner = user?.role === 'pod_owner' || user?.role === 'POD_OWNER';
+  const managedPods = getManagedPods(joinedPods, user?.id);
+  const canManagePods = managedPods.length > 0;
 
   // Fetch user's pitches
   useEffect(() => {
@@ -70,24 +73,14 @@ const Others = () => {
     }
   }, [user, selectedFeature]);
 
-  // Fetch pitches for pod owner
+  // Fetch pitches for pod owner or co-owner
   useEffect(() => {
     const fetchPodPitches = async () => {
-      if (!user || !isPodOwner || !joinedPods.length) return;
+      if (!user || !canManagePods) return;
       try {
-        // Fetch pitches only for pods where user is owner or co-owner
-        const ownedPods = joinedPods.filter(pod => 
-          pod.ownerId === user.id || 
-          (pod.coOwners && pod.coOwners.some((co: any) => co.id === user.id))
-        );
-        
-        if (ownedPods.length === 0) {
-          setPitches([]);
-          return;
-        }
-        
+        // Fetch pitches for managed pods (owned or co-owned)
         const allPitches = await Promise.all(
-          ownedPods.map(pod => pitchesApi.getPodPitches(pod.id))
+          managedPods.map(pod => pitchesApi.getPodPitches(pod.id))
         );
         setPitches(allPitches.flat());
       } catch (error) {
@@ -95,10 +88,10 @@ const Others = () => {
       }
     };
 
-    if ((selectedFeature === 'view-pitches' || selectedFeature === 'pitch') && isPodOwner) {
+    if ((selectedFeature === 'view-pitches' || selectedFeature === 'pitch') && canManagePods) {
       fetchPodPitches();
     }
-  }, [user, isPodOwner, joinedPods, selectedFeature]);
+  }, [user, canManagePods, managedPods, selectedFeature]);
 
   const handleSubmit = async () => {
     if (!formData.startupName || !formData.summary || !formData.podId) { 
@@ -234,7 +227,7 @@ const Others = () => {
   };
 
   // Filter features based on user role
-  const visibleFeatures = FEATURES.filter(f => f.forAll || (f.forPodOwner && isPodOwner));
+  const visibleFeatures = FEATURES.filter(f => f.forAll || (f.forPodOwner && canManagePods));
 
   // Feature List View
   if (!selectedFeature) {

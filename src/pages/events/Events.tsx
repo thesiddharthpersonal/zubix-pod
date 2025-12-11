@@ -16,6 +16,7 @@ import BottomNav from '@/components/layout/BottomNav';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { eventsApi } from '@/services/api/events';
+import { getManagedPods } from '@/lib/utils';
 
 const Events = () => {
   const navigate = useNavigate();
@@ -30,9 +31,9 @@ const Events = () => {
   const [registeringEvent, setRegisteringEvent] = useState<PodEvent | null>(null);
   const [eventParticipants, setEventParticipants] = useState<{ [eventId: string]: any[] }>({});
 
-  // Check if user owns any pods
-  const ownedPods = useMemo(() => joinedPods.filter(p => p.ownerId === user?.id), [joinedPods, user?.id]);
-  const isPodOwner = ownedPods.length > 0;
+  // Check if user owns or co-owns any pods
+  const managedPods = useMemo(() => getManagedPods(joinedPods, user?.id), [joinedPods, user?.id]);
+  const canManageEvents = managedPods.length > 0;
   const [activeTab, setActiveTab] = useState<'all' | 'registered' | 'registrations'>('all');
 
   // Fetch events on mount
@@ -66,7 +67,7 @@ const Events = () => {
   // Fetch participants for owner's events
   useEffect(() => {
     const fetchParticipants = async () => {
-      if (!isPodOwner || activeTab !== 'registrations') return;
+      if (!canManageEvents || activeTab !== 'registrations') return;
 
       try {
         const ownerEventIds = events.filter(e => e.createdBy === user?.id).map(e => e.id);
@@ -84,7 +85,7 @@ const Events = () => {
     };
 
     fetchParticipants();
-  }, [events, isPodOwner, activeTab, user?.id]);
+  }, [events, canManageEvents, activeTab, user?.id]);
 
   // Fetch participants for selected event
   useEffect(() => {
@@ -217,13 +218,13 @@ const Events = () => {
       <main className="container mx-auto px-4 py-4 max-w-2xl">
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-2xl font-bold text-foreground">Events</h1>
-          {isPodOwner && (
+          {canManageEvents && (
             <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
               <DialogTrigger asChild><Button variant="hero" size="sm"><Plus className="w-4 h-4" />Create</Button></DialogTrigger>
               <DialogContent>
                 <DialogHeader><DialogTitle>Create Event</DialogTitle></DialogHeader>
                 <div className="space-y-4 mt-4">
-                  <div className="space-y-2"><Label>Pod</Label><Select value={newEvent.podId} onValueChange={(v) => setNewEvent({ ...newEvent, podId: v })}><SelectTrigger><SelectValue placeholder="Select a pod" /></SelectTrigger><SelectContent>{ownedPods.map(pod => <SelectItem key={pod.id} value={pod.id}>{pod.name}</SelectItem>)}</SelectContent></Select></div>
+                  <div className="space-y-2"><Label>Pod</Label><Select value={newEvent.podId} onValueChange={(v) => setNewEvent({ ...newEvent, podId: v })}><SelectTrigger><SelectValue placeholder="Select a pod" /></SelectTrigger><SelectContent>{managedPods.map(pod => <SelectItem key={pod.id} value={pod.id}>{pod.name}</SelectItem>)}</SelectContent></Select></div>
                   <div className="space-y-2"><Label>Event Name</Label><Input value={newEvent.name} onChange={(e) => setNewEvent({ ...newEvent, name: e.target.value })} /></div>
                   <div className="space-y-2"><Label>Type</Label><Select value={newEvent.type} onValueChange={(v) => setNewEvent({ ...newEvent, type: v })}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="ONLINE">Online</SelectItem><SelectItem value="OFFLINE">Offline</SelectItem></SelectContent></Select></div>
                   <div className="grid grid-cols-2 gap-4"><div className="space-y-2"><Label>Date</Label><Input type="date" value={newEvent.date} onChange={(e) => setNewEvent({ ...newEvent, date: e.target.value })} /></div><div className="space-y-2"><Label>Time</Label><Input type="time" value={newEvent.time} onChange={(e) => setNewEvent({ ...newEvent, time: e.target.value })} /></div></div>
@@ -290,7 +291,7 @@ const Events = () => {
             <Ticket className="w-3.5 h-3.5" />
             My Registrations ({registeredEvents.length})
           </Badge>
-          {isPodOwner && (
+          {canManageEvents && (
             <Badge
               variant={activeTab === 'registrations' ? 'default' : 'outline'}
               className="cursor-pointer px-4 py-2 flex items-center gap-1"
@@ -408,8 +409,8 @@ const Events = () => {
           </>
         )}
 
-        {/* Event Registrations for Pod Owners */}
-        {activeTab === 'registrations' && isPodOwner && (
+        {/* Event Registrations for Pod Owners and Co-Owners */}
+        {activeTab === 'registrations' && canManageEvents && (
           <div className="space-y-4">
             {selectedEvent ? (
               // Show registrations for selected event

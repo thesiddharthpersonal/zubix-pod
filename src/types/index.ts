@@ -71,6 +71,9 @@ export interface Pod {
   isApproved: boolean;
   isVerified?: boolean;
   createdAt: Date;
+  // User-specific fields (available when fetched as joined pods)
+  isCoOwner?: boolean; // True if current user is a co-owner of this pod
+  userRole?: 'owner' | 'co-owner' | 'member'; // Current user's role in this pod
 }
 
 export type PodSubcategory =

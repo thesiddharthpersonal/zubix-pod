@@ -15,6 +15,7 @@ import TopNav from '@/components/layout/TopNav';
 import BottomNav from '@/components/layout/BottomNav';
 import { roomsApi } from '@/services/api/rooms';
 import { useToast } from '@/hooks/use-toast';
+import { getManagedPods } from '@/lib/utils';
 
 const Rooms = () => {
   const navigate = useNavigate();
@@ -69,9 +70,9 @@ const Rooms = () => {
     return matchesPod && matchesSearch;
   });
 
-  // Check if user owns any pods
-  const ownedPods = joinedPods.filter(pod => pod.ownerId === user?.id);
-  const canCreateRoom = ownedPods.length > 0;
+  // Check if user owns or co-owns any pods
+  const managedPods = getManagedPods(joinedPods, user?.id);
+  const canCreateRoom = managedPods.length > 0;
 
   const handleCreateRoom = async () => {
     if (!newRoom.name.trim() || !newRoom.podId) {

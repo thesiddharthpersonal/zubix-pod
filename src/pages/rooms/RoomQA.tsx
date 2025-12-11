@@ -193,7 +193,13 @@ const RoomQA = () => {
     }
   };
 
-  const isPodOwner = room?.pod?.ownerId === user?.id;
+  // Check if user can manage the room (is owner or co-owner of the pod)
+  const podFromContext = room?.pod;
+  const isPodOwnerOrCoOwner = podFromContext && user?.id && (
+    podFromContext.ownerId === user.id || 
+    joinedPods.find(p => p.id === podFromContext.id)?.isCoOwner === true ||
+    joinedPods.find(p => p.id === podFromContext.id)?.userRole === 'co-owner'
+  );
 
   if (loading) {
     return (
@@ -323,7 +329,7 @@ const RoomQA = () => {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            {room?.privacy === 'PRIVATE' && isPodOwner && (
+            {room?.privacy === 'PRIVATE' && isPodOwnerOrCoOwner && (
               <Button 
                 variant="outline" 
                 size="sm"
@@ -369,7 +375,7 @@ const RoomQA = () => {
                 </div>
               </DialogContent>
             </Dialog>
-            {isPodOwner && (
+            {isPodOwnerOrCoOwner && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" size="icon">

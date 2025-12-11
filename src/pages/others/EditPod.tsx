@@ -69,6 +69,10 @@ const EditPod = () => {
     eligibilityCriteria: '',
     eventsConducted: [] as string[],
     linkedin: '',
+    instagram: '',
+    facebook: '',
+    twitter: '',
+    youtube: '',
     others: '',
   });
 
@@ -133,6 +137,10 @@ const EditPod = () => {
           eligibilityCriteria: podData.eligibilityCriteria || '',
           eventsConducted: podData.eventsConducted || [],
           linkedin: podData.socialLinks?.linkedin || '',
+          instagram: podData.socialLinks?.instagram || '',
+          facebook: podData.socialLinks?.facebook || '',
+          twitter: podData.socialLinks?.twitter || '',
+          youtube: podData.socialLinks?.youtube || '',
           others: podData.socialLinks?.others || '',
         });
 
@@ -266,6 +274,10 @@ const EditPod = () => {
         briefAboutOrganisation: formData.briefAboutOrganisation,
         socialLinks: {
           linkedin: formData.linkedin,
+          instagram: formData.instagram,
+          facebook: formData.facebook,
+          twitter: formData.twitter,
+          youtube: formData.youtube,
           others: formData.others,
         },
         coOwnerUsernames: coOwners,
@@ -890,6 +902,46 @@ const EditPod = () => {
                   onChange={(e) => setFormData({ ...formData, linkedin: e.target.value })}
                   placeholder="https://linkedin.com/company/name"
                   required
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="instagram">Instagram</Label>
+                <Input
+                  id="instagram"
+                  value={formData.instagram}
+                  onChange={(e) => setFormData({ ...formData, instagram: e.target.value })}
+                  placeholder="https://instagram.com/company"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="facebook">Facebook</Label>
+                <Input
+                  id="facebook"
+                  value={formData.facebook}
+                  onChange={(e) => setFormData({ ...formData, facebook: e.target.value })}
+                  placeholder="https://facebook.com/company"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="twitter">Twitter</Label>
+                <Input
+                  id="twitter"
+                  value={formData.twitter}
+                  onChange={(e) => setFormData({ ...formData, twitter: e.target.value })}
+                  placeholder="https://twitter.com/company"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="youtube">YouTube</Label>
+                <Input
+                  id="youtube"
+                  value={formData.youtube}
+                  onChange={(e) => setFormData({ ...formData, youtube: e.target.value })}
+                  placeholder="https://youtube.com/@company"
                 />
               </div>
 

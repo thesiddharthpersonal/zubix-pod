@@ -5,7 +5,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { User, UserProfile } from '@/types';
-import { Mail, Phone, Building2, MapPin, Briefcase, Calendar, Linkedin, Instagram, Facebook, Twitter, Youtube, MessageCircle, Clock, Globe, Tag, TrendingUp, Github, Folder, Crown, CrownOff } from 'lucide-react';
+import { Mail, Phone, Building2, MapPin, Briefcase, Calendar, Linkedin, Instagram, Facebook, Twitter, Youtube, MessageCircle, Clock, Globe, Tag, TrendingUp, Github, Folder, Crown, ShieldMinus } from 'lucide-react';
 import { messageRequestApi, chatApi, podsApi } from '@/services/api';
 import { toast } from 'sonner';
 
@@ -313,7 +313,7 @@ const UserProfileDialog = ({ user, currentUserId, podOwnerId, podId, isOpen, onC
                     </>
                   ) : (
                     <>
-                      <CrownOff className="w-4 h-4 mr-2" />
+                      <ShieldMinus className="w-4 h-4 mr-2" />
                       Remove Co-Owner Status
                     </>
                   )}

@@ -278,7 +278,7 @@ const Others = () => {
   }
 
   // View Pitches (Pod Owner Only)
-  if (selectedFeature === 'view-pitches' && isPodOwner) {
+  if (selectedFeature === 'view-pitches' && canManagePods) {
     // Pitch Detail View
     if (selectedPitch) {
       return (

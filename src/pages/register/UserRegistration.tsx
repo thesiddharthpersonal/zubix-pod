@@ -15,7 +15,7 @@ import { usersApi } from '@/services/api';
 
 const UserRegistration = () => {
   const navigate = useNavigate();
-  const { user, updateUserProfile } = useAuth();
+  const { user, updateUserProfile, refreshUser } = useAuth();
   const [step, setStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   
@@ -137,37 +137,10 @@ const UserRegistration = () => {
         },
       });
 
-      // Update local state
-      updateUserProfile({
-        fullName: formData.fullName,
-        professionCategory: formData.professionCategory,
-        organisationName: formData.organisationName,
-        brandName: formData.brandName,
-        designation: formData.designation,
-        workingExperienceFrom: formData.workingExperienceFrom ? new Date(formData.workingExperienceFrom) : undefined,
-        workingExperienceTo: formData.workingExperienceTo ? new Date(formData.workingExperienceTo) : undefined,
-        startupSubcategory: formData.startupSubcategory,
-        businessType: formData.businessType,
-        briefAboutOrganisation: formData.briefAboutOrganisation,
-        operatingCity: formData.operatingCity,
-        website: formData.website,
-        collegeName: formData.collegeName,
-        currentCourse: formData.currentCourse,
-        yearSemester: formData.yearSemester,
-        interestDomain: formData.interestDomain,
-        startupFoundedYear: formData.startupFoundedYear,
-        workingDomain: formData.workingDomain,
-        socialLinks: {
-          linkedin: formData.linkedin,
-          instagram: formData.instagram,
-          facebook: formData.facebook,
-          twitter: formData.twitter,
-          youtube: formData.youtube,
-          github: formData.github,
-          portfolio: formData.portfolio,
-          others: formData.others,
-        },
-      });
+      console.log('Profile saved successfully, refreshing user data...');
+      
+      // Refresh user data from backend to ensure we have the latest
+      await refreshUser();
       
       toast.success('Profile created successfully!');
       navigate('/discover');

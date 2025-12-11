@@ -31,6 +31,14 @@ const Profile = () => {
     }
   }, [userId, isOwnProfile]);
 
+  // Debug logging
+  useEffect(() => {
+    console.log('Profile - User data:', user);
+    console.log('Profile - Social links:', user?.socialLinks);
+    console.log('Profile - Profession category:', user?.professionCategory);
+    console.log('Profile - Organisation:', user?.organisationName);
+  }, [user]);
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">

@@ -12,20 +12,20 @@ const Login = () => {
   const navigate = useNavigate();
   const { login, isLoading } = useAuth();
   const [formData, setFormData] = useState({
-    emailOrMobile: '',
+    emailOrMobileOrUsername: '',
     password: '',
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.emailOrMobile || !formData.password) {
+    if (!formData.emailOrMobileOrUsername || !formData.password) {
       toast.error('Please fill in all fields');
       return;
     }
 
     try {
-      const userData = await login(formData.emailOrMobile, formData.password);
+      const userData = await login(formData.emailOrMobileOrUsername, formData.password);
       toast.success('Welcome back!');
       
       // Check if pod owner has unapproved pods
@@ -37,7 +37,11 @@ const Login = () => {
         }
       }
       
-      navigate('/discover');
+      // Check if first time login (by checking if user has lastLoginAt field)
+      const isFirstLogin = !(userData as any).lastLoginAt;
+      
+      // First time users go to discover, returning users go to home
+      navigate(isFirstLogin ? '/discover' : '/home');
     } catch (error) {
       toast.error('Login failed. Please try again.');
     }
@@ -74,18 +78,23 @@ const Login = () => {
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="emailOrMobile">Email or Mobile Number</Label>
+                  <Label htmlFor="emailOrMobileOrUsername">Email, Mobile, or Username</Label>
                   <Input
-                    id="emailOrMobile"
+                    id="emailOrMobileOrUsername"
                     type="text"
-                    placeholder="Enter email or mobile"
-                    value={formData.emailOrMobile}
-                    onChange={(e) => setFormData({ ...formData, emailOrMobile: e.target.value })}
+                    placeholder="Enter email, mobile, or username"
+                    value={formData.emailOrMobileOrUsername}
+                    onChange={(e) => setFormData({ ...formData, emailOrMobileOrUsername: e.target.value })}
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="password">Password</Label>
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="password">Password</Label>
+                    <Link to="/forgot-password" className="text-xs text-primary hover:underline">
+                      Forgot Password?
+                    </Link>
+                  </div>
                   <Input
                     id="password"
                     type="password"

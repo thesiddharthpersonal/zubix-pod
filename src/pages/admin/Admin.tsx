@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { adminApi, AdminStats } from '@/services/api/admin';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Users, FolderKanban, FileText, Calendar, MessageSquare, TrendingUp, ArrowLeft, LogOut } from 'lucide-react';
+import { Users, FolderKanban, FileText, Calendar, MessageSquare, TrendingUp, ArrowLeft, LogOut, Bell } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 const Admin = () => {
@@ -146,6 +146,10 @@ const Admin = () => {
             <Button variant="outline" onClick={() => navigate('/admin/rooms')} className="justify-start">
               <MessageSquare className="w-4 h-4 mr-2" />
               Manage Rooms
+            </Button>
+            <Button variant="default" onClick={() => navigate('/admin/notifications')} className="justify-start">
+              <Bell className="w-4 h-4 mr-2" />
+              Send Notifications
             </Button>
           </CardContent>
         </Card>

@@ -7,11 +7,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowLeft, Save, Loader2, Plus, X } from 'lucide-react';
+import { ArrowLeft, Save, Loader2, Plus, X, Camera, Upload } from 'lucide-react';
 import { STARTUP_SUBCATEGORIES, BUSINESS_TYPES } from '@/types';
 import { toast } from 'sonner';
-import { usersApi } from '@/services/api';
+import { usersApi, uploadApi } from '@/services/api';
 import { Separator } from '@/components/ui/separator';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 const EditProfile = () => {
   const navigate = useNavigate();
@@ -19,6 +20,8 @@ const EditProfile = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [additionalLinks, setAdditionalLinks] = useState<{ id: number; url: string }[]>([]);
   const [nextLinkId, setNextLinkId] = useState(1);
+  const [profilePhoto, setProfilePhoto] = useState<string>(user?.profilePhoto || '');
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
   
   const [formData, setFormData] = useState({
     fullName: user?.fullName || '',
@@ -91,8 +94,40 @@ const EditProfile = () => {
         setAdditionalLinks(user.socialLinks.additionalLinks.map((url, index) => ({ id: index + 1, url })));
         setNextLinkId(user.socialLinks.additionalLinks.length + 1);
       }
+
+      // Set profile photo
+      setProfilePhoto(user.profilePhoto || '');
     }
   }, [user]);
+
+  const handlePhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please select an image file');
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Image size should be less than 5MB');
+      return;
+    }
+
+    try {
+      setUploadingPhoto(true);
+      const photoUrl = await uploadApi.uploadFile(file, 'public');
+      setProfilePhoto(photoUrl);
+      toast.success('Photo uploaded successfully!');
+    } catch (error) {
+      console.error('Photo upload error:', error);
+      toast.error('Failed to upload photo');
+    } finally {
+      setUploadingPhoto(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -112,6 +147,7 @@ const EditProfile = () => {
     try {
       await usersApi.updateProfile(user.id, {
         fullName: formData.fullName,
+        profilePhoto: profilePhoto,
         professionCategory: formData.professionCategory,
         organisationName: formData.organisationName,
         brandName: formData.brandName,
@@ -186,6 +222,66 @@ const EditProfile = () => {
               <CardDescription>Update your basic details</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
+              {/* Profile Photo */}
+              <div className="space-y-2">
+                <Label>Profile Photo</Label>
+                <div className="flex items-center gap-4">
+                  <Avatar className="w-20 h-20">
+                    <AvatarImage src={profilePhoto} />
+                    <AvatarFallback className="text-xl">{user?.fullName?.charAt(0) || 'U'}</AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1">
+                    <div className="flex gap-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        disabled={uploadingPhoto}
+                        asChild
+                      >
+                        <label className="cursor-pointer">
+                          {uploadingPhoto ? (
+                            <>
+                              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                              Uploading...
+                            </>
+                          ) : (
+                            <>
+                              <Upload className="w-4 h-4 mr-2" />
+                              Upload Photo
+                            </>
+                          )}
+                          <input
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={handlePhotoChange}
+                            disabled={uploadingPhoto}
+                          />
+                        </label>
+                      </Button>
+                      {profilePhoto && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setProfilePhoto('')}
+                          disabled={uploadingPhoto}
+                        >
+                          <X className="w-4 h-4 mr-2" />
+                          Remove
+                        </Button>
+                      )}
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-2">
+                      JPG, PNG or GIF. Max size 5MB.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <Separator />
+
               <div className="space-y-2">
                 <Label htmlFor="fullName">Full Name *</Label>
                 <Input
@@ -210,27 +306,28 @@ const EditProfile = () => {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="mobile">Mobile Number *</Label>
+                <Label htmlFor="mobile">Mobile Number</Label>
                 <Input
                   id="mobile"
                   value={formData.mobile}
-                  onChange={(e) => setFormData({ ...formData, mobile: e.target.value })}
                   placeholder="+91 9876543210"
-                  required
+                  disabled
+                  className="bg-muted cursor-not-allowed"
                 />
+                <p className="text-xs text-muted-foreground">Mobile number cannot be changed</p>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="email">Email *</Label>
+                <Label htmlFor="email">Email</Label>
                 <Input
                   id="email"
                   type="email"
                   value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   placeholder="your.email@example.com"
-                  required
                   disabled
+                  className="bg-muted cursor-not-allowed"
                 />
+                <p className="text-xs text-muted-foreground">Email cannot be changed</p>
               </div>
             </CardContent>
           </Card>

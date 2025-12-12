@@ -11,6 +11,8 @@ import AdminProtectedRoute from "@/components/AdminProtectedRoute";
 import Landing from "@/pages/Landing";
 import Login from "@/pages/auth/Login";
 import Signup from "@/pages/auth/Signup";
+import ForgotPassword from "@/pages/auth/ForgotPassword";
+import ResetPassword from "@/pages/auth/ResetPassword";
 import ProfileSetup from "@/pages/auth/ProfileSetup";
 import RoleSelection from "@/pages/auth/RoleSelection";
 import UserRegistration from "@/pages/register/UserRegistration";
@@ -40,6 +42,7 @@ import IdolPitchDecks from "@/pages/IdolPitchDecks";
 import Admin from "@/pages/admin/Admin";
 import AdminUsers from "@/pages/admin/AdminUsers";
 import AdminPods from "@/pages/admin/AdminPods";
+import AdminNotifications from "@/pages/admin/AdminNotifications";
 import AdminLogin from "@/pages/admin/AdminLogin";
 import NotFound from "@/pages/NotFound";
 import Install from "@/pages/Install";
@@ -100,6 +103,8 @@ const AppRoutes = () => {
       <Route path="/" element={<PublicRoute><Landing /></PublicRoute>} />
       <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
       <Route path="/signup" element={<PublicRoute><Signup /></PublicRoute>} />
+      <Route path="/forgot-password" element={<PublicRoute><ForgotPassword /></PublicRoute>} />
+      <Route path="/reset-password" element={<PublicRoute><ResetPassword /></PublicRoute>} />
 
       {/* Auth Flow Routes */}
       <Route path="/profile-setup" element={<ProtectedRoute><ProfileSetup /></ProtectedRoute>} />
@@ -138,6 +143,7 @@ const AppRoutes = () => {
       <Route path="/admin" element={<AdminProtectedRoute><Admin /></AdminProtectedRoute>} />
       <Route path="/admin/users" element={<AdminProtectedRoute><AdminUsers /></AdminProtectedRoute>} />
       <Route path="/admin/pods" element={<AdminProtectedRoute><AdminPods /></AdminProtectedRoute>} />
+      <Route path="/admin/notifications" element={<AdminProtectedRoute><AdminNotifications /></AdminProtectedRoute>} />
 
       {/* Install Page */}
       <Route path="/install" element={<Install />} />

@@ -1,7 +1,7 @@
 import apiClient, { setAuthToken, removeAuthToken, handleApiError } from './config';
 
 export interface LoginRequest {
-  emailOrMobile: string;
+  emailOrMobileOrUsername: string;
   password: string;
 }
 
@@ -74,17 +74,18 @@ export const authApi = {
     }
   },
 
-  forgotPassword: async (email: string): Promise<void> => {
+  forgotPassword: async (emailOrMobile: string): Promise<{ message: string; developmentOTP?: string }> => {
     try {
-      await apiClient.post('/api/auth/forgot-password', { email });
+      const response = await apiClient.post<{ message: string; developmentOTP?: string }>('/api/auth/forgot-password', { emailOrMobile });
+      return response.data;
     } catch (error) {
       throw new Error(handleApiError(error));
     }
   },
 
-  resetPassword: async (token: string, newPassword: string): Promise<void> => {
+  resetPassword: async (emailOrMobile: string, otp: string, newPassword: string): Promise<void> => {
     try {
-      await apiClient.post('/api/auth/reset-password', { token, newPassword });
+      await apiClient.post('/api/auth/reset-password', { emailOrMobile, otp, newPassword });
     } catch (error) {
       throw new Error(handleApiError(error));
     }

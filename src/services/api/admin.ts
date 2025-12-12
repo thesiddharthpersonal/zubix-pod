@@ -214,4 +214,30 @@ export const adminApi = {
       throw new Error(handleApiError(error));
     }
   },
+
+  // Notification Management
+  getAllUsers: async () => {
+    try {
+      const response = await adminApiClient.get('/api/admin/users/all');
+      return response.data;
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
+  },
+
+  sendNotification: async (data: {
+    recipientType: 'all' | 'specific' | 'role';
+    recipientId?: string;
+    role?: string;
+    title: string;
+    message: string;
+    type?: string;
+  }) => {
+    try {
+      const response = await adminApiClient.post('/api/admin/notifications/send', data);
+      return response.data;
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
+  },
 };

@@ -11,7 +11,7 @@ interface AuthContextType {
   selectedRole: 'user' | 'pod_owner' | null;
   pendingPodOwner: Partial<Pod> | null;
   joinedPods: Pod[];
-  login: (email: string, password: string) => Promise<UserProfile | null>;
+  login: (emailOrMobileOrUsername: string, password: string) => Promise<UserProfile | null>;
   signup: (data: SignupData) => Promise<void>;
   logout: () => Promise<void>;
   setSelectedRole: (role: 'user' | 'pod_owner') => void;
@@ -82,11 +82,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     initAuth();
   }, []);
 
-  const login = useCallback(async (email: string, password: string) => {
+  const login = useCallback(async (emailOrMobileOrUsername: string, password: string) => {
     try {
       setIsLoading(true);
       const response = await authApi.login({
-        emailOrMobile: email,
+        emailOrMobileOrUsername: emailOrMobileOrUsername,
         password,
       });
       

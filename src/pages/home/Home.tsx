@@ -6,7 +6,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Image, Video, Send, Heart, MessageCircle, Share2, MoreHorizontal, Plus, Info } from 'lucide-react';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Image, Video, Send, Heart, MessageCircle, Share2, MoreHorizontal, Plus, Info, Edit, Trash2, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Post, User, Pod } from '@/types';
 import BottomNav from '@/components/layout/BottomNav';
@@ -152,6 +154,28 @@ const Home = () => {
     } catch (error) {
       console.error('Failed to create post:', error);
       toast.error(error instanceof Error ? error.message : 'Failed to create post');
+    }
+  };
+
+  const handleUpdatePost = async (postId: string, newContent: string) => {
+    try {
+      await postsApi.updatePost(postId, newContent);
+      setPosts(posts.map((p) => p.id === postId ? { ...p, content: newContent } : p));
+      toast.success('Post updated successfully!');
+    } catch (error) {
+      console.error('Failed to update post:', error);
+      toast.error('Failed to update post');
+    }
+  };
+
+  const handleDeletePost = async (postId: string) => {
+    try {
+      await postsApi.deletePost(postId);
+      setPosts(posts.filter((p) => p.id !== postId));
+      toast.success('Post deleted successfully!');
+    } catch (error) {
+      console.error('Failed to delete post:', error);
+      toast.error('Failed to delete post');
     }
   };
 
@@ -410,6 +434,8 @@ const Home = () => {
                     }
                   }}
                   onShare={() => handleShare(post.id)}
+                  onPostUpdate={handleUpdatePost}
+                  onPostDelete={handleDeletePost}
                 />
               ))}
             </div>
@@ -492,6 +518,8 @@ const PostCard = ({
   onUserClick,
   onMentionClick,
   onShare,
+  onPostUpdate,
+  onPostDelete,
 }: {
   post: Post;
   currentUser: User | null;
@@ -501,9 +529,14 @@ const PostCard = ({
   onUserClick: (user: User) => void;
   onMentionClick: (username: string) => void;
   onShare: () => void;
+  onPostUpdate: (postId: string, newContent: string) => void;
+  onPostDelete: (postId: string) => void;
 }) => {
   const [showComments, setShowComments] = useState(false);
   const [comments, setComments] = useState<Comment[]>([]);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [editedContent, setEditedContent] = useState(post.content);
+  const [isUpdating, setIsUpdating] = useState(false);
   const [newComment, setNewComment] = useState('');
   const [loadingComments, setLoadingComments] = useState(false);
   const [submittingComment, setSubmittingComment] = useState(false);
@@ -581,9 +614,35 @@ const PostCard = ({
                   {' '}· {timeAgo}
                 </p>
               </div>
-              <Button variant="ghost" size="icon-sm">
-                <MoreHorizontal className="w-4 h-4" />
-              </Button>
+              {currentUser?.id === post.authorId && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon-sm">
+                      <MoreHorizontal className="w-4 h-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={() => {
+                      setEditedContent(post.content);
+                      setIsEditDialogOpen(true);
+                    }}>
+                      <Edit className="w-4 h-4 mr-2" />
+                      Edit Post
+                    </DropdownMenuItem>
+                    <DropdownMenuItem 
+                      onClick={() => {
+                        if (confirm('Are you sure you want to delete this post?')) {
+                          onPostDelete(post.id);
+                        }
+                      }}
+                      className="text-destructive"
+                    >
+                      <Trash2 className="w-4 h-4 mr-2" />
+                      Delete Post
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
             </div>
             <MentionText 
               content={post.content}
@@ -720,6 +779,66 @@ const PostCard = ({
           </div>
         </div>
       </CardContent>
+
+      {/* Edit Post Dialog */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Post</DialogTitle>
+            <DialogDescription>
+              Make changes to your post below.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <Textarea
+              value={editedContent}
+              onChange={(e) => setEditedContent(e.target.value)}
+              placeholder="What's on your mind?"
+              rows={6}
+              disabled={isUpdating}
+            />
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setIsEditDialogOpen(false);
+                setEditedContent(post.content);
+              }}
+              disabled={isUpdating}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={async () => {
+                if (!editedContent.trim()) {
+                  toast.error('Post content cannot be empty');
+                  return;
+                }
+                setIsUpdating(true);
+                try {
+                  await onPostUpdate(post.id, editedContent);
+                  setIsEditDialogOpen(false);
+                } catch (error) {
+                  console.error('Failed to update post:', error);
+                } finally {
+                  setIsUpdating(false);
+                }
+              }}
+              disabled={!editedContent.trim() || isUpdating}
+            >
+              {isUpdating ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
+                  Updating...
+                </>
+              ) : (
+                'Save Changes'
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 };

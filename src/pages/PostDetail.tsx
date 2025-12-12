@@ -213,10 +213,15 @@ const PostDetail = () => {
                 </div>
                 <MentionText 
                   content={post.content}
-                  onMentionClick={(username) => {
-                    usersApi.getUserByUsername(username).then(user => {
-                      if (user) setSelectedUserForProfile(user);
-                    }).catch(() => toast.error('User not found'));
+                  onMentionClick={async (username) => {
+                    try {
+                      const user = await usersApi.getUserByUsername(username);
+                      console.log('PostDetail post: User found:', user);
+                      setSelectedUserForProfile(user);
+                    } catch (error: any) {
+                      console.error('PostDetail post: Error fetching user:', error);
+                      toast.error('User not found');
+                    }
                   }}
                   className="mt-2 text-foreground whitespace-pre-wrap"
                 />
@@ -288,10 +293,15 @@ const PostDetail = () => {
                             </div>
                             <MentionText 
                               content={comment.content}
-                              onMentionClick={(username) => {
-                                usersApi.getUserByUsername(username).then(user => {
-                                  if (user) setSelectedUserForProfile(user);
-                                }).catch(() => toast.error('User not found'));
+                              onMentionClick={async (username) => {
+                                try {
+                                  const user = await usersApi.getUserByUsername(username);
+                                  console.log('PostDetail comment: User found:', user);
+                                  setSelectedUserForProfile(user);
+                                } catch (error: any) {
+                                  console.error('PostDetail comment: Error fetching user:', error);
+                                  toast.error('User not found');
+                                }
                               }}
                               className="text-sm text-foreground mt-0.5"
                             />

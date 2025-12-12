@@ -380,10 +380,15 @@ const RoomChat = () => {
                         <p className="font-medium">{message.replyTo.sender.fullName}</p>
                         <MentionText 
                           content={message.replyTo.content}
-                          onMentionClick={(username) => {
-                            usersApi.getUserByUsername(username).then(user => {
-                              if (user) setSelectedUserForProfile(user);
-                            }).catch(() => toast({ title: 'Error', description: 'User not found', variant: 'destructive' }));
+                          onMentionClick={async (username) => {
+                            try {
+                              const user = await usersApi.getUserByUsername(username);
+                              console.log('RoomChat reply: User found:', user);
+                              setSelectedUserForProfile(user);
+                            } catch (error: any) {
+                              console.error('RoomChat reply: Error fetching user:', error);
+                              toast({ title: 'Error', description: 'User not found', variant: 'destructive' });
+                            }
                           }}
                           className="truncate block"
                         />
@@ -391,10 +396,15 @@ const RoomChat = () => {
                     )}
                     <MentionText 
                       content={message.content}
-                      onMentionClick={(username) => {
-                        usersApi.getUserByUsername(username).then(user => {
-                          if (user) setSelectedUserForProfile(user);
-                        }).catch(() => toast({ title: 'Error', description: 'User not found', variant: 'destructive' }));
+                      onMentionClick={async (username) => {
+                        try {
+                          const user = await usersApi.getUserByUsername(username);
+                          console.log('RoomChat: User found:', user);
+                          setSelectedUserForProfile(user);
+                        } catch (error: any) {
+                          console.error('RoomChat: Error fetching user:', error);
+                          toast({ title: 'Error', description: 'User not found', variant: 'destructive' });
+                        }
                       }}
                       className="text-sm"
                     />
@@ -431,10 +441,15 @@ const RoomChat = () => {
               </div>
               <MentionText 
                 content={replyingTo.content}
-                onMentionClick={(username) => {
-                  usersApi.getUserByUsername(username).then(user => {
-                    if (user) setSelectedUserForProfile(user);
-                  }).catch(() => toast({ title: 'Error', description: 'User not found', variant: 'destructive' }));
+                onMentionClick={async (username) => {
+                  try {
+                    const user = await usersApi.getUserByUsername(username);
+                    console.log('RoomChat replying: User found:', user);
+                    setSelectedUserForProfile(user);
+                  } catch (error: any) {
+                    console.error('RoomChat replying: Error fetching user:', error);
+                    toast({ title: 'Error', description: 'User not found', variant: 'destructive' });
+                  }
                 }}
                 className="text-sm truncate text-foreground block"
               />

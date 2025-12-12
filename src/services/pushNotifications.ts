@@ -199,24 +199,41 @@ export class PushNotificationManager {
   // Unsubscribe from push notifications
   async unsubscribe(): Promise<boolean> {
     try {
+      console.log('🔄 Starting unsubscribe process...');
+      
       if (!this.registration) {
+        console.log('✅ No service worker registration - already unsubscribed');
         return true; // Already unsubscribed
       }
 
       const subscription = await this.registration.pushManager.getSubscription();
       if (!subscription) {
+        console.log('✅ No browser subscription found - already unsubscribed');
         return true; // No subscription exists
       }
 
-      // Unsubscribe from backend
-      await pushNotificationApi.unsubscribe(subscription.endpoint);
+      console.log('📤 Unsubscribing from backend...');
+      
+      // Try to unsubscribe from backend (ignore 404 errors)
+      try {
+        await pushNotificationApi.unsubscribe(subscription.endpoint);
+        console.log('✅ Backend unsubscribe successful');
+      } catch (error: any) {
+        // If 404, subscription doesn't exist in backend - that's fine
+        if (error.message?.includes('not found') || error.message?.includes('404')) {
+          console.log('ℹ️ Subscription not found in backend (already removed)');
+        } else {
+          throw error; // Re-throw other errors
+        }
+      }
 
       // Unsubscribe from browser
+      console.log('🗑️ Removing browser subscription...');
       await subscription.unsubscribe();
-      console.log('✅ Unsubscribed from push notifications');
+      console.log('✅ Successfully unsubscribed from push notifications');
       return true;
     } catch (error) {
-      console.error('Failed to unsubscribe:', error);
+      console.error('❌ Failed to unsubscribe:', error);
       return false;
     }
   }

@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { AdminAuthProvider } from "@/contexts/AdminAuthContext";
 import AdminProtectedRoute from "@/components/AdminProtectedRoute";
@@ -47,7 +47,8 @@ import Install from "@/pages/Install";
 const queryClient = new QueryClient();
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, user } = useAuth();
+  const location = useLocation();
   
   if (isLoading) {
     return (
@@ -61,6 +62,16 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   }
   
   if (!isAuthenticated) return <Navigate to="/" replace />;
+  
+  // Check if pod owner has unapproved pods
+  if (user?.role === 'POD_OWNER' && user?.ownedPods && user.ownedPods.length > 0) {
+    const hasUnapprovedPod = user.ownedPods.some((pod: any) => !pod.isApproved);
+    // Allow access to pending-approval page, but block other pages
+    if (hasUnapprovedPod && location.pathname !== '/pending-approval') {
+      return <Navigate to="/pending-approval" replace />;
+    }
+  }
+  
   return <>{children}</>;
 };
 

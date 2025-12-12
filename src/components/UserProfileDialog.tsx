@@ -163,18 +163,6 @@ const UserProfileDialog = ({ user, currentUserId, podOwnerId, podId, isOpen, onC
             </div>
           </div>
 
-          {/* Contact Info */}
-          <div className="space-y-2">
-            <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 transition-colors">
-              <Mail className="w-4 h-4 text-muted-foreground shrink-0" />
-              <span className="text-sm text-foreground truncate">{user.email}</span>
-            </div>
-            <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 transition-colors">
-              <Phone className="w-4 h-4 text-muted-foreground shrink-0" />
-              <span className="text-sm text-foreground">{user.mobile}</span>
-            </div>
-          </div>
-
           {/* Professional Info (if available) */}
           {(userProfile.organisationName || userProfile.designation || userProfile.operatingCity || userProfile.brandName || userProfile.startupSubcategory || userProfile.businessType || userProfile.website) && (
             <div className="space-y-2 pt-2 border-t border-border">

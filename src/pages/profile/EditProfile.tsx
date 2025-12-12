@@ -146,7 +146,7 @@ const EditProfile = () => {
       await refreshUser();
       
       toast.success('Profile updated successfully!');
-      navigate('/profile');
+      navigate('/profile', { replace: true });
     } catch (error) {
       console.error('Profile update error:', error);
       toast.error(error instanceof Error ? error.message : 'Failed to update profile');
@@ -605,7 +605,7 @@ const EditProfile = () => {
 
           {/* Submit Button */}
           <div className="flex justify-end gap-3 pt-4">
-            <Button type="button" variant="outline" onClick={() => navigate('/profile')} disabled={isSubmitting}>
+            <Button type="button" variant="outline" onClick={() => navigate(-1)} disabled={isSubmitting}>
               Cancel
             </Button>
             <Button type="submit" disabled={isSubmitting}>

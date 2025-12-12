@@ -112,9 +112,24 @@ export const usersApi = {
   getUserByUsername: async (username: string): Promise<UserProfile> => {
     try {
       console.log('Fetching user by username:', username);
-      const response = await apiClient.get<{ user: UserProfile }>(`/api/users/username/${username}`);
+      const response = await apiClient.get<{ user: any }>(`/api/users/username/${username}`);
       console.log('User API response:', response.data);
-      return response.data.user;
+      const userData = response.data.user;
+      
+      // Map backend URLs to socialLinks object
+      return {
+        ...userData,
+        socialLinks: {
+          linkedin: userData.linkedinUrl,
+          instagram: userData.instagramUrl,
+          facebook: userData.facebookUrl,
+          twitter: userData.twitterUrl,
+          youtube: userData.youtubeUrl,
+          github: userData.githubUrl,
+          portfolio: userData.portfolioUrl,
+          others: userData.othersUrl,
+        }
+      };
     } catch (error: any) {
       console.error('getUserByUsername error:', error.response?.data || error.message);
       throw new Error(handleApiError(error));

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, KeyboardEvent } from 'react';
+import { useState, useEffect, useRef, KeyboardEvent, forwardRef, useImperativeHandle } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { User as UserIcon } from 'lucide-react';
 import { usersApi } from '@/services/api';
@@ -21,7 +21,7 @@ interface MentionInputProps {
   disabled?: boolean;
 }
 
-const MentionInput = ({
+const MentionInput = forwardRef<HTMLTextAreaElement, MentionInputProps>(({
   value,
   onChange,
   onMentionSelect,
@@ -30,7 +30,7 @@ const MentionInput = ({
   maxLength,
   rows = 3,
   disabled = false,
-}: MentionInputProps) => {
+}, ref) => {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [suggestions, setSuggestions] = useState<User[]>([]);
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -38,6 +38,9 @@ const MentionInput = ({
   const [mentionStartPos, setMentionStartPos] = useState(-1);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const suggestionsRef = useRef<HTMLDivElement>(null);
+
+  // Expose the textarea ref to parent components
+  useImperativeHandle(ref, () => textareaRef.current!);
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -205,6 +208,8 @@ const MentionInput = ({
       )}
     </div>
   );
-};
+});
+
+MentionInput.displayName = 'MentionInput';
 
 export default MentionInput;

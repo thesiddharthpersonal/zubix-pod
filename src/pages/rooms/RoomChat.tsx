@@ -467,6 +467,7 @@ const RoomChat = () => {
         <div className="flex gap-2 max-w-2xl mx-auto items-end">
           <div className="flex-1">
             <MentionInput
+              ref={inputRef}
               value={newMessage}
               onChange={setNewMessage}
               placeholder="Type a message... (use @ to mention)"

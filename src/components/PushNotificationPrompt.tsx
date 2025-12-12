@@ -162,31 +162,53 @@ export const PushNotificationSettings = () => {
   };
 
   const handleToggle = async () => {
+    console.log('🔄 Toggle button clicked. Current state:', { isSubscribed, permission, isLoading });
+    
+    if (isLoading) {
+      console.log('⏳ Already loading, ignoring click');
+      return;
+    }
+    
     setIsLoading(true);
+    
     try {
       if (isSubscribed) {
+        console.log('📤 Attempting to unsubscribe...');
         const success = await pushManager.unsubscribe();
+        console.log('📤 Unsubscribe result:', success);
+        
         if (success) {
           setIsSubscribed(false);
           toast.success('🔕 Push notifications disabled');
+        } else {
+          toast.error('Failed to disable notifications');
         }
       } else {
+        console.log('📥 Attempting to subscribe...');
         const success = await pushManager.subscribe();
+        console.log('📥 Subscribe result:', success);
+        
         if (success) {
           setIsSubscribed(true);
           setPermission('granted');
           toast.success('🔔 Push notifications enabled!');
+          
+          // Re-check status after a moment
+          setTimeout(() => checkStatus(), 1000);
         } else {
           toast.error('Failed to enable notifications', {
             description: 'Please check your browser settings.'
           });
         }
       }
-    } catch (error) {
-      console.error('Error toggling notifications:', error);
-      toast.error('Failed to update notification settings');
+    } catch (error: any) {
+      console.error('❌ Error toggling notifications:', error);
+      toast.error('Failed to update notification settings', {
+        description: error.message || 'Unknown error'
+      });
     } finally {
       setIsLoading(false);
+      console.log('✅ Toggle completed');
     }
   };
 

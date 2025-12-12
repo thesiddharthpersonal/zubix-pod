@@ -23,7 +23,7 @@ export const notificationsApi = {
 
   getUnreadCount: async (userId: string): Promise<number> => {
     try {
-      const response = await apiClient.get<{ count: number }>('/api/notifications/unread-count');
+      const response = await apiClient.get<{ count: number }>('/api/notifications/unread/count');
       return response.data.count;
     } catch (error) {
       throw new Error(handleApiError(error));
@@ -32,7 +32,7 @@ export const notificationsApi = {
 
   markAsRead: async (notificationId: string): Promise<void> => {
     try {
-      await apiClient.put(`/api/notifications/${notificationId}/read`);
+      await apiClient.patch(`/api/notifications/${notificationId}/read`);
     } catch (error) {
       throw new Error(handleApiError(error));
     }
@@ -40,7 +40,7 @@ export const notificationsApi = {
 
   markAllAsRead: async (userId: string): Promise<void> => {
     try {
-      await apiClient.put('/api/notifications/read-all');
+      await apiClient.post('/api/notifications/mark-all-read');
     } catch (error) {
       throw new Error(handleApiError(error));
     }

@@ -378,15 +378,20 @@ const Chat = () => {
                       )}
                       <MentionText 
                         content={msg.content} 
-                        onMentionClick={(username) => {
+                        onMentionClick={async (username) => {
                           console.log('Mention clicked:', username);
-                          usersApi.getUserByUsername(username).then(user => {
+                          console.log('API Base URL:', import.meta.env.VITE_API_BASE_URL);
+                          console.log('Auth token exists:', !!localStorage.getItem('zubix_auth_token'));
+                          try {
+                            const user = await usersApi.getUserByUsername(username);
                             console.log('User found:', user);
                             if (user) setSelectedUserForProfile(user);
-                          }).catch((error) => {
+                          } catch (error: any) {
                             console.error('Error fetching user:', error);
-                            toast.error('User not found');
-                          });
+                            console.error('Error message:', error.message);
+                            console.error('Error response:', error.response?.data);
+                            toast.error(error.message || 'User not found');
+                          }
                         }}
                         className="text-sm"
                       />

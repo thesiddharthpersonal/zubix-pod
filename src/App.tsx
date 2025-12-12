@@ -35,6 +35,9 @@ import Notifications from "@/pages/Notifications";
 import StartupIdeas from "@/pages/StartupIdeas";
 import JobsInternships from "@/pages/JobsInternships";
 import IdolPitchDecks from "@/pages/IdolPitchDecks";
+import Admin from "@/pages/admin/Admin";
+import AdminUsers from "@/pages/admin/AdminUsers";
+import AdminPods from "@/pages/admin/AdminPods";
 import NotFound from "@/pages/NotFound";
 import Install from "@/pages/Install";
 
@@ -115,6 +118,11 @@ const AppRoutes = () => {
       <Route path="/pod/:podId" element={<ProtectedRoute><PodDiscovery /></ProtectedRoute>} />
       <Route path="/search" element={<ProtectedRoute><Search /></ProtectedRoute>} />
       <Route path="/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
+
+      {/* Admin Routes */}
+      <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
+      <Route path="/admin/users" element={<ProtectedRoute><AdminUsers /></ProtectedRoute>} />
+      <Route path="/admin/pods" element={<ProtectedRoute><AdminPods /></ProtectedRoute>} />
 
       {/* Install Page */}
       <Route path="/install" element={<Install />} />

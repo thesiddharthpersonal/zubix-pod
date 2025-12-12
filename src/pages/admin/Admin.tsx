@@ -1,0 +1,156 @@
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
+import { useEffect, useState } from 'react';
+import { adminApi, AdminStats } from '@/services/api/admin';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Users, FolderKanban, FileText, Calendar, MessageSquare, TrendingUp, ArrowLeft } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+
+const Admin = () => {
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const [stats, setStats] = useState<AdminStats | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // Check if user is admin
+    if (!user || user.role !== 'admin') {
+      toast({ title: 'Access Denied', description: 'Admin access required', variant: 'destructive' });
+      navigate('/');
+      return;
+    }
+
+    fetchStats();
+  }, [user, navigate]);
+
+  const fetchStats = async () => {
+    try {
+      setLoading(true);
+      const data = await adminApi.getStats();
+      setStats(data);
+    } catch (error) {
+      console.error('Error fetching stats:', error);
+      toast({ title: 'Error', description: 'Failed to load statistics', variant: 'destructive' });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const StatCard = ({ icon: Icon, title, value, subtitle, onClick }: any) => (
+    <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={onClick}>
+      <CardHeader className="flex flex-row items-center justify-between pb-2">
+        <CardTitle className="text-sm font-medium">{title}</CardTitle>
+        <Icon className="w-4 h-4 text-muted-foreground" />
+      </CardHeader>
+      <CardContent>
+        <div className="text-2xl font-bold">{value}</div>
+        {subtitle && <p className="text-xs text-muted-foreground">{subtitle}</p>}
+      </CardContent>
+    </Card>
+  );
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-background pb-20">
+      <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border">
+        <div className="flex items-center justify-between p-4">
+          <div className="flex items-center gap-3">
+            <Button variant="ghost" size="icon" onClick={() => navigate('/')}>
+              <ArrowLeft className="w-5 h-5" />
+            </Button>
+            <h1 className="text-xl font-bold text-foreground">Admin Dashboard</h1>
+          </div>
+        </div>
+      </header>
+
+      <main className="container mx-auto px-4 py-6 max-w-7xl">
+        {/* Welcome Section */}
+        <div className="mb-6">
+          <h2 className="text-2xl font-bold mb-2">Welcome, {user?.fullName}</h2>
+          <p className="text-muted-foreground">Manage your platform from here</p>
+        </div>
+
+        {/* Stats Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+          <StatCard
+            icon={Users}
+            title="Total Users"
+            value={stats?.users.total || 0}
+            subtitle={`${stats?.users.recent || 0} new this week`}
+            onClick={() => navigate('/admin/users')}
+          />
+          <StatCard
+            icon={FolderKanban}
+            title="Total Pods"
+            value={stats?.pods.total || 0}
+            onClick={() => navigate('/admin/pods')}
+          />
+          <StatCard
+            icon={FileText}
+            title="Total Posts"
+            value={stats?.posts.total || 0}
+            subtitle={`${stats?.posts.recent || 0} new this week`}
+            onClick={() => navigate('/admin/posts')}
+          />
+          <StatCard
+            icon={Calendar}
+            title="Total Events"
+            value={stats?.events.total || 0}
+            onClick={() => navigate('/admin/events')}
+          />
+          <StatCard
+            icon={MessageSquare}
+            title="Total Rooms"
+            value={stats?.rooms.total || 0}
+            onClick={() => navigate('/admin/rooms')}
+          />
+          <StatCard
+            icon={TrendingUp}
+            title="Total Chats"
+            value={stats?.chats.total || 0}
+          />
+        </div>
+
+        {/* Quick Actions */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Quick Actions</CardTitle>
+          </CardHeader>
+          <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+            <Button variant="outline" onClick={() => navigate('/admin/users')} className="justify-start">
+              <Users className="w-4 h-4 mr-2" />
+              Manage Users
+            </Button>
+            <Button variant="outline" onClick={() => navigate('/admin/pods')} className="justify-start">
+              <FolderKanban className="w-4 h-4 mr-2" />
+              Manage Pods
+            </Button>
+            <Button variant="outline" onClick={() => navigate('/admin/posts')} className="justify-start">
+              <FileText className="w-4 h-4 mr-2" />
+              Manage Posts
+            </Button>
+            <Button variant="outline" onClick={() => navigate('/admin/events')} className="justify-start">
+              <Calendar className="w-4 h-4 mr-2" />
+              Manage Events
+            </Button>
+            <Button variant="outline" onClick={() => navigate('/admin/rooms')} className="justify-start">
+              <MessageSquare className="w-4 h-4 mr-2" />
+              Manage Rooms
+            </Button>
+          </CardContent>
+        </Card>
+      </main>
+    </div>
+  );
+};
+
+export default Admin;

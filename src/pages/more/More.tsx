@@ -9,7 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Rocket, Upload, Send, MessageCircle, ChevronRight, ArrowLeft, Settings, HelpCircle, FileText, Users, Eye, Reply, PhoneCall, Lightbulb, Briefcase } from 'lucide-react';
+import { Rocket, Upload, Send, MessageCircle, ChevronRight, ArrowLeft, Settings, HelpCircle, FileText, Users, Eye, Reply, PhoneCall, Lightbulb, Briefcase, Shield } from 'lucide-react';
 import { Pitch, PitchReply, STARTUP_STAGES, PITCH_STATUSES, STARTUP_STAGE_DISPLAY, PITCH_STATUS_DISPLAY, SECTORS, StartupStage, PitchStatus } from '@/types';
 import TopNav from '@/components/layout/TopNav';
 import BottomNav from '@/components/layout/BottomNav';
@@ -19,6 +19,7 @@ import { getManagedPods } from '@/lib/utils';
 
 // Feature list for More section
 const FEATURES = [
+  { id: 'admin-panel', name: 'Admin Panel', description: 'Manage users, pods, posts, and more', icon: Shield, available: true, forAdmin: true, path: '/admin' },
   { id: 'book-call', name: 'Book a Call', description: 'Book a call with pod owners or co-owners', icon: PhoneCall, available: true, forAll: true, path: '/book-call' },
   { id: 'startup-ideas', name: 'Startup Ideas', description: 'Share and discover innovative startup ideas', icon: Lightbulb, available: true, forAll: true, path: '/startup-ideas' },
   { id: 'jobs-internships', name: 'Jobs & Internships', description: 'Post availability and discover opportunities', icon: Briefcase, available: true, forAll: true, path: '/jobs-internships' },
@@ -230,7 +231,7 @@ const More = () => {
   };
 
   // Filter features based on user role
-  const visibleFeatures = FEATURES.filter(f => f.forAll || (f.forPodOwner && canManagePods));
+  const visibleFeatures = FEATURES.filter(f => f.forAll || (f.forPodOwner && canManagePods) || (f.forAdmin && user?.role === 'admin'));
 
   // Feature List View
   if (!selectedFeature) {

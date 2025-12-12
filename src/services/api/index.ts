@@ -11,6 +11,7 @@ export * from './chat';
 export * from './messageRequests';
 export * from './callBookings';
 export * from './notifications';
+export * from './admin';
 export * from './reactions';
 export * from './upload';
 export * from './comments';

@@ -230,18 +230,20 @@ const PostDetail = () => {
                 {post.mediaUrls && post.mediaUrls.length > 0 && (
                   <div className={`mt-3 grid gap-2 ${post.mediaUrls.length === 1 ? 'grid-cols-1' : 'grid-cols-2'}`}>
                     {post.mediaUrls.map((url, index) => (
-                      <div key={`${post.id}-media-${index}`} className="rounded-lg overflow-hidden bg-secondary">
+                      <div key={`${post.id}-media-${index}`} className="rounded-lg overflow-hidden bg-secondary flex items-center justify-center" style={{ maxHeight: post.mediaUrls.length === 1 ? '70vh' : '50vh' }}>
                         {url.match(/\.(jpg|jpeg|png|gif|webp)$/i) ? (
                           <img 
                             src={url} 
                             alt={`Media ${index + 1}`} 
-                            className="w-full h-full object-cover"
+                            className="w-full h-full object-contain"
+                            style={{ maxHeight: post.mediaUrls.length === 1 ? '70vh' : '50vh' }}
                           />
                         ) : (
                           <video 
                             src={url} 
                             controls 
-                            className="w-full h-full"
+                            className="w-full h-auto"
+                            style={{ maxHeight: post.mediaUrls.length === 1 ? '70vh' : '50vh' }}
                           />
                         )}
                       </div>

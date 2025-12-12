@@ -15,11 +15,13 @@ const AdminPods = () => {
   const { admin } = useAdminAuth();
   const { toast } = useToast();
   const [pods, setPods] = useState<any[]>([]);
+  const [pendingPods, setPendingPods] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
   const [deletePodId, setDeletePodId] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<'all' | 'pending'>('pending');
   const limit = 20;
 
   useEffect(() => {
@@ -27,8 +29,12 @@ const AdminPods = () => {
       navigate('/admin/login');
       return;
     }
-    fetchPods();
-  }, [admin, page, search]);
+    if (activeTab === 'pending') {
+      fetchPendingPods();
+    } else {
+      fetchPods();
+    }
+  }, [admin, page, search, activeTab]);
 
   const fetchPods = async () => {
     try {
@@ -41,6 +47,42 @@ const AdminPods = () => {
       toast({ title: 'Error', description: 'Failed to load pods', variant: 'destructive' });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchPendingPods = async () => {
+    try {
+      setLoading(true);
+      const data = await adminApi.getPendingPods({ page, limit });
+      setPendingPods(data.pods);
+      setTotal(data.total);
+    } catch (error) {
+      console.error('Error fetching pending pods:', error);
+      toast({ title: 'Error', description: 'Failed to load pending pods', variant: 'destructive' });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleApprove = async (podId: string) => {
+    try {
+      await adminApi.approvePod(podId);
+      toast({ title: 'Success', description: 'Pod approved successfully' });
+      fetchPendingPods();
+    } catch (error) {
+      console.error('Error approving pod:', error);
+      toast({ title: 'Error', description: 'Failed to approve pod', variant: 'destructive' });
+    }
+  };
+
+  const handleReject = async (podId: string) => {
+    try {
+      await adminApi.rejectPod(podId, 'Pod does not meet our guidelines');
+      toast({ title: 'Success', description: 'Pod rejected and removed' });
+      fetchPendingPods();
+    } catch (error) {
+      console.error('Error rejecting pod:', error);
+      toast({ title: 'Error', description: 'Failed to reject pod', variant: 'destructive' });
     }
   };
 
@@ -70,15 +112,33 @@ const AdminPods = () => {
       </header>
 
       <main className="container mx-auto px-4 py-6 max-w-7xl">
-        <div className="relative mb-6">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input
-            placeholder="Search pods..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="pl-10"
-          />
+        {/* Tabs */}
+        <div className="flex gap-2 mb-6">
+          <Button
+            variant={activeTab === 'pending' ? 'default' : 'outline'}
+            onClick={() => { setActiveTab('pending'); setPage(1); }}
+          >
+            Pending Approval ({total})
+          </Button>
+          <Button
+            variant={activeTab === 'all' ? 'default' : 'outline'}
+            onClick={() => { setActiveTab('all'); setPage(1); }}
+          >
+            All Pods
+          </Button>
         </div>
+
+        {activeTab === 'all' && (
+          <div className="relative mb-6">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input
+              placeholder="Search pods..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+        )}
 
         {loading ? (
           <div className="flex justify-center py-12">
@@ -87,7 +147,7 @@ const AdminPods = () => {
         ) : (
           <>
             <div className="space-y-3">
-              {pods.map((pod) => (
+              {(activeTab === 'pending' ? pendingPods : pods).map((pod) => (
                 <Card key={pod.id}>
                   <CardContent className="p-4">
                     <div className="flex items-start gap-4">
@@ -113,9 +173,30 @@ const AdminPods = () => {
                         </div>
                       </div>
 
-                      <Button variant="ghost" size="icon" onClick={() => setDeletePodId(pod.id)}>
-                        <Trash2 className="w-4 h-4 text-destructive" />
-                      </Button>
+                      <div className="flex gap-2">
+                        {activeTab === 'pending' ? (
+                          <>
+                            <Button 
+                              variant="default" 
+                              size="sm" 
+                              onClick={() => handleApprove(pod.id)}
+                            >
+                              Approve
+                            </Button>
+                            <Button 
+                              variant="destructive" 
+                              size="sm" 
+                              onClick={() => handleReject(pod.id)}
+                            >
+                              Reject
+                            </Button>
+                          </>
+                        ) : (
+                          <Button variant="ghost" size="icon" onClick={() => setDeletePodId(pod.id)}>
+                            <Trash2 className="w-4 h-4 text-destructive" />
+                          </Button>
+                        )}
+                      </div>
                     </div>
                   </CardContent>
                 </Card>

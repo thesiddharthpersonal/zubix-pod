@@ -44,7 +44,7 @@ adminApiClient.interceptors.response.use(
 
 export interface AdminStats {
   users: { total: number; recent: number };
-  pods: { total: number };
+  pods: { total: number; pending: number };
   posts: { total: number; recent: number };
   events: { total: number };
   rooms: { total: number };
@@ -125,6 +125,33 @@ export const adminApi = {
   deletePod: async (podId: string) => {
     try {
       const response = await adminApiClient.delete(`/api/admin/pods/${podId}`);
+      return response.data;
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
+  },
+
+  getPendingPods: async (params?: { page?: number; limit?: number }) => {
+    try {
+      const response = await adminApiClient.get('/api/admin/pods/pending', { params });
+      return response.data;
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
+  },
+
+  approvePod: async (podId: string) => {
+    try {
+      const response = await adminApiClient.patch(`/api/admin/pods/${podId}/approve`);
+      return response.data;
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
+  },
+
+  rejectPod: async (podId: string, reason?: string) => {
+    try {
+      const response = await adminApiClient.patch(`/api/admin/pods/${podId}/reject`, { reason });
       return response.data;
     } catch (error) {
       throw new Error(handleApiError(error));

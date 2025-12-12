@@ -36,15 +36,15 @@ const Admin = () => {
     }
   };
 
-  const StatCard = ({ icon: Icon, title, value, subtitle, onClick }: any) => (
-    <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={onClick}>
+  const StatCard = ({ icon: Icon, title, value, subtitle, onClick, alert }: any) => (
+    <Card className={`cursor-pointer hover:shadow-lg transition-shadow ${alert ? 'border-orange-500 border-2' : ''}`} onClick={onClick}>
       <CardHeader className="flex flex-row items-center justify-between pb-2">
         <CardTitle className="text-sm font-medium">{title}</CardTitle>
-        <Icon className="w-4 h-4 text-muted-foreground" />
+        <Icon className={`w-4 h-4 ${alert ? 'text-orange-500' : 'text-muted-foreground'}`} />
       </CardHeader>
       <CardContent>
         <div className="text-2xl font-bold">{value}</div>
-        {subtitle && <p className="text-xs text-muted-foreground">{subtitle}</p>}
+        {subtitle && <p className={`text-xs ${alert ? 'text-orange-600 font-semibold' : 'text-muted-foreground'}`}>{subtitle}</p>}
       </CardContent>
     </Card>
   );
@@ -91,7 +91,9 @@ const Admin = () => {
             icon={FolderKanban}
             title="Total Pods"
             value={stats?.pods.total || 0}
+            subtitle={`${stats?.pods.pending || 0} pending approval`}
             onClick={() => navigate('/admin/pods')}
+            alert={stats?.pods.pending ? stats.pods.pending > 0 : false}
           />
           <StatCard
             icon={FileText}

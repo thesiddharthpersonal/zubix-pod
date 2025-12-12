@@ -13,8 +13,8 @@ export default defineConfig(() => ({
     react(),
     VitePWA({
       strategies: 'injectManifest',
-      srcDir: 'public',
-      filename: 'sw.js',
+      srcDir: 'src',
+      filename: 'sw.ts',
       registerType: "autoUpdate",
       includeAssets: ["zubixfavicon.png", "pwa-192x192.png", "pwa-512x512.png"],
       manifest: {

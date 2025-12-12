@@ -57,6 +57,17 @@ const EditProfile = () => {
 
   useEffect(() => {
     if (user) {
+      console.log('📝 EditProfile: Loading user data', {
+        professionCategory: user.professionCategory,
+        startupSubcategory: user.startupSubcategory,
+        businessType: user.businessType,
+        workingDomain: user.workingDomain,
+        startupFoundedYear: user.startupFoundedYear,
+        organisationName: user.organisationName,
+        designation: user.designation,
+        fullUserObject: user
+      });
+      
       setFormData({
         fullName: user.fullName || '',
         username: user.username || '',

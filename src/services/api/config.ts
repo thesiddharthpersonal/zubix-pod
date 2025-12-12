@@ -98,8 +98,63 @@ export default apiClient;
 // Helper function to handle API errors
 export const handleApiError = (error: unknown): string => {
   if (axios.isAxiosError(error)) {
-    const axiosError = error as AxiosError<{ message?: string; error?: string }>;
-    return axiosError.response?.data?.message || axiosError.response?.data?.error || 'An error occurred';
+    const axiosError = error as AxiosError<{ 
+      message?: string; 
+      error?: string; 
+      errors?: Array<{ msg: string; path?: string }>;
+    }>;
+    
+    const response = axiosError.response;
+    
+    // Handle no response (network error)
+    if (!response) {
+      if (axiosError.code === 'ERR_NETWORK') {
+        return 'Unable to connect to the server. Please check your internet connection and try again.';
+      }
+      if (axiosError.code === 'ECONNABORTED') {
+        return 'Request timed out. Please try again.';
+      }
+      return 'Network error. Please check your connection and try again.';
+    }
+    
+    // Handle validation errors (400 with errors array)
+    if (response.status === 400 && response.data?.errors) {
+      const validationErrors = response.data.errors
+        .map(err => err.msg)
+        .join(', ');
+      return validationErrors || 'Please check your input and try again.';
+    }
+    
+    // Handle specific status codes
+    switch (response.status) {
+      case 400:
+        return response.data?.message || response.data?.error || 'Invalid request. Please check your input.';
+      case 401:
+        return response.data?.message || response.data?.error || 'You need to be logged in to perform this action.';
+      case 403:
+        return response.data?.message || response.data?.error || 'You do not have permission to perform this action.';
+      case 404:
+        return response.data?.message || response.data?.error || 'The requested resource was not found.';
+      case 409:
+        return response.data?.message || response.data?.error || 'This item already exists.';
+      case 413:
+        return 'File size is too large. Please upload a smaller file.';
+      case 429:
+        return 'Too many requests. Please wait a moment and try again.';
+      case 500:
+        return response.data?.message || response.data?.error || 'Server error. Please try again later.';
+      case 502:
+      case 503:
+        return 'Service temporarily unavailable. Please try again in a few moments.';
+      default:
+        return response.data?.message || response.data?.error || 'An error occurred. Please try again.';
+    }
   }
-  return 'An unexpected error occurred';
+  
+  // Handle non-Axios errors
+  if (error instanceof Error) {
+    return error.message;
+  }
+  
+  return 'An unexpected error occurred. Please try again.';
 };

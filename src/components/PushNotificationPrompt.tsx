@@ -3,17 +3,22 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Bell, BellOff, X } from 'lucide-react';
 import { PushNotificationManager } from '@/services/pushNotifications';
+import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 
 export const PushNotificationPrompt = () => {
   const [show, setShow] = useState(false);
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const { isAuthenticated } = useAuth();
   const pushManager = PushNotificationManager.getInstance();
 
   useEffect(() => {
-    checkNotificationStatus();
-  }, []);
+    // Only show prompt for authenticated users
+    if (isAuthenticated) {
+      checkNotificationStatus();
+    }
+  }, [isAuthenticated]);
 
   const checkNotificationStatus = async () => {
     const permission = pushManager.getPermission();

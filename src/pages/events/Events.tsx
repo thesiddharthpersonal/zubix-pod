@@ -328,7 +328,7 @@ const Events = () => {
             <div className="flex gap-2 overflow-x-auto pb-2 mb-4 scrollbar-hide">
           <Badge
             variant={selectedPod === 'all' ? 'default' : 'outline'}
-            className="cursor-pointer whitespace-nowrap"
+            className="cursor-pointer whitespace-nowrap rounded-lg px-4 py-2"
             onClick={() => setSelectedPod('all')}
           >
             All Pods
@@ -337,7 +337,7 @@ const Events = () => {
             <Badge
               key={pod.id}
               variant={selectedPod === pod.id ? 'default' : 'outline'}
-              className="cursor-pointer whitespace-nowrap"
+              className="cursor-pointer whitespace-nowrap rounded-lg px-4 py-2"
               onClick={() => setSelectedPod(pod.id)}
             >
               {pod.name}
@@ -345,7 +345,7 @@ const Events = () => {
           ))}
           <Badge
             variant="outline"
-            className="cursor-pointer whitespace-nowrap text-primary border-primary hover:bg-primary/10"
+            className="cursor-pointer whitespace-nowrap text-primary border-primary hover:bg-primary/10 rounded-lg px-4 py-2"
             onClick={() => navigate('/discover')}
           >
             <Plus className="w-3 h-3 mr-1" />

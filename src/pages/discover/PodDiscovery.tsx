@@ -99,7 +99,7 @@ const PodDiscovery = () => {
           <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
             <Badge
               variant={selectedSubcategory === 'all' ? 'default' : 'outline'}
-              className="cursor-pointer whitespace-nowrap"
+              className="cursor-pointer whitespace-nowrap rounded-lg px-4 py-2"
               onClick={() => setSelectedSubcategory('all')}
             >
               All
@@ -108,7 +108,7 @@ const PodDiscovery = () => {
               <Badge
                 key={cat}
                 variant={selectedSubcategory === cat ? 'default' : 'outline'}
-                className="cursor-pointer whitespace-nowrap"
+                className="cursor-pointer whitespace-nowrap rounded-lg px-4 py-2"
                 onClick={() => setSelectedSubcategory(cat)}
               >
                 {POD_SUBCATEGORY_DISPLAY[cat]}

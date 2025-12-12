@@ -298,7 +298,7 @@ const Rooms = () => {
         <div className="flex gap-2 overflow-x-auto pb-4 scrollbar-hide">
           <Badge
             variant={selectedPod === 'all' ? 'default' : 'outline'}
-            className="cursor-pointer whitespace-nowrap"
+            className="cursor-pointer whitespace-nowrap rounded-lg px-4 py-2"
             onClick={() => setSelectedPod('all')}
           >
             All Pods
@@ -307,7 +307,7 @@ const Rooms = () => {
             <Badge
               key={pod.id}
               variant={selectedPod === pod.id ? 'default' : 'outline'}
-              className="cursor-pointer whitespace-nowrap"
+              className="cursor-pointer whitespace-nowrap rounded-lg px-4 py-2"
               onClick={() => setSelectedPod(pod.id)}
             >
               {pod.name}

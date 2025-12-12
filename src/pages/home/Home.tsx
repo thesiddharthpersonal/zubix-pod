@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { Image, Video, Send, Heart, MessageCircle, Share2, MoreHorizontal, Plus, Info, Edit, Trash2, X } from 'lucide-react';
+import { Image, Video, Send, Heart, MessageCircle, Share2, MoreHorizontal, Plus, Info, Edit, Trash2, X, Building2, BadgeCheck } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Post, User, Pod } from '@/types';
 import BottomNav from '@/components/layout/BottomNav';
@@ -266,31 +266,33 @@ const Home = () => {
         <div className="flex gap-2 overflow-x-auto pb-4 scrollbar-hide">
           <Badge
             variant={selectedPod === 'all' ? 'default' : 'outline'}
-            className="cursor-pointer whitespace-nowrap"
+            className="cursor-pointer whitespace-nowrap rounded-lg px-4 py-2"
             onClick={() => setSelectedPod('all')}
           >
             All Pods
           </Badge>
           {joinedPods.map((pod) => (
-            <div key={pod.id} className="flex items-center gap-1">
-              <Badge
-                variant={selectedPod === pod.id ? 'default' : 'outline'}
-                className="cursor-pointer whitespace-nowrap"
-                onClick={() => setSelectedPod(pod.id)}
-              >
-                {pod.name}
-              </Badge>
+            <Badge
+              key={pod.id}
+              variant={selectedPod === pod.id ? 'default' : 'outline'}
+              className="cursor-pointer whitespace-nowrap rounded-lg px-4 py-2 flex items-center gap-2"
+              onClick={() => setSelectedPod(pod.id)}
+            >
+              <span>{pod.name}</span>
               <button
-                onClick={() => setSelectedPodForDetails(pod)}
-                className="p-1 rounded-full hover:bg-muted transition-colors"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setSelectedPodForDetails(pod);
+                }}
+                className="hover:opacity-70 transition-opacity"
               >
-                <Info className="w-3.5 h-3.5 text-muted-foreground hover:text-foreground" />
+                <Info className="w-3.5 h-3.5" />
               </button>
-            </div>
+            </Badge>
           ))}
           <Badge
             variant="outline"
-            className="cursor-pointer whitespace-nowrap text-primary border-primary hover:bg-primary/10"
+            className="cursor-pointer whitespace-nowrap text-primary border-primary hover:bg-primary/10 rounded-lg px-4 py-2"
             onClick={() => navigate('/discover')}
           >
             <Plus className="w-3 h-3 mr-1" />

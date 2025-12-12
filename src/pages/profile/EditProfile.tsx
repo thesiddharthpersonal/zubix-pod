@@ -112,7 +112,6 @@ const EditProfile = () => {
     try {
       await usersApi.updateProfile(user.id, {
         fullName: formData.fullName,
-        username: formData.username,
         professionCategory: formData.professionCategory,
         organisationName: formData.organisationName,
         brandName: formData.brandName,
@@ -203,9 +202,11 @@ const EditProfile = () => {
                 <Input
                   id="username"
                   value={formData.username}
-                  onChange={(e) => setFormData({ ...formData, username: e.target.value })}
                   placeholder="@username"
+                  disabled
+                  className="bg-muted cursor-not-allowed"
                 />
+                <p className="text-xs text-muted-foreground">Username cannot be changed</p>
               </div>
 
               <div className="space-y-2">

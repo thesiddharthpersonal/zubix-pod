@@ -24,7 +24,10 @@ const Notifications = () => {
   const fetchNotifications = async () => {
     try {
       setLoading(true);
+      console.log('Fetching notifications for user:', user?.id, user?.username);
       const data = await notificationsApi.getUserNotifications(user!.id);
+      console.log('Notifications received:', data);
+      console.log('Number of notifications:', data.length);
       setNotifications(data);
     } catch (error) {
       console.error('Error fetching notifications:', error);

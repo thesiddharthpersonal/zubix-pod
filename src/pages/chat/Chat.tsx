@@ -358,53 +358,61 @@ const Chat = () => {
             <>
               {messages.map((msg) => {
                 const isOwn = msg.senderId === user?.id;
+                const messageDate = new Date(msg.createdAt);
                 return (
                   <div key={msg.id} className={`flex ${isOwn ? 'justify-end' : 'justify-start'} group`}>
-                    <div className={`max-w-[75%] rounded-2xl px-4 py-2 ${isOwn ? 'bg-primary text-primary-foreground rounded-br-md' : 'bg-secondary text-secondary-foreground rounded-bl-md'}`}>
-                      {msg.replyTo && (
-                        <div className={`mb-2 pl-2 border-l-2 ${isOwn ? 'border-primary-foreground/30' : 'border-secondary-foreground/30'} text-xs opacity-70`}>
-                          <p className="font-medium">{msg.replyTo.sender.fullName}</p>
-                          <MentionText 
-                            content={msg.replyTo.content} 
-                            onMentionClick={(username) => {
-                              // Find user and show profile
-                              usersApi.getUserByUsername(username).then(user => {
-                                if (user) setSelectedUserForProfile(user);
-                              }).catch(() => toast.error('User not found'));
-                            }}
-                            className="truncate block"
-                          />
-                        </div>
-                      )}
-                      <MentionText 
-                        content={msg.content} 
-                        onMentionClick={async (username) => {
-                          console.log('Mention clicked:', username);
-                          console.log('API Base URL:', import.meta.env.VITE_API_BASE_URL);
-                          console.log('Auth token exists:', !!localStorage.getItem('zubix_auth_token'));
-                          try {
-                            const user = await usersApi.getUserByUsername(username);
-                            console.log('User found:', user);
-                            console.log('Setting selectedUserForProfile to:', user);
-                            setSelectedUserForProfile(user);
-                            console.log('User profile dialog should open now');
-                          } catch (error: any) {
-                            console.error('Error fetching user:', error);
-                            console.error('Error message:', error.message);
-                            console.error('Error response:', error.response?.data);
-                            toast.error(error.message || 'User not found');
-                          }
-                        }}
-                        className="text-sm"
-                      />
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className={`h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity mt-1 ${isOwn ? 'text-primary-foreground hover:bg-primary-foreground/20' : 'text-secondary-foreground hover:bg-secondary-foreground/20'}`}
-                        onClick={() => setReplyingTo(msg)}
-                      >
-                        <Reply className="w-3 h-3" />
-                      </Button>
+                    <div className={`max-w-[75%]`}>
+                      <div className={`rounded-2xl px-4 py-2 ${isOwn ? 'bg-primary text-primary-foreground rounded-br-md' : 'bg-secondary text-secondary-foreground rounded-bl-md'}`}>
+                        {msg.replyTo && (
+                          <div className={`mb-2 pl-2 border-l-2 ${isOwn ? 'border-primary-foreground/30' : 'border-secondary-foreground/30'} text-xs opacity-70`}>
+                            <p className="font-medium">{msg.replyTo.sender.fullName}</p>
+                            <MentionText 
+                              content={msg.replyTo.content} 
+                              onMentionClick={(username) => {
+                                // Find user and show profile
+                                usersApi.getUserByUsername(username).then(user => {
+                                  if (user) setSelectedUserForProfile(user);
+                                }).catch(() => toast.error('User not found'));
+                              }}
+                              className="truncate block"
+                            />
+                          </div>
+                        )}
+                        <MentionText 
+                          content={msg.content} 
+                          onMentionClick={async (username) => {
+                            console.log('Mention clicked:', username);
+                            console.log('API Base URL:', import.meta.env.VITE_API_BASE_URL);
+                            console.log('Auth token exists:', !!localStorage.getItem('zubix_auth_token'));
+                            try {
+                              const user = await usersApi.getUserByUsername(username);
+                              console.log('User found:', user);
+                              console.log('Setting selectedUserForProfile to:', user);
+                              setSelectedUserForProfile(user);
+                              console.log('User profile dialog should open now');
+                            } catch (error: any) {
+                              console.error('Error fetching user:', error);
+                              console.error('Error message:', error.message);
+                              console.error('Error response:', error.response?.data);
+                              toast.error(error.message || 'User not found');
+                            }
+                          }}
+                          className="text-sm"
+                        />
+                      </div>
+                      <div className={`flex items-center gap-2 mt-1 ${isOwn ? 'justify-end' : 'justify-start'}`}>
+                        <p className="text-xs text-muted-foreground">
+                          {messageDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </p>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className={`h-5 w-5 opacity-0 group-hover:opacity-100 transition-opacity ${isOwn ? 'text-primary-foreground hover:bg-primary/20' : 'text-secondary-foreground hover:bg-secondary/20'}`}
+                          onClick={() => setReplyingTo(msg)}
+                        >
+                          <Reply className="w-3 h-3" />
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 );

@@ -343,41 +343,42 @@ const EditProfile = () => {
             </CardContent>
           </Card>
 
-          {/* Professional Category */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Professional Information</CardTitle>
-              <CardDescription>Tell us about your profession</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="professionCategory">Profession Category</Label>
-                <Select value={formData.professionCategory} onValueChange={(value) => setFormData({ ...formData, professionCategory: value })}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select category" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Startup Founder/Co-founder">Startup Founder/Co-founder</SelectItem>
-                    <SelectItem value="Working Professional">Working Professional</SelectItem>
-                    <SelectItem value="Student">Student</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+          {/* Professional Category - Only for Regular Users (not Pod Owners) */}
+          {(user?.role === 'USER' || user?.role === 'user') && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Professional Information</CardTitle>
+                <CardDescription>Tell us about your profession</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="professionCategory">Profession Category</Label>
+                  <Select value={formData.professionCategory} onValueChange={(value) => setFormData({ ...formData, professionCategory: value })}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Startup Founder/Co-founder">Startup Founder/Co-founder</SelectItem>
+                      <SelectItem value="Working Professional">Working Professional</SelectItem>
+                      <SelectItem value="Student">Student</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="designation">Designation</Label>
-                <Input
-                  id="designation"
-                  value={formData.designation}
-                  onChange={(e) => setFormData({ ...formData, designation: e.target.value })}
-                  placeholder="Your designation"
-                />
-              </div>
+                <div className="space-y-2">
+                  <Label htmlFor="designation">Designation</Label>
+                  <Input
+                    id="designation"
+                    value={formData.designation}
+                    onChange={(e) => setFormData({ ...formData, designation: e.target.value })}
+                    placeholder="Your designation"
+                  />
+                </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="operatingCity">Location</Label>
-                <Input
-                  id="operatingCity"
+                <div className="space-y-2">
+                  <Label htmlFor="operatingCity">Location</Label>
+                  <Input
+                    id="operatingCity"
                   value={formData.operatingCity}
                   onChange={(e) => setFormData({ ...formData, operatingCity: e.target.value })}
                   placeholder="City, Country"
@@ -385,9 +386,10 @@ const EditProfile = () => {
               </div>
             </CardContent>
           </Card>
+          )}
 
-          {/* Startup/Organization Details */}
-          {(formData.professionCategory === 'Startup Founder/Co-founder' || formData.professionCategory === 'Working Professional') && (
+          {/* Startup/Organization Details - Only for Regular Users */}
+          {(user?.role === 'USER' || user?.role === 'user') && (formData.professionCategory === 'Startup Founder/Co-founder' || formData.professionCategory === 'Working Professional') && (
             <Card>
               <CardHeader>
                 <CardTitle>
@@ -496,8 +498,8 @@ const EditProfile = () => {
             </Card>
           )}
 
-          {/* Work Experience */}
-          {(formData.professionCategory === 'Startup Founder/Co-founder' || formData.professionCategory === 'Working Professional') && (
+          {/* Work Experience - Only for Regular Users */}
+          {(user?.role === 'USER' || user?.role === 'user') && (formData.professionCategory === 'Startup Founder/Co-founder' || formData.professionCategory === 'Working Professional') && (
             <Card>
               <CardHeader>
                 <CardTitle>Work Experience</CardTitle>
@@ -528,8 +530,8 @@ const EditProfile = () => {
             </Card>
           )}
 
-          {/* Education Details */}
-          {formData.professionCategory === 'Student' && (
+          {/* Education Details - Only for Regular Users */}
+          {(user?.role === 'USER' || user?.role === 'user') && formData.professionCategory === 'Student' && (
             <Card>
               <CardHeader>
                 <CardTitle>Education Details</CardTitle>

@@ -79,7 +79,7 @@ export const messageRequestApi = {
   // Get count of pending requests for badge display
   getPendingCount: async (userId: string): Promise<number> => {
     try {
-      const response = await apiClient.get<{ count: number }>('/api/message-requests/pending-count');
+      const response = await apiClient.get<{ count: number }>('/api/message-requests/pending/count');
       return response.data.count;
     } catch (error) {
       throw new Error(handleApiError(error));

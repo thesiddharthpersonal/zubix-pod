@@ -156,6 +156,7 @@ export interface Room {
   };
   isMember?: boolean;
   joinRequestStatus?: 'PENDING' | 'ACCEPTED' | 'REJECTED' | null;
+  unreadCount?: number;
   _count?: {
     messages: number;
     members?: number;

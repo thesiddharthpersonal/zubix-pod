@@ -389,6 +389,11 @@ const RoomCard = ({ room, podName, isPodOwner, onClick }: { room: Room; podName?
                   {room._count.messages}
                 </span>
               )}
+              {room.unreadCount !== undefined && room.unreadCount > 0 && isMemberOrOwner && (
+                <Badge className="bg-primary text-primary-foreground text-xs">
+                  {room.unreadCount} unread
+                </Badge>
+              )}
             </div>
           </div>
         </div>

@@ -6,9 +6,10 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
 import { ArrowLeft, Search, Send, MailPlus, Loader2, X, Reply, Paperclip, Image as ImageIcon } from 'lucide-react';
 import { Chat as ChatType, Message, User } from '@/types';
-import { chatApi, usersApi, uploadApi } from '@/services/api';
+import { chatApi, usersApi, uploadApi, messageRequestApi } from '@/services/api';
 import { socketClient } from '@/services/socket';
 import { toast } from 'sonner';
 import MentionInput from '@/components/MentionInput';
@@ -41,6 +42,7 @@ const Chat = () => {
   const [selectedUserForProfile, setSelectedUserForProfile] = useState<User | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [pendingRequestCount, setPendingRequestCount] = useState(0);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -156,6 +158,26 @@ const Chat = () => {
 
     fetchChats();
   }, [user?.id, urlChatId]);
+
+  // Fetch pending message request count
+  useEffect(() => {
+    const fetchPendingCount = async () => {
+      if (!user?.id) return;
+
+      try {
+        const count = await messageRequestApi.getPendingCount(user.id);
+        setPendingRequestCount(count);
+      } catch (error) {
+        console.error('Failed to fetch pending count:', error);
+      }
+    };
+
+    fetchPendingCount();
+    
+    // Refresh count every 30 seconds
+    const interval = setInterval(fetchPendingCount, 30000);
+    return () => clearInterval(interval);
+  }, [user?.id]);
 
   // Handle navigation from message request acceptance or direct chat link
   useEffect(() => {
@@ -618,6 +640,11 @@ const Chat = () => {
                 <p className="font-medium text-foreground">Message Requests</p>
                 <p className="text-sm text-muted-foreground">View pending requests</p>
               </div>
+              {pendingRequestCount > 0 && (
+                <Badge className="bg-primary text-primary-foreground rounded-full">
+                  {pendingRequestCount}
+                </Badge>
+              )}
             </div>
           </CardContent>
         </Card>

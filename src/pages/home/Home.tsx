@@ -396,6 +396,19 @@ const Home = () => {
                   onLike={() => handleLike(post.id)}
                   isLiked={post.likes?.includes(user?.id || '') || false}
                   onUserClick={(user) => setSelectedUserForProfile(user)}
+                  onMentionClick={async (username) => {
+                    console.log('Home: Mention clicked on username:', username);
+                    try {
+                      const user = await usersApi.getUserByUsername(username);
+                      console.log('Home post: User found:', user);
+                      console.log('Home: Setting selectedUserForProfile to:', user);
+                      setSelectedUserForProfile(user);
+                      console.log('Home: State updated, dialog should open');
+                    } catch (error: any) {
+                      console.error('Home post: Error fetching user:', error);
+                      toast.error('User not found');
+                    }
+                  }}
                   onShare={() => handleShare(post.id)}
                 />
               ))}
@@ -477,6 +490,7 @@ const PostCard = ({
   onLike,
   isLiked,
   onUserClick,
+  onMentionClick,
   onShare,
 }: {
   post: Post;
@@ -485,6 +499,7 @@ const PostCard = ({
   onLike: () => void;
   isLiked: boolean;
   onUserClick: (user: User) => void;
+  onMentionClick: (username: string) => void;
   onShare: () => void;
 }) => {
   const [showComments, setShowComments] = useState(false);
@@ -572,19 +587,7 @@ const PostCard = ({
             </div>
             <MentionText 
               content={post.content}
-              onMentionClick={async (username) => {
-                console.log('Home: Mention clicked on username:', username);
-                try {
-                  const user = await usersApi.getUserByUsername(username);
-                  console.log('Home post: User found:', user);
-                  console.log('Home: Setting selectedUserForProfile to:', user);
-                  setSelectedUserForProfile(user);
-                  console.log('Home: State updated, dialog should open');
-                } catch (error: any) {
-                  console.error('Home post: Error fetching user:', error);
-                  toast.error('User not found');
-                }
-              }}
+              onMentionClick={onMentionClick}
               className="mt-2 text-foreground whitespace-pre-wrap"
             />
             
@@ -661,16 +664,7 @@ const PostCard = ({
                               </div>
                               <MentionText 
                                 content={comment.content}
-                                onMentionClick={async (username) => {
-                                  try {
-                                    const user = await usersApi.getUserByUsername(username);
-                                    console.log('Home comment: User found:', user);
-                                    setSelectedUserForProfile(user);
-                                  } catch (error: any) {
-                                    console.error('Home comment: Error fetching user:', error);
-                                    toast.error('User not found');
-                                  }
-                                }}
+                                onMentionClick={onMentionClick}
                                 className="text-sm text-foreground mt-0.5"
                               />
                             </div>

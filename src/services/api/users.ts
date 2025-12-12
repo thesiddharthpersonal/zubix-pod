@@ -111,9 +111,12 @@ export const usersApi = {
 
   getUserByUsername: async (username: string): Promise<UserProfile> => {
     try {
+      console.log('Fetching user by username:', username);
       const response = await apiClient.get<{ user: UserProfile }>(`/api/users/username/${username}`);
+      console.log('User API response:', response.data);
       return response.data.user;
-    } catch (error) {
+    } catch (error: any) {
+      console.error('getUserByUsername error:', error.response?.data || error.message);
       throw new Error(handleApiError(error));
     }
   },

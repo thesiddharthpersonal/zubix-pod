@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -26,6 +26,7 @@ import {
 const Chat = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { chatId: urlChatId } = useParams<{ chatId?: string }>();
   const { user } = useAuth();
   const [chats, setChats] = useState<ChatType[]>([]);
   const [isLoadingChats, setIsLoadingChats] = useState(true);
@@ -137,6 +138,14 @@ const Chat = () => {
         setIsLoadingChats(true);
         const userChats = await chatApi.getUserChats(user.id);
         setChats(userChats);
+        
+        // If there's a chatId in URL, select that chat
+        if (urlChatId && !selectedChat) {
+          const chatFromUrl = userChats.find(c => c.id === urlChatId);
+          if (chatFromUrl) {
+            setSelectedChat(chatFromUrl);
+          }
+        }
       } catch (error) {
         console.error('Failed to fetch chats:', error);
         toast.error('Failed to load chats');
@@ -146,7 +155,7 @@ const Chat = () => {
     };
 
     fetchChats();
-  }, [user?.id]);
+  }, [user?.id, urlChatId]);
 
   // Handle navigation from message request acceptance or direct chat link
   useEffect(() => {
@@ -159,6 +168,7 @@ const Chat = () => {
         try {
           const chat = await chatApi.getChatById(chatId);
           setSelectedChat(chat);
+          navigate(`/chat/${chat.id}`, { replace: true });
           
           // Also refresh the chats list to include the new chat
           const userChats = await chatApi.getUserChats(user.id);
@@ -184,6 +194,7 @@ const Chat = () => {
           if (existingChat) {
             // Already have a chat, open it directly
             setSelectedChat(existingChat);
+            navigate(`/chat/${existingChat.id}`, { replace: true });
             setChats(userChats);
           } else {
             // No existing chat - show message request dialog
@@ -375,6 +386,7 @@ const Chat = () => {
             <Button variant="ghost" size="icon" onClick={() => {
               setSelectedChat(null);
               setSelectedUserForProfile(null);
+              navigate('/chat', { replace: true });
             }}><ArrowLeft className="w-5 h-5" /></Button>
             <Avatar 
               className="w-10 h-10 cursor-pointer" 
@@ -626,7 +638,10 @@ const Chat = () => {
             if (!other) return null;
             
             return (
-              <Card key={chat.id} className="cursor-pointer card-hover" onClick={() => setSelectedChat(chat)}>
+              <Card key={chat.id} className="cursor-pointer card-hover" onClick={() => {
+                setSelectedChat(chat);
+                navigate(`/chat/${chat.id}`, { replace: true });
+              }}>
                 <CardContent className="p-4">
                   <div className="flex items-center gap-3">
                     <Avatar className="w-12 h-12">

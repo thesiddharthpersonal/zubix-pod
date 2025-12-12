@@ -130,6 +130,7 @@ const AppRoutes = () => {
       <Route path="/jobs-internships" element={<ProtectedRoute><JobsInternships /></ProtectedRoute>} />
       <Route path="/idol-pitch-decks" element={<ProtectedRoute><IdolPitchDecks /></ProtectedRoute>} />
       <Route path="/chat" element={<ProtectedRoute><Chat /></ProtectedRoute>} />
+      <Route path="/chat/:chatId" element={<ProtectedRoute><Chat /></ProtectedRoute>} />
       <Route path="/message-requests" element={<ProtectedRoute><MessageRequests /></ProtectedRoute>} />
       <Route path="/book-call" element={<ProtectedRoute><BookCall /></ProtectedRoute>} />
       <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />

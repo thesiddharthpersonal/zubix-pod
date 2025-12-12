@@ -36,6 +36,12 @@ const Home = () => {
   const [showSendMessageDialog, setShowSendMessageDialog] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
+  // Debug: Monitor selectedUserForProfile changes
+  useEffect(() => {
+    console.log('Home: selectedUserForProfile changed to:', selectedUserForProfile);
+    console.log('Home: Dialog isOpen should be:', !!selectedUserForProfile);
+  }, [selectedUserForProfile]);
+
   // Fetch posts on mount and when pods change
   useEffect(() => {
     const fetchPosts = async () => {
@@ -567,10 +573,13 @@ const PostCard = ({
             <MentionText 
               content={post.content}
               onMentionClick={async (username) => {
+                console.log('Home: Mention clicked on username:', username);
                 try {
                   const user = await usersApi.getUserByUsername(username);
                   console.log('Home post: User found:', user);
+                  console.log('Home: Setting selectedUserForProfile to:', user);
                   setSelectedUserForProfile(user);
+                  console.log('Home: State updated, dialog should open');
                 } catch (error: any) {
                   console.error('Home post: Error fetching user:', error);
                   toast.error('User not found');

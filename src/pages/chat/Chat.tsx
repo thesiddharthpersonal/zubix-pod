@@ -379,9 +379,14 @@ const Chat = () => {
                       <MentionText 
                         content={msg.content} 
                         onMentionClick={(username) => {
+                          console.log('Mention clicked:', username);
                           usersApi.getUserByUsername(username).then(user => {
+                            console.log('User found:', user);
                             if (user) setSelectedUserForProfile(user);
-                          }).catch(() => toast.error('User not found'));
+                          }).catch((error) => {
+                            console.error('Error fetching user:', error);
+                            toast.error('User not found');
+                          });
                         }}
                         className="text-sm"
                       />

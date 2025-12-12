@@ -16,7 +16,8 @@ const MentionText: React.FC<MentionTextProps> = ({
   className = ''
 }) => {
   // Regular expressions to match mentions
-  const mentionRegex = /@\[([^\]]+)\]\((\d+)\)|@(\w+)/g;
+  // Matches: @username (alphanumeric + underscore)
+  const mentionRegex = /@(\w+)/g;
   
   const parts: React.ReactNode[] = [];
   let lastIndex = 0;
@@ -32,11 +33,8 @@ const MentionText: React.FC<MentionTextProps> = ({
       parts.push(content.substring(lastIndex, matchStart));
     }
 
-    // Determine mention type and extract data
-    const isFormattedMention = match[1] !== undefined;
-    const displayName = isFormattedMention ? match[1] : match[3];
-    const userId = isFormattedMention ? match[2] : null;
-    const username = isFormattedMention ? match[1] : match[3];
+    // Extract username (without the @)
+    const username = match[1];
 
     // Add the clickable mention
     parts.push(
@@ -45,12 +43,12 @@ const MentionText: React.FC<MentionTextProps> = ({
         onClick={(e) => {
           e.stopPropagation();
           if (onMentionClick) {
-            onMentionClick(userId || username);
+            onMentionClick(username);
           }
         }}
         className="text-primary font-medium hover:underline cursor-pointer transition-colors"
       >
-        @{displayName}
+        @{username}
       </span>
     );
 

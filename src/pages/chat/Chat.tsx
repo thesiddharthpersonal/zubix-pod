@@ -521,7 +521,39 @@ const Chat = () => {
               </Button>
             </div>
           )}
+          {selectedFile && (
+            <div className="mb-2 bg-secondary/50 rounded-lg p-2 flex items-start justify-between">
+              <div className="flex items-center gap-2">
+                <ImageIcon className="w-4 h-4 text-muted-foreground" />
+                <p className="text-sm text-foreground">{selectedFile.name}</p>
+              </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-6 w-6 shrink-0"
+                onClick={() => setSelectedFile(null)}
+              >
+                <X className="w-4 h-4" />
+              </Button>
+            </div>
+          )}
           <div className="flex gap-2 items-end">
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*,video/*"
+              onChange={handleFileSelect}
+              className="hidden"
+            />
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-10 w-10"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isUploading}
+            >
+              <Paperclip className="w-5 h-5" />
+            </Button>
             <div className="flex-1">
               <MentionInput
                 value={newMessage}
@@ -531,8 +563,8 @@ const Chat = () => {
                 className="min-h-[40px]"
               />
             </div>
-            <Button variant="hero" size="icon" onClick={handleSend} className="h-10 w-10">
-              <Send className="w-5 h-5" />
+            <Button variant="hero" size="icon" onClick={handleSend} className="h-10 w-10" disabled={isUploading}>
+              {isUploading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
             </Button>
           </div>
         </div>

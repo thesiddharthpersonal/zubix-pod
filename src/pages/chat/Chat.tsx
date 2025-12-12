@@ -6,9 +6,9 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { ArrowLeft, Search, Send, MailPlus, Loader2, X, Reply } from 'lucide-react';
+import { ArrowLeft, Search, Send, MailPlus, Loader2, X, Reply, Paperclip, Image as ImageIcon } from 'lucide-react';
 import { Chat as ChatType, Message, User } from '@/types';
-import { chatApi, usersApi } from '@/services/api';
+import { chatApi, usersApi, uploadApi } from '@/services/api';
 import { socketClient } from '@/services/socket';
 import { toast } from 'sonner';
 import MentionInput from '@/components/MentionInput';
@@ -38,8 +38,11 @@ const Chat = () => {
   const [targetUser, setTargetUser] = useState<User | null>(null);
   const [requestMessage, setRequestMessage] = useState('');
   const [selectedUserForProfile, setSelectedUserForProfile] = useState<User | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Initialize socket connection
   useEffect(() => {
@@ -230,18 +233,69 @@ const Chat = () => {
     setTargetUser(null);
   };
 
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Check file size (max 10MB)
+      if (file.size > 10 * 1024 * 1024) {
+        toast.error('File size must be less than 10MB');
+        return;
+      }
+      // Check file type
+      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp', 'video/mp4', 'video/webm'];
+      if (!allowedTypes.includes(file.type)) {
+        toast.error('Only images (JPEG, PNG, GIF, WebP) and videos (MP4, WebM) are allowed');
+        return;
+      }
+      setSelectedFile(file);
+    }
+  };
+
   const handleSend = async () => {
-    if (!newMessage.trim() || !selectedChat?.id) return;
+    if ((!newMessage.trim() && !selectedFile) || !selectedChat?.id) return;
 
     const content = newMessage.trim();
     const replyId = replyingTo?.id;
+    const fileToUpload = selectedFile;
+    
     setNewMessage('');
     setReplyingTo(null);
+    setSelectedFile(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+
+    // Upload file if present
+    let mediaUrl: string | undefined;
+    let mediaType: string | undefined;
+    
+    if (fileToUpload) {
+      try {
+        setIsUploading(true);
+        mediaUrl = await uploadApi.uploadFile(fileToUpload, 'chat-media');
+        mediaType = fileToUpload.type;
+        toast.success('File uploaded successfully');
+      } catch (error) {
+        console.error('Failed to upload file:', error);
+        toast.error('Failed to upload file');
+        setIsUploading(false);
+        setNewMessage(content);
+        setSelectedFile(fileToUpload);
+        if (replyId && replyingTo) {
+          setReplyingTo(replyingTo);
+        }
+        return;
+      } finally {
+        setIsUploading(false);
+      }
+    }
 
     // Optimistic update
     const optimisticMessage: Message = {
       id: `temp-${Date.now()}`,
-      content: content,
+      content: content || (mediaUrl ? 'Sent a file' : ''),
+      mediaUrl,
+      mediaType,
       chatId: selectedChat.id,
       senderId: user!.id,
       sender: user!,
@@ -281,7 +335,7 @@ const Chat = () => {
 
       console.log('Sending DM via socket');
       // Send via socket for real-time delivery
-      socketClient.sendDirectMessage(selectedChat.id, content, replyId);
+      socketClient.sendDirectMessage(selectedChat.id, content || '', replyId, mediaUrl, mediaType);
       
       // Set a timeout to remove optimistic message if real one doesn't arrive
       setTimeout(() => {
@@ -376,6 +430,24 @@ const Chat = () => {
                               }}
                               className="truncate block"
                             />
+                          </div>
+                        )}
+                        {msg.mediaUrl && (
+                          <div className="mb-2">
+                            {msg.mediaType?.startsWith('image/') ? (
+                              <img 
+                                src={msg.mediaUrl} 
+                                alt="Shared image" 
+                                className="max-w-full max-h-80 rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
+                                onClick={() => window.open(msg.mediaUrl, '_blank')}
+                              />
+                            ) : msg.mediaType?.startsWith('video/') ? (
+                              <video 
+                                src={msg.mediaUrl} 
+                                controls 
+                                className="max-w-full max-h-80 rounded-lg"
+                              />
+                            ) : null}
                           </div>
                         )}
                         <MentionText 

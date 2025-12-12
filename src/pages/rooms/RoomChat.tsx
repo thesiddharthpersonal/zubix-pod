@@ -22,10 +22,10 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { ArrowLeft, Send, MoreVertical, Loader2, Pencil, Trash2, Reply, X, Users } from 'lucide-react';
+import { ArrowLeft, Send, MoreVertical, Loader2, Pencil, Trash2, Reply, X, Users, Paperclip } from 'lucide-react';
 import { Message, Room } from '@/types';
 import { roomsApi } from '@/services/api/rooms';
-import { usersApi } from '@/services/api';
+import { usersApi, uploadApi } from '@/services/api';
 import socket from '@/services/socket';
 import { useToast } from '@/hooks/use-toast';
 import EditRoomDialog from '@/components/EditRoomDialog';
@@ -48,8 +48,11 @@ const RoomChat = () => {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [selectedUserForProfile, setSelectedUserForProfile] = useState<any>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!roomId) return;
@@ -162,19 +165,71 @@ const RoomChat = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Check file size (max 10MB)
+      if (file.size > 10 * 1024 * 1024) {
+        toast({ title: 'Error', description: 'File size must be less than 10MB', variant: 'destructive' });
+        return;
+      }
+      // Check file type
+      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp', 'video/mp4', 'video/webm'];
+      if (!allowedTypes.includes(file.type)) {
+        toast({ title: 'Error', description: 'Only images (JPEG, PNG, GIF, WebP) and videos (MP4, WebM) are allowed', variant: 'destructive' });
+        return;
+      }
+      setSelectedFile(file);
+    }
+  };
+
   const handleSend = async () => {
-    if (!newMessage.trim() || !roomId || !user) return;
+    if ((!newMessage.trim() && !selectedFile) || !roomId || !user) return;
 
     const tempMessage = newMessage;
     const replyId = replyingTo?.id;
+    const fileToUpload = selectedFile;
+    
     setNewMessage('');
     setReplyingTo(null);
+    setSelectedFile(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
     setSending(true);
+
+    // Upload file if present
+    let mediaUrl: string | undefined;
+    let mediaType: string | undefined;
+    
+    if (fileToUpload) {
+      try {
+        setIsUploading(true);
+        mediaUrl = await uploadApi.uploadFile(fileToUpload, 'room-media');
+        mediaType = fileToUpload.type;
+        toast({ title: 'Success', description: 'File uploaded successfully' });
+      } catch (error) {
+        console.error('Failed to upload file:', error);
+        toast({ title: 'Error', description: 'Failed to upload file', variant: 'destructive' });
+        setIsUploading(false);
+        setSending(false);
+        setNewMessage(tempMessage);
+        setSelectedFile(fileToUpload);
+        if (replyId && replyingTo) {
+          setReplyingTo(replyingTo);
+        }
+        return;
+      } finally {
+        setIsUploading(false);
+      }
+    }
 
     // Optimistic update - add message immediately
     const optimisticMessage: Message = {
       id: `temp-${Date.now()}`,
-      content: tempMessage,
+      content: tempMessage || (mediaUrl ? 'Sent a file' : ''),
+      mediaUrl,
+      mediaType,
       roomId: roomId,
       senderId: user.id,
       sender: user,
@@ -214,7 +269,7 @@ const RoomChat = () => {
 
       console.log('Sending message via socket');
       // Send message via Socket.IO
-      socket.sendRoomMessage(roomId, tempMessage, replyId);
+      socket.sendRoomMessage(roomId, tempMessage || 'Sent a file', replyId, mediaUrl, mediaType);
       
       // Set a timeout to remove optimistic message if real one doesn't arrive
       setTimeout(() => {
@@ -394,6 +449,24 @@ const RoomChat = () => {
                         />
                       </div>
                     )}
+                    {message.mediaUrl && (
+                      <div className="mb-2">
+                        {message.mediaType?.startsWith('image/') ? (
+                          <img 
+                            src={message.mediaUrl} 
+                            alt="Shared image" 
+                            className="max-w-full max-h-80 rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
+                            onClick={() => window.open(message.mediaUrl, '_blank')}
+                          />
+                        ) : message.mediaType?.startsWith('video/') ? (
+                          <video 
+                            src={message.mediaUrl} 
+                            controls 
+                            className="max-w-full max-h-80 rounded-lg"
+                          />
+                        ) : null}
+                      </div>
+                    )}
                     <MentionText 
                       content={message.content}
                       onMentionClick={async (username) => {
@@ -464,7 +537,60 @@ const RoomChat = () => {
             </Button>
           </div>
         )}
+        
+        {/* File Preview */}
+        {selectedFile && (
+          <div className="flex items-center gap-2 p-2 bg-muted rounded-lg max-w-2xl mx-auto mb-2">
+            {selectedFile.type.startsWith('image/') ? (
+              <img 
+                src={URL.createObjectURL(selectedFile)} 
+                alt="Preview" 
+                className="w-16 h-16 object-cover rounded"
+              />
+            ) : (
+              <div className="w-16 h-16 bg-primary/10 rounded flex items-center justify-center">
+                <Paperclip className="w-6 h-6 text-primary" />
+              </div>
+            )}
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium truncate">{selectedFile.name}</p>
+              <p className="text-xs text-muted-foreground">
+                {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
+              </p>
+            </div>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 shrink-0"
+              onClick={() => {
+                setSelectedFile(null);
+                if (fileInputRef.current) {
+                  fileInputRef.current.value = '';
+                }
+              }}
+            >
+              <X className="w-4 h-4" />
+            </Button>
+          </div>
+        )}
+        
         <div className="flex gap-2 max-w-2xl mx-auto items-end">
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*,video/*"
+            onChange={handleFileSelect}
+            className="hidden"
+          />
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-10 w-10 shrink-0"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={isUploading || sending}
+          >
+            <Paperclip className="w-5 h-5" />
+          </Button>
           <div className="flex-1">
             <MentionInput
               ref={inputRef}
@@ -480,9 +606,10 @@ const RoomChat = () => {
             variant="hero" 
             size="icon" 
             onClick={handleSend} 
-            disabled={!newMessage.trim() || sending}
+            disabled={isUploading || (!newMessage.trim() && !selectedFile) || sending}
             className="h-10 w-10"
           >
+            {isUploading ? <Loader2 className="w-5 h-5 animate-spin" /> :
             {sending ? (
               <Loader2 className="w-5 h-5 animate-spin" />
             ) : (

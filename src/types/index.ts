@@ -180,6 +180,8 @@ export interface Message {
   senderId: string;
   sender: User;
   content: string;
+  mediaUrl?: string;
+  mediaType?: string;
   replyToId?: string;
   replyTo?: {
     id: string;

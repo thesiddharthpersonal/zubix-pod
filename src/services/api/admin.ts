@@ -1,4 +1,46 @@
-import apiClient, { handleApiError } from './config';
+import axios from 'axios';
+import { API_BASE_URL, handleApiError } from './config';
+
+// Admin token management (separate from user token)
+const getAdminToken = (): string | null => {
+  return localStorage.getItem('adminToken');
+};
+
+// Create separate axios instance for admin API
+const adminApiClient = axios.create({
+  baseURL: API_BASE_URL,
+  timeout: 30000,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
+
+// Request interceptor - Add admin token to requests
+adminApiClient.interceptors.request.use(
+  (config) => {
+    const token = getAdminToken();
+    if (token && config.headers) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
+// Response interceptor for admin-specific error handling
+adminApiClient.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401 || error.response?.status === 403) {
+      // Unauthorized/Forbidden - clear admin token and redirect to admin login
+      localStorage.removeItem('adminToken');
+      window.location.href = '/admin/login';
+    }
+    return Promise.reject(error);
+  }
+);
 
 export interface AdminStats {
   users: { total: number; recent: number };
@@ -35,7 +77,7 @@ export const adminApi = {
   // Dashboard Stats
   getStats: async (): Promise<AdminStats> => {
     try {
-      const response = await apiClient.get<{ stats: AdminStats }>('/api/admin/stats');
+      const response = await adminApiClient.get<{ stats: AdminStats }>('/api/admin/stats');
       return response.data.stats;
     } catch (error) {
       throw new Error(handleApiError(error));
@@ -45,7 +87,7 @@ export const adminApi = {
   // User Management
   getUsers: async (params?: { page?: number; limit?: number; search?: string; role?: string }) => {
     try {
-      const response = await apiClient.get('/api/admin/users', { params });
+      const response = await adminApiClient.get('/api/admin/users', { params });
       return response.data;
     } catch (error) {
       throw new Error(handleApiError(error));
@@ -54,7 +96,7 @@ export const adminApi = {
 
   updateUserRole: async (userId: string, role: string) => {
     try {
-      const response = await apiClient.patch(`/api/admin/users/${userId}/role`, { role });
+      const response = await adminApiClient.patch(`/api/admin/users/${userId}/role`, { role });
       return response.data;
     } catch (error) {
       throw new Error(handleApiError(error));
@@ -63,7 +105,7 @@ export const adminApi = {
 
   deleteUser: async (userId: string) => {
     try {
-      const response = await apiClient.delete(`/api/admin/users/${userId}`);
+      const response = await adminApiClient.delete(`/api/admin/users/${userId}`);
       return response.data;
     } catch (error) {
       throw new Error(handleApiError(error));
@@ -73,7 +115,7 @@ export const adminApi = {
   // Pod Management
   getPods: async (params?: { page?: number; limit?: number; search?: string }) => {
     try {
-      const response = await apiClient.get('/api/admin/pods', { params });
+      const response = await adminApiClient.get('/api/admin/pods', { params });
       return response.data;
     } catch (error) {
       throw new Error(handleApiError(error));
@@ -82,7 +124,7 @@ export const adminApi = {
 
   deletePod: async (podId: string) => {
     try {
-      const response = await apiClient.delete(`/api/admin/pods/${podId}`);
+      const response = await adminApiClient.delete(`/api/admin/pods/${podId}`);
       return response.data;
     } catch (error) {
       throw new Error(handleApiError(error));
@@ -92,7 +134,7 @@ export const adminApi = {
   // Post Management
   getPosts: async (params?: { page?: number; limit?: number; search?: string }) => {
     try {
-      const response = await apiClient.get('/api/admin/posts', { params });
+      const response = await adminApiClient.get('/api/admin/posts', { params });
       return response.data;
     } catch (error) {
       throw new Error(handleApiError(error));
@@ -101,7 +143,7 @@ export const adminApi = {
 
   deletePost: async (postId: string) => {
     try {
-      const response = await apiClient.delete(`/api/admin/posts/${postId}`);
+      const response = await adminApiClient.delete(`/api/admin/posts/${postId}`);
       return response.data;
     } catch (error) {
       throw new Error(handleApiError(error));
@@ -111,7 +153,7 @@ export const adminApi = {
   // Event Management
   getEvents: async (params?: { page?: number; limit?: number; search?: string }) => {
     try {
-      const response = await apiClient.get('/api/admin/events', { params });
+      const response = await adminApiClient.get('/api/admin/events', { params });
       return response.data;
     } catch (error) {
       throw new Error(handleApiError(error));
@@ -120,7 +162,7 @@ export const adminApi = {
 
   deleteEvent: async (eventId: string) => {
     try {
-      const response = await apiClient.delete(`/api/admin/events/${eventId}`);
+      const response = await adminApiClient.delete(`/api/admin/events/${eventId}`);
       return response.data;
     } catch (error) {
       throw new Error(handleApiError(error));
@@ -130,7 +172,7 @@ export const adminApi = {
   // Room Management
   getRooms: async (params?: { page?: number; limit?: number; search?: string }) => {
     try {
-      const response = await apiClient.get('/api/admin/rooms', { params });
+      const response = await adminApiClient.get('/api/admin/rooms', { params });
       return response.data;
     } catch (error) {
       throw new Error(handleApiError(error));
@@ -139,7 +181,7 @@ export const adminApi = {
 
   deleteRoom: async (roomId: string) => {
     try {
-      const response = await apiClient.delete(`/api/admin/rooms/${roomId}`);
+      const response = await adminApiClient.delete(`/api/admin/rooms/${roomId}`);
       return response.data;
     } catch (error) {
       throw new Error(handleApiError(error));

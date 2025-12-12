@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAdminAuth } from '@/contexts/AdminAuthContext';
 import { useEffect, useState } from 'react';
 import { adminApi } from '@/services/api/admin';
 import { Card, CardContent } from '@/components/ui/card';
@@ -12,7 +12,7 @@ import { useToast } from '@/hooks/use-toast';
 
 const AdminPods = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { admin } = useAdminAuth();
   const { toast } = useToast();
   const [pods, setPods] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -23,12 +23,12 @@ const AdminPods = () => {
   const limit = 20;
 
   useEffect(() => {
-    if (!user || (user.role !== 'admin' && user.role !== 'ADMIN')) {
-      navigate('/');
+    if (!admin) {
+      navigate('/admin/login');
       return;
     }
     fetchPods();
-  }, [user, page, search]);
+  }, [admin, page, search]);
 
   const fetchPods = async () => {
     try {

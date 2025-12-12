@@ -4,6 +4,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
+import { AdminAuthProvider } from "@/contexts/AdminAuthContext";
+import AdminProtectedRoute from "@/components/AdminProtectedRoute";
 
 // Pages
 import Landing from "@/pages/Landing";
@@ -38,6 +40,7 @@ import IdolPitchDecks from "@/pages/IdolPitchDecks";
 import Admin from "@/pages/admin/Admin";
 import AdminUsers from "@/pages/admin/AdminUsers";
 import AdminPods from "@/pages/admin/AdminPods";
+import AdminLogin from "@/pages/admin/AdminLogin";
 import NotFound from "@/pages/NotFound";
 import Install from "@/pages/Install";
 
@@ -120,9 +123,10 @@ const AppRoutes = () => {
       <Route path="/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
 
       {/* Admin Routes */}
-      <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
-      <Route path="/admin/users" element={<ProtectedRoute><AdminUsers /></ProtectedRoute>} />
-      <Route path="/admin/pods" element={<ProtectedRoute><AdminPods /></ProtectedRoute>} />
+      <Route path="/admin/login" element={<AdminLogin />} />
+      <Route path="/admin" element={<AdminProtectedRoute><Admin /></AdminProtectedRoute>} />
+      <Route path="/admin/users" element={<AdminProtectedRoute><AdminUsers /></AdminProtectedRoute>} />
+      <Route path="/admin/pods" element={<AdminProtectedRoute><AdminPods /></AdminProtectedRoute>} />
 
       {/* Install Page */}
       <Route path="/install" element={<Install />} />
@@ -136,13 +140,15 @@ const AppRoutes = () => {
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <AppRoutes />
-        </BrowserRouter>
-      </TooltipProvider>
+      <AdminAuthProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <AppRoutes />
+          </BrowserRouter>
+        </TooltipProvider>
+      </AdminAuthProvider>
     </AuthProvider>
   </QueryClientProvider>
 );

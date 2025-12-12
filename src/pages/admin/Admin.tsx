@@ -1,29 +1,27 @@
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAdminAuth } from '@/contexts/AdminAuthContext';
 import { useEffect, useState } from 'react';
 import { adminApi, AdminStats } from '@/services/api/admin';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Users, FolderKanban, FileText, Calendar, MessageSquare, TrendingUp, ArrowLeft } from 'lucide-react';
+import { Users, FolderKanban, FileText, Calendar, MessageSquare, TrendingUp, ArrowLeft, LogOut } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 const Admin = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { admin, logout } = useAdminAuth();
   const { toast } = useToast();
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check if user is admin
-    if (!user || (user.role !== 'admin' && user.role !== 'ADMIN')) {
-      toast({ title: 'Access Denied', description: 'Admin access required', variant: 'destructive' });
-      navigate('/');
+    if (!admin) {
+      navigate('/admin/login');
       return;
     }
 
     fetchStats();
-  }, [user, navigate]);
+  }, [admin, navigate]);
 
   const fetchStats = async () => {
     try {
@@ -64,18 +62,19 @@ const Admin = () => {
       <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border">
         <div className="flex items-center justify-between p-4">
           <div className="flex items-center gap-3">
-            <Button variant="ghost" size="icon" onClick={() => navigate('/')}>
-              <ArrowLeft className="w-5 h-5" />
-            </Button>
             <h1 className="text-xl font-bold text-foreground">Admin Dashboard</h1>
           </div>
+          <Button variant="outline" size="sm" onClick={logout}>
+            <LogOut className="w-4 h-4 mr-2" />
+            Logout
+          </Button>
         </div>
       </header>
 
       <main className="container mx-auto px-4 py-6 max-w-7xl">
         {/* Welcome Section */}
         <div className="mb-6">
-          <h2 className="text-2xl font-bold mb-2">Welcome, {user?.fullName}</h2>
+          <h2 className="text-2xl font-bold mb-2">Welcome, {admin?.name || 'Admin'}</h2>
           <p className="text-muted-foreground">Manage your platform from here</p>
         </div>
 

@@ -19,7 +19,6 @@ import { getManagedPods } from '@/lib/utils';
 
 // Feature list for More section
 const FEATURES = [
-  { id: 'admin-panel', name: 'Admin Panel', description: 'Manage users, pods, posts, and more', icon: Shield, available: true, forAdmin: true, path: '/admin' },
   { id: 'book-call', name: 'Book a Call', description: 'Book a call with pod owners or co-owners', icon: PhoneCall, available: true, forAll: true, path: '/book-call' },
   { id: 'startup-ideas', name: 'Startup Ideas', description: 'Share and discover innovative startup ideas', icon: Lightbulb, available: true, forAll: true, path: '/startup-ideas' },
   { id: 'jobs-internships', name: 'Jobs & Internships', description: 'Post availability and discover opportunities', icon: Briefcase, available: true, forAll: true, path: '/jobs-internships' },

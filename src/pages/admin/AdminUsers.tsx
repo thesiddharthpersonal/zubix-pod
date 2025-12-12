@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAdminAuth } from '@/contexts/AdminAuthContext';
 import { useEffect, useState } from 'react';
 import { adminApi, AdminUser } from '@/services/api/admin';
 import { Card, CardContent } from '@/components/ui/card';
@@ -14,7 +14,7 @@ import { useToast } from '@/hooks/use-toast';
 
 const AdminUsers = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { admin } = useAdminAuth();
   const { toast } = useToast();
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [loading, setLoading] = useState(true);
@@ -26,12 +26,12 @@ const AdminUsers = () => {
   const limit = 20;
 
   useEffect(() => {
-    if (!user || (user.role !== 'admin' && user.role !== 'ADMIN')) {
-      navigate('/');
+    if (!admin) {
+      navigate('/admin/login');
       return;
     }
     fetchUsers();
-  }, [user, page, search, roleFilter]);
+  }, [admin, page, search, roleFilter]);
 
   const fetchUsers = async () => {
     try {
@@ -164,7 +164,6 @@ const AdminUsers = () => {
                           variant="ghost"
                           size="icon"
                           onClick={() => setDeleteUserId(u.id)}
-                          disabled={u.id === user?.id}
                         >
                           <Trash2 className="w-4 h-4 text-destructive" />
                         </Button>

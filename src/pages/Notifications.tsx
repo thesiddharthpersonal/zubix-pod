@@ -72,11 +72,11 @@ const Notifications = () => {
 
   const getIcon = (type: Notification['type']) => {
     switch (type) {
-      case 'pod_join': return <Users className="w-5 h-5" />;
-      case 'post_like': return <Heart className="w-5 h-5" />;
-      case 'comment': case 'message': return <MessageCircle className="w-5 h-5" />;
-      case 'event': case 'pitch': return <Calendar className="w-5 h-5" />;
-      default: return <Bell className="w-5 h-5" />;
+      case 'pod_join': return <Users className="w-4 h-4" />;
+      case 'post_like': return <Heart className="w-4 h-4" />;
+      case 'comment': case 'message': return <MessageCircle className="w-4 h-4" />;
+      case 'event': case 'pitch': return <Calendar className="w-4 h-4" />;
+      default: return <Bell className="w-4 h-4" />;
     }
   };
 
@@ -138,35 +138,35 @@ const Notifications = () => {
         ) : (
           notifications.map((notif) => (
           <Card key={notif.id} className={`${!notif.isRead ? 'border-primary/30 bg-primary/5' : ''}`}>
-            <CardContent className="p-4 flex items-start gap-3">
-              <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${!notif.isRead ? 'bg-primary/10 text-primary' : 'bg-secondary text-muted-foreground'}`}>
+            <CardContent className="p-3 flex items-start gap-3">
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${!notif.isRead ? 'bg-primary/10 text-primary' : 'bg-secondary text-muted-foreground'}`}>
                 {getIcon(notif.type)}
               </div>
               <div className="flex-1 min-w-0">
-                <p className={`font-medium ${!notif.isRead ? 'text-foreground' : 'text-muted-foreground'}`}>
+                <p className={`text-sm font-medium ${!notif.isRead ? 'text-foreground' : 'text-muted-foreground'}`}>
                   {notif.title}
                 </p>
-                <p className="text-sm text-muted-foreground">{notif.message}</p>
+                <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{notif.message}</p>
                 <p className="text-xs text-muted-foreground mt-1">{formatTime(notif.createdAt)}</p>
               </div>
-              <div className="flex items-center gap-1 shrink-0">
+              <div className="flex items-center gap-0.5 shrink-0">
                 {!notif.isRead && (
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-8 w-8"
+                    className="h-7 w-7"
                     onClick={() => handleMarkAsRead(notif.id)}
                   >
-                    <CheckCheck className="w-4 h-4" />
+                    <CheckCheck className="w-3.5 h-3.5" />
                   </Button>
                 )}
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                  className="h-7 w-7 text-muted-foreground hover:text-destructive"
                   onClick={() => handleDelete(notif.id)}
                 >
-                  <Trash2 className="w-4 h-4" />
+                  <Trash2 className="w-3.5 h-3.5" />
                 </Button>
               </div>
             </CardContent>

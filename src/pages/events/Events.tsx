@@ -357,14 +357,14 @@ const Events = () => {
         <div className="flex gap-2 mb-6 flex-wrap">
           <Badge
             variant={activeTab === 'all' ? 'default' : 'outline'}
-            className="cursor-pointer px-4 py-2"
+            className="cursor-pointer rounded-lg px-4 py-2"
             onClick={() => setActiveTab('all')}
           >
             All Events
           </Badge>
           <Badge
             variant={activeTab === 'registered' ? 'default' : 'outline'}
-            className="cursor-pointer px-4 py-2 flex items-center gap-1"
+            className="cursor-pointer rounded-lg px-4 py-2 flex items-center gap-1"
             onClick={() => setActiveTab('registered')}
           >
             <Ticket className="w-3.5 h-3.5" />

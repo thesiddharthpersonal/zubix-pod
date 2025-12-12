@@ -609,8 +609,9 @@ const RoomChat = () => {
             disabled={isUploading || (!newMessage.trim() && !selectedFile) || sending}
             className="h-10 w-10"
           >
-            {isUploading ? <Loader2 className="w-5 h-5 animate-spin" /> :
-            {sending ? (
+            {isUploading ? (
+              <Loader2 className="w-5 h-5 animate-spin" />
+            ) : sending ? (
               <Loader2 className="w-5 h-5 animate-spin" />
             ) : (
               <Send className="w-5 h-5" />

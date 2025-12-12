@@ -27,15 +27,17 @@ export const uploadApi = {
    * Upload a file directly to S3 using the presigned URL
    */
   async uploadToS3(presignedUrl: string, file: File): Promise<void> {
-    const axios = (await import('axios')).default;
-    await axios.put(presignedUrl, file, {
+    const response = await fetch(presignedUrl, {
+      method: 'PUT',
+      body: file,
       headers: {
         'Content-Type': file.type,
       },
-      transformRequest: [(data) => data],
-      // Don't send any extra headers that weren't part of the signature
-      withCredentials: false,
     });
+
+    if (!response.ok) {
+      throw new Error(`Upload failed with status ${response.status}: ${response.statusText}`);
+    }
   },
 
   /**
@@ -52,13 +54,19 @@ export const uploadApi = {
    * Complete upload flow: get presigned URL, upload to S3, and return the file URL
    */
   async uploadFile(file: File, folder?: string): Promise<string> {
-    // Get presigned URL
-    const { uploadUrl, fileUrl } = await this.getPresignedUrl(file.name, file.type, folder);
+    // Use direct upload through backend instead of presigned URL
+    const formData = new FormData();
+    formData.append('file', file);
+    if (folder) {
+      formData.append('folder', folder);
+    }
 
-    // Upload to S3
-    await this.uploadToS3(uploadUrl, file);
+    const response = await apiClient.post<{ fileUrl: string; key: string }>('/api/direct-upload', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
 
-    // Return the file URL from the response
-    return fileUrl;
+    return response.data.fileUrl;
   }
 };

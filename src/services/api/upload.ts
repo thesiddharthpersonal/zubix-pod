@@ -54,6 +54,9 @@ export const uploadApi = {
    * Complete upload flow: get presigned URL, upload to S3, and return the file URL
    */
   async uploadFile(file: File, folder?: string): Promise<string> {
+    console.log('uploadFile called with:', file.name, file.type, folder);
+    console.log('API Base URL:', apiClient.defaults.baseURL);
+    
     // Use direct upload through backend instead of presigned URL
     const formData = new FormData();
     formData.append('file', file);
@@ -61,12 +64,14 @@ export const uploadApi = {
       formData.append('folder', folder);
     }
 
+    console.log('Posting to /api/direct-upload');
     const response = await apiClient.post<{ fileUrl: string; key: string }>('/api/direct-upload', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
     });
 
+    console.log('Upload response:', response.data);
     return response.data.fileUrl;
   }
 };

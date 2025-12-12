@@ -16,7 +16,7 @@ const Admin = () => {
 
   useEffect(() => {
     // Check if user is admin
-    if (!user || user.role !== 'admin') {
+    if (!user || (user.role !== 'admin' && user.role !== 'ADMIN')) {
       toast({ title: 'Access Denied', description: 'Admin access required', variant: 'destructive' });
       navigate('/');
       return;

@@ -26,7 +26,7 @@ const AdminUsers = () => {
   const limit = 20;
 
   useEffect(() => {
-    if (!user || user.role !== 'admin') {
+    if (!user || (user.role !== 'admin' && user.role !== 'ADMIN')) {
       navigate('/');
       return;
     }

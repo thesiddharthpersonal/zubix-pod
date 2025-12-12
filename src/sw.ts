@@ -62,27 +62,40 @@ self.addEventListener('push', (event) => {
     data = {},
   } = notificationData;
 
-  console.log('[SW] 📢 Showing notification:', { title, body });
+  // Ensure title and body are strings and not empty
+  const notificationTitle = String(title || 'Zubix');
+  const notificationBody = String(body || 'You have a new notification');
+
+  console.log('[SW] 📢 Showing notification:', { 
+    title: notificationTitle, 
+    body: notificationBody,
+    icon,
+    data 
+  });
 
   const options: NotificationOptions = {
-    body,
-    icon,
-    badge,
+    body: notificationBody,
+    icon: icon || '/pwa-192x192.png',
+    badge: badge || '/zubixfavicon.png',
     data: {
       ...data,
       dateTime: Date.now(),
     },
     vibrate: [200, 100, 200],
     tag: data.notificationId || `zubix-${Date.now()}`,
-    requireInteraction: true, // Changed to true for better visibility
+    requireInteraction: false, // Changed back to false for mobile compatibility
     renotify: true,
-    silent: false
+    silent: false,
+    // Add image for richer notifications on Android
+    image: data.image || undefined
   };
 
   event.waitUntil(
-    self.registration.showNotification(title, options)
+    self.registration.showNotification(notificationTitle, options)
       .then(() => {
         console.log('[SW] ✅ Notification displayed successfully!');
+        console.log('[SW] 📱 Title:', notificationTitle);
+        console.log('[SW] 📱 Body:', notificationBody);
       })
       .catch((error) => {
         console.error('[SW] ❌ Failed to show notification:', error);

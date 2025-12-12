@@ -129,6 +129,16 @@ export class PushNotificationManager {
     try {
       console.log('📤 Starting push notification subscription process...');
       
+      // Check if this is Safari on iOS
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+      const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+      
+      if (isIOS && isSafari) {
+        console.warn('⚠️ Safari/iOS push notifications require APNs setup');
+        alert('Push notifications are currently only supported on Chrome and Android browsers. Safari/iOS support coming soon!');
+        return false;
+      }
+      
       if (!this.registration) {
         console.log('🔄 Initializing service worker...');
         await this.initialize();

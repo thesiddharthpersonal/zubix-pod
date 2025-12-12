@@ -11,7 +11,7 @@ interface AuthContextType {
   selectedRole: 'user' | 'pod_owner' | null;
   pendingPodOwner: Partial<Pod> | null;
   joinedPods: Pod[];
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<UserProfile | null>;
   signup: (data: SignupData) => Promise<void>;
   logout: () => Promise<void>;
   setSelectedRole: (role: 'user' | 'pod_owner') => void;
@@ -90,7 +90,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         password,
       });
       
-      setUser({
+      const userProfile = {
         ...response.user,
         createdAt: new Date(response.user.createdAt),
         socialLinks: {
@@ -103,7 +103,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           portfolio: (response.user as any).portfolioUrl,
           others: (response.user as any).othersUrl,
         },
-      });
+      };
+      
+      setUser(userProfile);
       
       // Load user's pods
       const pods = await podsApi.getJoinedPods();
@@ -116,6 +118,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       }
       
       toast.success('Login successful!');
+      return userProfile;
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Login failed';
       toast.error(message);

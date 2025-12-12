@@ -25,8 +25,18 @@ const Login = () => {
     }
 
     try {
-      await login(formData.emailOrMobile, formData.password);
+      const userData = await login(formData.emailOrMobile, formData.password);
       toast.success('Welcome back!');
+      
+      // Check if pod owner has unapproved pods
+      if (userData && (userData as any).role === 'POD_OWNER' && (userData as any).ownedPods?.length > 0) {
+        const hasUnapprovedPod = (userData as any).ownedPods.some((pod: any) => !pod.isApproved);
+        if (hasUnapprovedPod) {
+          navigate('/pending-approval');
+          return;
+        }
+      }
+      
       navigate('/discover');
     } catch (error) {
       toast.error('Login failed. Please try again.');

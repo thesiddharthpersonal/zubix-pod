@@ -385,7 +385,9 @@ const Chat = () => {
                           try {
                             const user = await usersApi.getUserByUsername(username);
                             console.log('User found:', user);
-                            if (user) setSelectedUserForProfile(user);
+                            console.log('Setting selectedUserForProfile to:', user);
+                            setSelectedUserForProfile(user);
+                            console.log('User profile dialog should open now');
                           } catch (error: any) {
                             console.error('Error fetching user:', error);
                             console.error('Error message:', error.message);

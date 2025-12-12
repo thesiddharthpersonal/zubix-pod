@@ -1,4 +1,4 @@
-import apiClient, { handleApiError } from './config';
+import apiClient, { handleApiError } from './api/config';
 
 export const pushNotificationApi = {
   // Get VAPID public key

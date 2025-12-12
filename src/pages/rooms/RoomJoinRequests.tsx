@@ -93,7 +93,7 @@ const RoomJoinRequests = () => {
       <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border">
         <div className="flex items-center justify-between p-4">
           <div className="flex items-center gap-3">
-            <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
+            <Button variant="ghost" size="icon" onClick={() => navigate(`/rooms/${roomId}/chat`)}>
               <ArrowLeft className="w-5 h-5" />
             </Button>
             <div>

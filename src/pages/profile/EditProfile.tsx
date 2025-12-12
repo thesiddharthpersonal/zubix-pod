@@ -214,7 +214,7 @@ const EditProfile = () => {
       <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <Button variant="ghost" size="sm" onClick={() => navigate(-1)}>
+            <Button variant="ghost" size="sm" onClick={() => navigate('/profile')}>
               <ArrowLeft className="w-4 h-4 mr-2" />
               Back
             </Button>
@@ -716,7 +716,7 @@ const EditProfile = () => {
 
           {/* Submit Button */}
           <div className="flex justify-end gap-3 pt-4">
-            <Button type="button" variant="outline" onClick={() => navigate(-1)} disabled={isSubmitting}>
+            <Button type="button" variant="outline" onClick={() => navigate('/profile')} disabled={isSubmitting}>
               Cancel
             </Button>
             <Button type="submit" disabled={isSubmitting}>

@@ -59,7 +59,7 @@ const Profile = () => {
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border">
         <div className="flex items-center justify-between p-4">
-          <Button variant="ghost" size="icon" onClick={() => navigate(-1)}><ArrowLeft className="w-5 h-5" /></Button>
+          <Button variant="ghost" size="icon" onClick={() => navigate('/')}><ArrowLeft className="w-5 h-5" /></Button>
           <h1 className="font-semibold text-foreground">Profile</h1>
           {isOwnProfile && <Button variant="ghost" size="icon" onClick={() => navigate('/profile/edit')}><Edit className="w-5 h-5" /></Button>}
           {!isOwnProfile && <div className="w-10" />}

@@ -525,13 +525,12 @@ const RoomChat = () => {
       </AlertDialog>
 
       {/* User Profile Dialog */}
-      {selectedUserForProfile && (
-        <UserProfileDialog
-          user={selectedUserForProfile}
-          open={!!selectedUserForProfile}
-          onOpenChange={(open) => !open && setSelectedUserForProfile(null)}
-        />
-      )}
+      <UserProfileDialog
+        user={selectedUserForProfile}
+        currentUserId={user?.id}
+        isOpen={!!selectedUserForProfile}
+        onClose={() => setSelectedUserForProfile(null)}
+      />
     </div>
   );
 };

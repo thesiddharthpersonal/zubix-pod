@@ -153,18 +153,18 @@ class SocketClient {
     }
   }
 
-  sendDirectMessage(chatId: string, content: string, replyToId?: string): void {
+  sendDirectMessage(chatId: string, content: string, replyToId?: string, mediaUrl?: string, mediaType?: string): void {
     if (!this.socket?.connected) {
       console.warn('Socket not connected, attempting to reconnect...');
       this.connect();
       setTimeout(() => {
         if (this.socket?.connected) {
-          this.socket.emit('send-dm', { chatId, content, replyToId });
+          this.socket.emit('send-dm', { chatId, content, replyToId, mediaUrl, mediaType });
         }
       }, 500);
     } else {
       console.log('Sending DM to chat:', chatId);
-      this.socket.emit('send-dm', { chatId, content, replyToId });
+      this.socket.emit('send-dm', { chatId, content, replyToId, mediaUrl, mediaType });
     }
   }
 

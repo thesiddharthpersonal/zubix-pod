@@ -14,10 +14,11 @@ import TopNav from '@/components/layout/TopNav';
 import PodDetailsDialog from '@/components/PodDetailsDialog';
 import UserProfileDialog from '@/components/UserProfileDialog';
 import SendMessageDialog from '@/components/SendMessageDialog';
-import { postsApi, reactionsApi, uploadApi, commentsApi, Comment } from '@/services/api';
+import { postsApi, reactionsApi, uploadApi, commentsApi, Comment, usersApi } from '@/services/api';
 import { toast } from 'sonner';
 import { Input } from '@/components/ui/input';
 import MentionInput from '@/components/MentionInput';
+import MentionText from '@/components/MentionText';
 
 const Home = () => {
   const navigate = useNavigate();
@@ -563,7 +564,15 @@ const PostCard = ({
                 <MoreHorizontal className="w-4 h-4" />
               </Button>
             </div>
-            <p className="mt-2 text-foreground whitespace-pre-wrap">{post.content}</p>
+            <MentionText 
+              content={post.content}
+              onMentionClick={(username) => {
+                usersApi.getUserByUsername(username).then(user => {
+                  if (user) setSelectedUserForProfile(user);
+                }).catch(() => toast.error('User not found'));
+              }}
+              className="mt-2 text-foreground whitespace-pre-wrap"
+            />
             
             {/* Media Display */}
             {post.mediaUrls && post.mediaUrls.length > 0 && (
@@ -636,7 +645,15 @@ const PostCard = ({
                                   <Badge variant="secondary" className="text-xs py-0 px-1.5">Owner</Badge>
                                 )}
                               </div>
-                              <p className="text-sm text-foreground mt-0.5">{comment.content}</p>
+                              <MentionText 
+                                content={comment.content}
+                                onMentionClick={(username) => {
+                                  usersApi.getUserByUsername(username).then(user => {
+                                    if (user) setSelectedUserForProfile(user);
+                                  }).catch(() => toast.error('User not found'));
+                                }}
+                                className="text-sm text-foreground mt-0.5"
+                              />
                             </div>
                             <p className="text-xs text-muted-foreground mt-1">
                               {getTimeAgo(comment.createdAt)}

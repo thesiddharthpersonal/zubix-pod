@@ -25,10 +25,13 @@ import {
 import { ArrowLeft, Send, MoreVertical, Loader2, Pencil, Trash2, Reply, X, Users } from 'lucide-react';
 import { Message, Room } from '@/types';
 import { roomsApi } from '@/services/api/rooms';
+import { usersApi } from '@/services/api';
 import socket from '@/services/socket';
 import { useToast } from '@/hooks/use-toast';
 import EditRoomDialog from '@/components/EditRoomDialog';
 import MentionInput from '@/components/MentionInput';
+import MentionText from '@/components/MentionText';
+import UserProfileDialog from '@/components/UserProfileDialog';
 
 const RoomChat = () => {
   const { roomId } = useParams();
@@ -44,6 +47,7 @@ const RoomChat = () => {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [selectedUserForProfile, setSelectedUserForProfile] = useState<any>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -374,10 +378,26 @@ const RoomChat = () => {
                     {message.replyTo && (
                       <div className={`mb-2 pl-2 border-l-2 ${isOwn ? 'border-primary-foreground/30' : 'border-secondary-foreground/30'} text-xs opacity-70`}>
                         <p className="font-medium">{message.replyTo.sender.fullName}</p>
-                        <p className="truncate">{message.replyTo.content}</p>
+                        <MentionText 
+                          content={message.replyTo.content}
+                          onMentionClick={(username) => {
+                            usersApi.getUserByUsername(username).then(user => {
+                              if (user) setSelectedUserForProfile(user);
+                            }).catch(() => toast({ title: 'Error', description: 'User not found', variant: 'destructive' }));
+                          }}
+                          className="truncate block"
+                        />
                       </div>
                     )}
-                    <p className="text-sm">{message.content}</p>
+                    <MentionText 
+                      content={message.content}
+                      onMentionClick={(username) => {
+                        usersApi.getUserByUsername(username).then(user => {
+                          if (user) setSelectedUserForProfile(user);
+                        }).catch(() => toast({ title: 'Error', description: 'User not found', variant: 'destructive' }));
+                      }}
+                      className="text-sm"
+                    />
                   </div>
                   <div className="flex items-center gap-2 mt-1">
                     <p className="text-xs text-muted-foreground">
@@ -409,7 +429,15 @@ const RoomChat = () => {
                 <Reply className="w-3 h-3 text-muted-foreground" />
                 <p className="text-xs font-medium text-muted-foreground">Replying to {replyingTo.sender.fullName}</p>
               </div>
-              <p className="text-sm truncate text-foreground">{replyingTo.content}</p>
+              <MentionText 
+                content={replyingTo.content}
+                onMentionClick={(username) => {
+                  usersApi.getUserByUsername(username).then(user => {
+                    if (user) setSelectedUserForProfile(user);
+                  }).catch(() => toast({ title: 'Error', description: 'User not found', variant: 'destructive' }));
+                }}
+                className="text-sm truncate text-foreground block"
+              />
             </div>
             <Button
               variant="ghost"
@@ -480,6 +508,15 @@ const RoomChat = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* User Profile Dialog */}
+      {selectedUserForProfile && (
+        <UserProfileDialog
+          user={selectedUserForProfile}
+          open={!!selectedUserForProfile}
+          onOpenChange={(open) => !open && setSelectedUserForProfile(null)}
+        />
+      )}
     </div>
   );
 };

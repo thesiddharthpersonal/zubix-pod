@@ -8,10 +8,11 @@ import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ArrowLeft, Search, Send, MailPlus, Loader2, X, Reply } from 'lucide-react';
 import { Chat as ChatType, Message, User } from '@/types';
-import { chatApi } from '@/services/api';
+import { chatApi, usersApi } from '@/services/api';
 import { socketClient } from '@/services/socket';
 import { toast } from 'sonner';
 import MentionInput from '@/components/MentionInput';
+import MentionText from '@/components/MentionText';
 import UserProfileDialog from '@/components/UserProfileDialog';
 import {
   Dialog,
@@ -363,10 +364,27 @@ const Chat = () => {
                       {msg.replyTo && (
                         <div className={`mb-2 pl-2 border-l-2 ${isOwn ? 'border-primary-foreground/30' : 'border-secondary-foreground/30'} text-xs opacity-70`}>
                           <p className="font-medium">{msg.replyTo.sender.fullName}</p>
-                          <p className="truncate">{msg.replyTo.content}</p>
+                          <MentionText 
+                            content={msg.replyTo.content} 
+                            onMentionClick={(username) => {
+                              // Find user and show profile
+                              usersApi.getUserByUsername(username).then(user => {
+                                if (user) setSelectedUserForProfile(user);
+                              }).catch(() => toast.error('User not found'));
+                            }}
+                            className="truncate block"
+                          />
                         </div>
                       )}
-                      <p className="text-sm">{msg.content}</p>
+                      <MentionText 
+                        content={msg.content} 
+                        onMentionClick={(username) => {
+                          usersApi.getUserByUsername(username).then(user => {
+                            if (user) setSelectedUserForProfile(user);
+                          }).catch(() => toast.error('User not found'));
+                        }}
+                        className="text-sm"
+                      />
                       <Button
                         variant="ghost"
                         size="icon"
@@ -391,7 +409,15 @@ const Chat = () => {
                   <Reply className="w-3 h-3 text-muted-foreground" />
                   <p className="text-xs font-medium text-muted-foreground">Replying to {replyingTo.sender.fullName}</p>
                 </div>
-                <p className="text-sm truncate text-foreground">{replyingTo.content}</p>
+                <MentionText 
+                  content={replyingTo.content}
+                  onMentionClick={(username) => {
+                    usersApi.getUserByUsername(username).then(user => {
+                      if (user) setSelectedUserForProfile(user);
+                    }).catch(() => toast.error('User not found'));
+                  }}
+                  className="text-sm truncate text-foreground block"
+                />
               </div>
               <Button
                 variant="ghost"
@@ -486,7 +512,10 @@ const Chat = () => {
                     <div className="flex-1 min-w-0">
                       <p className="font-medium text-foreground">{other.fullName}</p>
                       {chat.lastMessage && (
-                        <p className="text-sm text-muted-foreground truncate">{chat.lastMessage.content}</p>
+                        <MentionText 
+                          content={chat.lastMessage.content}
+                          className="text-sm text-muted-foreground truncate block"
+                        />
                       )}
                     </div>
                     {chat.lastMessage && (

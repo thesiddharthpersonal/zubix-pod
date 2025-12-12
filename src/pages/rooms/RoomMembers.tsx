@@ -101,25 +101,6 @@ const RoomMembers = () => {
     }
   };
 
-  const isPodOwnerOrCoOwner = user?.role === 'POD_OWNER' || user?.role === 'pod_owner';
-
-  if (!isPodOwnerOrCoOwner) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <Card className="max-w-md w-full mx-4">
-          <CardContent className="py-12 text-center">
-            <Shield className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold mb-2">Access Denied</h3>
-            <p className="text-muted-foreground mb-4">
-              Only pod owners and co-owners can manage room members.
-            </p>
-            <Button onClick={() => navigate(-1)}>Go Back</Button>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-background pb-20">
       <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border">

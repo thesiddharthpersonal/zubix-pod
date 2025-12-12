@@ -62,6 +62,14 @@ export default defineConfig(() => ({
           },
         ],
       },
+      // Enable push notifications in service worker
+      injectManifest: {
+        swSrc: undefined, // Use default workbox service worker with push support
+      },
+      devOptions: {
+        enabled: true,
+        type: 'module',
+      }
     }),
   ].filter(Boolean),
   resolve: {

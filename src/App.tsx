@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-route
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { AdminAuthProvider } from "@/contexts/AdminAuthContext";
 import AdminProtectedRoute from "@/components/AdminProtectedRoute";
+import { PushNotificationPrompt } from "@/components/PushNotificationPrompt";
 
 // Pages
 import Landing from "@/pages/Landing";
@@ -163,6 +164,7 @@ const App = () => (
           <Sonner />
           <BrowserRouter>
             <AppRoutes />
+            <PushNotificationPrompt />
           </BrowserRouter>
         </TooltipProvider>
       </AdminAuthProvider>

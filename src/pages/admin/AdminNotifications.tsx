@@ -193,6 +193,7 @@ const AdminNotifications = () => {
                     <SelectValue placeholder="Select type" />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="general">General Notification</SelectItem>
                     <SelectItem value="message">Message</SelectItem>
                     <SelectItem value="event">Event</SelectItem>
                     <SelectItem value="pitch">Pitch</SelectItem>

@@ -149,6 +149,14 @@ export class PushNotificationManager {
 
       console.log('✅ Service worker ready:', !!this.registration);
 
+      // First unsubscribe any existing subscription to reset
+      console.log('🔄 Removing old subscription if exists...');
+      const oldSubscription = await this.registration.pushManager.getSubscription();
+      if (oldSubscription) {
+        await oldSubscription.unsubscribe();
+        console.log('🗑️ Old subscription removed');
+      }
+
       // Check permission
       const permission = await this.requestPermission();
       if (permission !== 'granted') {
@@ -156,28 +164,34 @@ export class PushNotificationManager {
         return false;
       }
 
-      console.log('🔍 Checking for existing subscription...');
-      // Get existing subscription
-      let subscription = await this.registration.pushManager.getSubscription();
+      console.log('🆕 Creating fresh push subscription...');
+      const publicKey = await pushNotificationApi.getVapidPublicKey();
+      console.log('🔑 Got VAPID key:', publicKey.substring(0, 20) + '...');
+      
+      const subscription = await this.registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(publicKey)
+      });
 
-      // If no subscription exists, create one
-      if (!subscription) {
-        const publicKey = await pushNotificationApi.getVapidPublicKey();
-        
-        subscription = await this.registration.pushManager.subscribe({
-          userVisibleOnly: true,
-          applicationServerKey: urlBase64ToUint8Array(publicKey)
-        });
-
-        console.log('✅ Created new push subscription');
-      }
+      console.log('✅ Created new push subscription:', subscription.endpoint.substring(0, 50) + '...');
 
       // Send subscription to backend
       await pushNotificationApi.subscribe(subscription);
       console.log('✅ Push subscription sent to server');
+      
+      // Test the subscription immediately
+      console.log('🧪 Testing notification...');
+      await this.registration.showNotification('Zubix Notifications Enabled! 🎉', {
+        body: 'You will now receive push notifications',
+        icon: '/pwa-192x192.png',
+        badge: '/zubixfavicon.png',
+        tag: 'test-notification',
+        requireInteraction: false
+      });
+      
       return true;
     } catch (error) {
-      console.error('Failed to subscribe:', error);
+      console.error('❌ Failed to subscribe:', error);
       return false;
     }
   }

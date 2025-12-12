@@ -23,20 +23,33 @@ self.addEventListener('activate', (event) => {
 
 // Push event - handle incoming push notifications
 self.addEventListener('push', (event) => {
-  console.log('[Service Worker] Push received:', event);
+  console.log('[SW] 🔔 Push notification received!');
+  console.log('[SW] Event data exists:', !!event.data);
   
   if (!event.data) {
-    console.log('[Service Worker] Push event has no data');
+    console.warn('[SW] ⚠️ Push event has no data - showing default notification');
+    event.waitUntil(
+      self.registration.showNotification('Zubix', {
+        body: 'You have a new notification',
+        icon: '/pwa-192x192.png',
+        badge: '/zubixfavicon.png',
+        tag: 'zubix-default',
+        requireInteraction: false
+      })
+    );
     return;
   }
 
   let notificationData: any;
   try {
-    notificationData = event.data.json();
+    const rawText = event.data.text();
+    console.log('[SW] 📦 Raw push data:', rawText);
+    notificationData = JSON.parse(rawText);
+    console.log('[SW] ✅ Parsed notification data:', notificationData);
   } catch (error) {
-    console.error('[Service Worker] Failed to parse push data:', error);
+    console.error('[SW] ❌ Failed to parse push data:', error);
     notificationData = {
-      title: 'New Notification',
+      title: 'Zubix',
       body: event.data.text() || 'You have a new notification',
     };
   }
@@ -49,6 +62,8 @@ self.addEventListener('push', (event) => {
     data = {},
   } = notificationData;
 
+  console.log('[SW] 📢 Showing notification:', { title, body });
+
   const options: NotificationOptions = {
     body,
     icon,
@@ -58,22 +73,20 @@ self.addEventListener('push', (event) => {
       dateTime: Date.now(),
     },
     vibrate: [200, 100, 200],
-    tag: data.notificationId || 'zubix-notification',
-    requireInteraction: false,
-    actions: [
-      {
-        action: 'open',
-        title: 'Open',
-      },
-      {
-        action: 'close',
-        title: 'Dismiss',
-      },
-    ],
+    tag: data.notificationId || `zubix-${Date.now()}`,
+    requireInteraction: true, // Changed to true for better visibility
+    renotify: true,
+    silent: false
   };
 
   event.waitUntil(
     self.registration.showNotification(title, options)
+      .then(() => {
+        console.log('[SW] ✅ Notification displayed successfully!');
+      })
+      .catch((error) => {
+        console.error('[SW] ❌ Failed to show notification:', error);
+      })
   );
 });
 

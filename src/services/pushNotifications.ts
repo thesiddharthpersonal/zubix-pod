@@ -101,15 +101,25 @@ export class PushNotificationManager {
   // Request notification permission
   async requestPermission(): Promise<NotificationPermission> {
     try {
+      console.log('🔔 Requesting notification permission...');
+      
       if (!('Notification' in window)) {
+        console.error('❌ Notifications not supported in this browser');
         throw new Error('Notifications not supported');
       }
 
+      console.log('📱 Current permission state:', Notification.permission);
+      
+      if (Notification.permission === 'denied') {
+        console.error('❌ Notification permission was previously denied. User must reset in browser settings.');
+        return 'denied';
+      }
+
       const permission = await Notification.requestPermission();
-      console.log('Notification permission:', permission);
+      console.log('✅ Notification permission result:', permission);
       return permission;
     } catch (error) {
-      console.error('Failed to request permission:', error);
+      console.error('❌ Failed to request permission:', error);
       return 'denied';
     }
   }
@@ -117,20 +127,26 @@ export class PushNotificationManager {
   // Subscribe to push notifications
   async subscribe(): Promise<boolean> {
     try {
+      console.log('📤 Starting push notification subscription process...');
+      
       if (!this.registration) {
+        console.log('🔄 Initializing service worker...');
         await this.initialize();
         if (!this.registration) {
           throw new Error('Service worker not registered');
         }
       }
 
+      console.log('✅ Service worker ready:', !!this.registration);
+
       // Check permission
       const permission = await this.requestPermission();
       if (permission !== 'granted') {
-        console.warn('Notification permission not granted');
+        console.warn('⚠️ Notification permission not granted:', permission);
         return false;
       }
 
+      console.log('🔍 Checking for existing subscription...');
       // Get existing subscription
       let subscription = await this.registration.pushManager.getSubscription();
 

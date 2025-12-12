@@ -190,6 +190,34 @@ export const PushNotificationSettings = () => {
     }
   };
 
+  // Simple inline version without Card wrapper
+  if (window.location.pathname === '/notifications') {
+    return (
+      <Button
+        variant={isSubscribed ? 'outline' : 'default'}
+        size="sm"
+        onClick={handleToggle}
+        disabled={isLoading || permission === 'denied'}
+        className="shrink-0"
+      >
+        {isLoading ? (
+          'Loading...'
+        ) : isSubscribed ? (
+          <>
+            <Bell className="w-4 h-4 mr-2" />
+            On
+          </>
+        ) : (
+          <>
+            <BellOff className="w-4 h-4 mr-2" />
+            Off
+          </>
+        )}
+      </Button>
+    );
+  }
+
+  // Full card version for settings page
   return (
     <Card>
       <CardHeader>
@@ -213,10 +241,10 @@ export const PushNotificationSettings = () => {
             </p>
             <p className="text-xs text-muted-foreground">
               {permission === 'granted'
-                ? 'Browser permission granted'
+                ? '✅ Browser permission granted'
                 : permission === 'denied'
-                ? 'Browser permission denied'
-                : 'Permission not requested'}
+                ? '❌ Browser permission denied'
+                : '⏳ Permission not requested yet'}
             </p>
           </div>
           <Button
@@ -232,8 +260,8 @@ export const PushNotificationSettings = () => {
           </Button>
         </div>
         {permission === 'denied' && (
-          <p className="mt-3 text-xs text-muted-foreground">
-            Notifications are blocked. Please enable them in your browser settings.
+          <p className="mt-3 text-xs text-destructive">
+            ⚠️ Notifications are blocked. To enable: Chrome → Settings → Privacy → Site Settings → Notifications → Allow for {window.location.origin}
           </p>
         )}
       </CardContent>

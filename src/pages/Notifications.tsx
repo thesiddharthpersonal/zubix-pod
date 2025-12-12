@@ -1,12 +1,13 @@
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { ArrowLeft, Bell, Heart, MessageCircle, Users, Calendar, Trash2, CheckCheck, Loader2 } from 'lucide-react';
+import { ArrowLeft, Bell, Heart, MessageCircle, Users, Calendar, Trash2, CheckCheck, Loader2, BellRing } from 'lucide-react';
 import { Notification } from '@/types';
 import { useAuth } from '@/contexts/AuthContext';
 import { notificationsApi } from '@/services/api';
 import { useEffect, useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
+import { PushNotificationSettings } from '@/components/PushNotificationPrompt';
 
 const Notifications = () => {
   const navigate = useNavigate();
@@ -109,7 +110,21 @@ const Notifications = () => {
           )}
         </div>
       </header>
-      <main className="container mx-auto px-4 py-4 max-w-2xl space-y-2">
+      <main className="container mx-auto px-4 py-4 max-w-2xl space-y-4">
+        {/* Push Notification Settings */}
+        <Card className="border-primary/20">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <BellRing className="w-5 h-5 text-primary" />
+              <div className="flex-1">
+                <h3 className="font-medium text-foreground">Push Notifications</h3>
+                <p className="text-sm text-muted-foreground">Get notified even when app is closed</p>
+              </div>
+              <PushNotificationSettings />
+            </div>
+          </CardContent>
+        </Card>
+
         {loading ? (
           <div className="flex items-center justify-center py-12">
             <Loader2 className="w-8 h-8 animate-spin text-primary" />

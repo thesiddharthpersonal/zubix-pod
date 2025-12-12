@@ -24,12 +24,20 @@ export const PushNotificationPrompt = () => {
     const permission = pushManager.getPermission();
     const subscribed = await pushManager.isSubscribed();
     
+    console.log('🔔 Notification status check:', { permission, subscribed, isAuthenticated });
+    
     setIsSubscribed(subscribed);
     
     // Show prompt if permission is default (not asked yet) and not subscribed
     if (permission === 'default' && !subscribed) {
+      console.log('📢 Showing notification prompt in 5 seconds...');
       // Wait a bit before showing to avoid overwhelming the user
-      setTimeout(() => setShow(true), 5000);
+      setTimeout(() => {
+        console.log('✅ Displaying notification prompt now');
+        setShow(true);
+      }, 5000);
+    } else {
+      console.log('ℹ️ Not showing prompt. Permission:', permission, 'Subscribed:', subscribed);
     }
   };
 

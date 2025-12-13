@@ -197,6 +197,18 @@ const RoomChat = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
+  const scrollToMessage = (messageId: string) => {
+    const messageElement = document.getElementById(`message-${messageId}`);
+    if (messageElement) {
+      messageElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      // Highlight the message briefly
+      messageElement.classList.add('bg-primary/10');
+      setTimeout(() => {
+        messageElement.classList.remove('bg-primary/10');
+      }, 2000);
+    }
+  };
+
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -451,7 +463,7 @@ const RoomChat = () => {
                 message={message} 
                 onReply={() => setReplyingTo(message)}
               >
-                <div className={`flex gap-3 ${isOwn ? 'flex-row-reverse' : ''} group`}>
+                <div id={`message-${message.id}`} className={`flex gap-3 ${isOwn ? 'flex-row-reverse' : ''} group transition-colors duration-500`}>
                 {!isOwn && (
                   <Avatar className="w-8 h-8 shrink-0">
                     <AvatarImage src={message.sender.profilePhoto} />
@@ -468,7 +480,17 @@ const RoomChat = () => {
                       : 'bg-secondary text-secondary-foreground rounded-bl-md'
                   }`}>
                     {message.replyTo && (
-                      <div className={`mb-2 pl-2 border-l-2 ${isOwn ? 'border-primary-foreground/30' : 'border-secondary-foreground/30'} text-xs opacity-70`}>
+                      <div 
+                        onTouchStart={(e) => {
+                          e.stopPropagation();
+                          scrollToMessage(message.replyTo!.id);
+                        }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          scrollToMessage(message.replyTo!.id);
+                        }}
+                        className={`mb-2 pl-2 border-l-2 ${isOwn ? 'border-primary-foreground/30' : 'border-secondary-foreground/30'} text-xs cursor-pointer active:opacity-90 transition-opacity`}
+                      >
                         <p className="font-medium">{message.replyTo.sender.fullName}</p>
                         <MentionText 
                           content={message.replyTo.content}
@@ -529,7 +551,7 @@ const RoomChat = () => {
                       className="h-5 w-5 opacity-0 group-hover:opacity-100 transition-opacity"
                       onClick={() => setReplyingTo(message)}
                     >
-                      <Reply className="w-3 h-3" />
+                      <Reply className="w-4 h-4" />
                     </Button>
                   </div>
                 </div>

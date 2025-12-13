@@ -46,7 +46,7 @@ const MentionText: React.FC<MentionTextProps> = ({
             onMentionClick(username);
           }
         }}
-        className="text-primary font-medium hover:underline cursor-pointer transition-colors"
+        className="text-orange-500 font-medium hover:underline cursor-pointer transition-colors"
       >
         @{username}
       </span>

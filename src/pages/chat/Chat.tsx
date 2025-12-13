@@ -79,6 +79,18 @@ const Chat = () => {
   const inputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const scrollToMessage = (messageId: string) => {
+    const messageElement = document.getElementById(`message-${messageId}`);
+    if (messageElement) {
+      messageElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      // Highlight the message briefly
+      messageElement.classList.add('bg-primary/10');
+      setTimeout(() => {
+        messageElement.classList.remove('bg-primary/10');
+      }, 2000);
+    }
+  };
+
   // Initialize socket connection
   useEffect(() => {
     if (!socketClient.isConnected()) {
@@ -485,11 +497,21 @@ const Chat = () => {
                     message={msg} 
                     onReply={() => setReplyingTo(msg)}
                   >
-                    <div className={`flex ${isOwn ? 'justify-end' : 'justify-start'} group`}>
+                    <div id={`message-${msg.id}`} className={`flex ${isOwn ? 'justify-end' : 'justify-start'} group transition-colors duration-500`}>
                     <div className={`max-w-[75%]`}>
                       <div className={`rounded-2xl px-4 py-2 ${isOwn ? 'bg-primary text-primary-foreground rounded-br-md' : 'bg-secondary text-secondary-foreground rounded-bl-md'}`}>
                         {msg.replyTo && (
-                          <div className={`mb-2 pl-2 border-l-2 ${isOwn ? 'border-primary-foreground/30' : 'border-secondary-foreground/30'} text-xs opacity-70`}>
+                          <div 
+                            onTouchStart={(e) => {
+                              e.stopPropagation();
+                              scrollToMessage(msg.replyTo!.id);
+                            }}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              scrollToMessage(msg.replyTo!.id);
+                            }}
+                            className={`mb-2 pl-2 border-l-2 ${isOwn ? 'border-primary-foreground/30' : 'border-secondary-foreground/30'} text-xs cursor-pointer active:opacity-90 transition-opacity`}
+                          >
                             <p className="font-medium">{msg.replyTo.sender.fullName}</p>
                             <MentionText 
                               content={msg.replyTo.content} 

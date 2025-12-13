@@ -390,7 +390,7 @@ const Home = () => {
                         <Video className="w-5 h-5 text-muted-foreground" />
                         <input
                           type="file"
-                          accept="video/mp4,video/webm,video/ogg"
+                          accept="video/mp4,video/webm,video/ogg,video/quicktime,video/x-m4v,video/hevc"
                           multiple
                           className="hidden"
                           onChange={(e) => handleMediaSelect(e, 'video')}

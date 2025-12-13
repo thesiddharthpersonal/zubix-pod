@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -29,6 +28,8 @@ const Rooms = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [creating, setCreating] = useState(false);
+  const [joinRequestDialogOpen, setJoinRequestDialogOpen] = useState(false);
+  const [selectedRoomForJoin, setSelectedRoomForJoin] = useState<Room | null>(null);
   const [newRoom, setNewRoom] = useState({
     name: '',
     description: '',
@@ -127,6 +128,19 @@ const Rooms = () => {
   const handleRoomClick = async (room: Room) => {
     // Check if it's a private room and user is not a member
     if (room.privacy === 'PRIVATE' && !room.isMember) {
+      const pod = joinedPods.find(p => p.id === room.podId);
+      const isPodOwner = pod?.ownerId === user?.id;
+      
+      // Pod owners can directly access
+      if (isPodOwner) {
+        if (room.type === 'QA') {
+          navigate(`/rooms/${room.id}/qa`);
+        } else {
+          navigate(`/rooms/${room.id}/chat`);
+        }
+        return;
+      }
+      
       // Check if there's already a pending request
       if (room.joinRequestStatus === 'PENDING') {
         toast({
@@ -136,23 +150,9 @@ const Rooms = () => {
         return;
       }
 
-      // Send join request
-      try {
-        const result = await roomsApi.requestJoinRoom(room.id);
-        toast({
-          title: 'Request Sent',
-          description: result.message || 'Your join request has been submitted',
-        });
-        
-        // Refresh rooms to update status
-        fetchRooms();
-      } catch (error: any) {
-        toast({
-          title: 'Error',
-          description: error.message || 'Failed to send join request',
-          variant: 'destructive',
-        });
-      }
+      // Show join request dialog
+      setSelectedRoomForJoin(room);
+      setJoinRequestDialogOpen(true);
       return;
     }
 
@@ -161,6 +161,30 @@ const Rooms = () => {
       navigate(`/rooms/${room.id}/qa`);
     } else {
       navigate(`/rooms/${room.id}/chat`);
+    }
+  };
+
+  const handleSendJoinRequest = async () => {
+    if (!selectedRoomForJoin) return;
+
+    try {
+      const result = await roomsApi.requestJoinRoom(selectedRoomForJoin.id);
+      toast({
+        title: 'Request Sent',
+        description: result.message || 'Your join request has been submitted',
+      });
+      
+      setJoinRequestDialogOpen(false);
+      setSelectedRoomForJoin(null);
+      
+      // Refresh rooms to update status
+      fetchRooms();
+    } catch (error: any) {
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to send join request',
+        variant: 'destructive',
+      });
     }
   };
 
@@ -316,7 +340,7 @@ const Rooms = () => {
         </div>
 
         {/* Rooms List */}
-        <div className="space-y-3">
+        <div className="divide-y divide-border">
           {filteredRooms.map((room) => {
             const pod = joinedPods.find(p => p.id === room.podId);
             const isPodOwner = pod?.ownerId === user?.id;
@@ -340,6 +364,41 @@ const Rooms = () => {
       </main>
 
       <BottomNav />
+
+      {/* Join Request Dialog */}
+      <Dialog open={joinRequestDialogOpen} onOpenChange={setJoinRequestDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Join Private Room</DialogTitle>
+            <DialogDescription>
+              This is a private room. Would you like to send a request to join?
+            </DialogDescription>
+          </DialogHeader>
+          {selectedRoomForJoin && (
+            <div className="py-4">
+              <div className="flex items-center gap-3">
+                <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
+                  selectedRoomForJoin.type === 'QA' ? 'bg-green-500/10 text-green-500' : 'bg-blue-500/10 text-blue-500'
+                }`}>
+                  {selectedRoomForJoin.type === 'QA' ? <HelpCircle className="w-6 h-6" /> : <MessageSquare className="w-6 h-6" />}
+                </div>
+                <div>
+                  <h3 className="font-semibold text-foreground">{selectedRoomForJoin.name}</h3>
+                  <p className="text-sm text-muted-foreground">{selectedRoomForJoin.description || 'Private room'}</p>
+                </div>
+              </div>
+            </div>
+          )}
+          <div className="flex gap-2 justify-end">
+            <Button variant="outline" onClick={() => setJoinRequestDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button variant="hero" onClick={handleSendJoinRequest}>
+              Send Request
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
@@ -351,54 +410,33 @@ const RoomCard = ({ room, podName, isPodOwner, onClick }: { room: Room; podName?
   const hasPendingRequest = room.joinRequestStatus === 'PENDING';
 
   return (
-    <Card className="cursor-pointer card-hover" onClick={onClick}>
-      <CardContent className="p-4">
-        <div className="flex items-center gap-4">
-          <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
-            room.type === 'QA' ? 'bg-accent/10 text-accent' : 'bg-primary/10 text-primary'
-          }`}>
-            {room.type === 'QA' ? <HelpCircle className="w-6 h-6" /> : <MessageSquare className="w-6 h-6" />}
-          </div>
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2">
-              <h3 className="font-semibold text-foreground truncate">{room.name}</h3>
-              {room.privacy === 'PRIVATE' ? (
-                <Lock className="w-4 h-4 text-muted-foreground shrink-0" />
-              ) : (
-                <Globe className="w-4 h-4 text-muted-foreground shrink-0" />
-              )}
-            </div>
-            <div className="flex items-center gap-3 mt-1 flex-wrap">
-              {podName && (
-                <Badge variant="outline" className="text-xs">{podName}</Badge>
-              )}
-              <Badge variant="secondary" className="text-xs">{room.type === 'QA' ? 'Q&A' : 'Chat'}</Badge>
-              {hasPendingRequest && (
-                <Badge variant="outline" className="text-xs border-yellow-500 text-yellow-600">
-                  Request Pending
-                </Badge>
-              )}
-              {isPrivateNotMember && !hasPendingRequest && (
-                <Badge variant="outline" className="text-xs">
-                  Request to Join
-                </Badge>
-              )}
-              {room._count && isMemberOrOwner && (
-                <span className="flex items-center gap-1 text-sm text-muted-foreground">
-                  <MessageSquare className="w-4 h-4" />
-                  {room._count.messages}
-                </span>
-              )}
-              {room.unreadCount !== undefined && room.unreadCount > 0 && isMemberOrOwner && (
-                <Badge className="bg-primary text-primary-foreground text-xs">
-                  {room.unreadCount} unread
-                </Badge>
-              )}
-            </div>
-          </div>
+    <div className="cursor-pointer px-4 py-3 flex items-center gap-3" onClick={onClick}>
+      <div className={`w-12 h-12 rounded-full flex items-center justify-center shrink-0 ${
+        room.type === 'QA' ? 'bg-green-500/10 text-green-500' : 'bg-blue-500/10 text-blue-500'
+      }`}>
+        {room.type === 'QA' ? <HelpCircle className="w-6 h-6" /> : <MessageSquare className="w-6 h-6" />}
+      </div>
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2">
+          <h3 className="font-medium text-foreground truncate">{room.name}</h3>
         </div>
-      </CardContent>
-    </Card>
+        <div className="flex items-center gap-2 mt-1 flex-wrap">
+          {podName && (
+            <Badge variant="outline" className="text-xs">{podName}</Badge>
+          )}
+          {hasPendingRequest && (
+            <Badge variant="outline" className="text-xs border-yellow-500 text-yellow-600">
+              Request Pending
+            </Badge>
+          )}
+          {room.unreadCount !== undefined && room.unreadCount > 0 && isMemberOrOwner && (
+            <Badge className="bg-primary text-primary-foreground text-xs">
+              {room.unreadCount} unread
+            </Badge>
+          )}
+        </div>
+      </div>
+    </div>
   );
 };
 

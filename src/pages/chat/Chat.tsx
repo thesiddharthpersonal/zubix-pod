@@ -2,7 +2,6 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -691,29 +690,25 @@ const Chat = () => {
         <div className="px-4 pb-4"><div className="relative"><Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" /><Input placeholder="Search conversations..." className="pl-9" /></div></div>
       </header>
       
-      <main className="p-4 space-y-2">
+      <main className="container mx-auto max-w-2xl">
         {/* Link to Message Requests */}
-        <Card 
-          className="cursor-pointer card-hover border-primary/20 bg-primary/5"
+        <div 
+          className="cursor-pointer bg-primary/5 px-4 py-3 flex items-center gap-3 border-b border-border"
           onClick={() => navigate('/message-requests')}
         >
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-                <MailPlus className="w-6 h-6 text-primary" />
-              </div>
-              <div className="flex-1">
-                <p className="font-medium text-foreground">Message Requests</p>
-                <p className="text-sm text-muted-foreground">View pending requests</p>
-              </div>
-              {pendingRequestCount > 0 && (
-                <Badge className="bg-primary text-primary-foreground rounded-full">
-                  {pendingRequestCount}
-                </Badge>
-              )}
-            </div>
-          </CardContent>
-        </Card>
+          <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+            <MailPlus className="w-6 h-6 text-primary" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="font-medium text-foreground">Message Requests</p>
+            <p className="text-sm text-muted-foreground">View pending requests</p>
+          </div>
+          {pendingRequestCount > 0 && (
+            <Badge className="bg-primary text-primary-foreground rounded-full">
+              {pendingRequestCount}
+            </Badge>
+          )}
+        </div>
 
         {/* Accepted chats */}
         {isLoadingChats ? (
@@ -726,40 +721,42 @@ const Chat = () => {
             <p className="text-sm text-muted-foreground mt-1">Start by sending a message request to someone</p>
           </div>
         ) : (
-          chats.map((chat) => {
-            const other = chat.participants.find(p => p.id !== user?.id);
-            if (!other) return null;
-            
-            return (
-              <Card key={chat.id} className="cursor-pointer card-hover" onClick={() => {
-                setSelectedChat(chat);
-                navigate(`/chat/${chat.id}`, { replace: true });
-              }}>
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-3">
-                    <Avatar className="w-12 h-12">
-                      <AvatarImage src={other.profilePhoto} />
-                      <AvatarFallback>{other.fullName.charAt(0)}</AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium text-foreground">{other.fullName}</p>
-                      {chat.lastMessage && (
-                        <MentionText 
-                          content={chat.lastMessage.content}
-                          className="text-sm text-muted-foreground truncate block"
-                        />
-                      )}
-                    </div>
+          <div className="divide-y divide-border">
+            {chats.map((chat) => {
+              const other = chat.participants.find(p => p.id !== user?.id);
+              if (!other) return null;
+              
+              return (
+                <div 
+                  key={chat.id} 
+                  className="cursor-pointer px-4 py-3 flex items-center gap-3"
+                  onClick={() => {
+                    setSelectedChat(chat);
+                    navigate(`/chat/${chat.id}`, { replace: true });
+                  }}
+                >
+                  <Avatar className="w-12 h-12 shrink-0">
+                    <AvatarImage src={other.profilePhoto} />
+                    <AvatarFallback>{other.fullName.charAt(0)}</AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-foreground">{other.fullName}</p>
                     {chat.lastMessage && (
-                      <p className="text-xs text-muted-foreground">
-                        {new Date(chat.lastMessage.createdAt).toLocaleDateString()}
-                      </p>
+                      <MentionText 
+                        content={chat.lastMessage.content}
+                        className="text-sm text-muted-foreground truncate block"
+                      />
                     )}
                   </div>
-                </CardContent>
-              </Card>
-            );
-          })
+                  {chat.lastMessage && (
+                    <p className="text-xs text-muted-foreground/70 whitespace-nowrap shrink-0">
+                      {new Date(chat.lastMessage.createdAt).toLocaleDateString()}
+                    </p>
+                  )}
+                </div>
+              );
+            })}
+          </div>
         )}
       </main>
 

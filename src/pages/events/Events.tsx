@@ -526,10 +526,10 @@ const Events = () => {
               </div>
             ) : (
               registeredEvents.map((event) => (
-                <Card key={event.id} className="card-hover border-primary/20 bg-primary/5 cursor-pointer" onClick={() => openEventDetail(event)}>
+                <Card key={event.id} className="card-hover border-primary/20 bg-primary/5 cursor-pointer rounded-3xl" onClick={() => openEventDetail(event)}>
                   <CardContent className="p-4">
                     <div className="flex items-start gap-3">
-                      <div className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 ${event.type.toUpperCase() === 'ONLINE' ? 'bg-info/10 text-info' : 'bg-accent/10 text-accent'}`}>
+                      <div className={`w-12 h-12 rounded-full flex items-center justify-center shrink-0 ${event.type.toUpperCase() === 'ONLINE' ? 'bg-info/10 text-info' : 'bg-accent/10 text-accent'}`}>
                         {event.type.toUpperCase() === 'ONLINE' ? <Video className="w-5 h-5" /> : <Building2 className="w-5 h-5" />}
                       </div>
                       <div className="flex-1 min-w-0">
@@ -579,10 +579,10 @@ const Events = () => {
                       const isCreator = event.createdBy === user?.id;
                       const participantCount = event.participants?.length || 0;
                       return (
-                        <Card key={event.id} className="card-hover cursor-pointer" onClick={() => openEventDetail(event)}>
+                        <Card key={event.id} className="card-hover cursor-pointer rounded-3xl" onClick={() => openEventDetail(event)}>
                           <CardContent className="p-4">
                             <div className="flex items-start gap-3">
-                              <div className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 ${event.type.toUpperCase() === 'ONLINE' ? 'bg-info/10 text-info' : 'bg-accent/10 text-accent'}`}>
+                              <div className={`w-12 h-12 rounded-full flex items-center justify-center shrink-0 ${event.type.toUpperCase() === 'ONLINE' ? 'bg-info/10 text-info' : 'bg-accent/10 text-accent'}`}>
                                 {event.type.toUpperCase() === 'ONLINE' ? <Video className="w-5 h-5" /> : <Building2 className="w-5 h-5" />}
                               </div>
                               <div className="flex-1 min-w-0">

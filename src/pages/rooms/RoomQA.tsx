@@ -3,7 +3,6 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { canManagePod } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -250,17 +249,17 @@ const RoomQA = () => {
                   <p>No answers yet. Be the first to answer!</p>
                 </div>
               ) : (
-                selectedQuestion.answers.map((answer) => {
-                  const answerDate = new Date(answer.createdAt);
-                  return (
-                    <Card key={answer.id}>
-                      <CardContent className="p-4">
+                <div className="divide-y divide-border">
+                  {selectedQuestion.answers.map((answer) => {
+                    const answerDate = new Date(answer.createdAt);
+                    return (
+                      <div key={answer.id} className="px-4 py-3">
                         <div className="flex items-start gap-3">
-                          <Avatar className="w-8 h-8">
+                          <Avatar className="w-8 h-8 shrink-0">
                             <AvatarImage src={answer.author.profilePhoto} />
                             <AvatarFallback>{answer.author.fullName.charAt(0)}</AvatarFallback>
                           </Avatar>
-                          <div className="flex-1">
+                          <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2">
                               <p className="font-medium text-foreground text-sm">{answer.author.fullName}</p>
                               <p className="text-xs text-muted-foreground">
@@ -270,10 +269,10 @@ const RoomQA = () => {
                             <p className="mt-1 text-foreground text-sm whitespace-pre-wrap">{answer.content}</p>
                           </div>
                         </div>
-                      </CardContent>
-                    </Card>
-                  );
-                })
+                      </div>
+                    );
+                  })}
+                </div>
               )}
             </div>
           </div>
@@ -406,39 +405,37 @@ const RoomQA = () => {
             <p className="text-muted-foreground">No questions yet. Be the first to ask!</p>
           </div>
         ) : (
-          questions.map((question) => {
-            const questionDate = new Date(question.createdAt);
-            return (
-              <Card
-                key={question.id}
-                className="cursor-pointer card-hover"
-                onClick={() => setSelectedQuestion(question)}
-              >
-                <CardContent className="p-4">
-                  <div className="flex items-start gap-3">
-                    <Avatar className="w-10 h-10 shrink-0">
-                      <AvatarImage src={question.author.profilePhoto} />
-                      <AvatarFallback>{question.author.fullName.charAt(0)}</AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <p className="font-medium text-foreground text-sm">{question.author.fullName}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {questionDate.toLocaleDateString()}
-                        </p>
-                      </div>
-                      <p className="mt-1 text-foreground line-clamp-2">{question.content}</p>
-                      <div className="flex items-center gap-2 mt-2 text-sm text-muted-foreground">
-                        <MessageSquare className="w-4 h-4" />
-                        {question.answers.length} {question.answers.length === 1 ? 'answer' : 'answers'}
-                      </div>
+          <div className="divide-y divide-border">
+            {questions.map((question) => {
+              const questionDate = new Date(question.createdAt);
+              return (
+                <div
+                  key={question.id}
+                  className="cursor-pointer px-4 py-3 flex items-start gap-3"
+                  onClick={() => setSelectedQuestion(question)}
+                >
+                  <Avatar className="w-10 h-10 shrink-0">
+                    <AvatarImage src={question.author.profilePhoto} />
+                    <AvatarFallback>{question.author.fullName.charAt(0)}</AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <p className="font-medium text-foreground text-sm">{question.author.fullName}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {questionDate.toLocaleDateString()}
+                      </p>
                     </div>
-                    <ChevronRight className="w-5 h-5 text-muted-foreground shrink-0" />
+                    <p className="mt-1 text-foreground line-clamp-2">{question.content}</p>
+                    <div className="flex items-center gap-2 mt-2 text-sm text-muted-foreground">
+                      <MessageSquare className="w-4 h-4" />
+                      {question.answers.length} {question.answers.length === 1 ? 'answer' : 'answers'}
+                    </div>
                   </div>
-                </CardContent>
-              </Card>
-            );
-          })
+                  <ChevronRight className="w-5 h-5 text-muted-foreground shrink-0" />
+                </div>
+              );
+            })}
+          </div>
         )}
       </main>
 

@@ -1,6 +1,5 @@
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
 import { ArrowLeft, Bell, Heart, MessageCircle, Users, Calendar, Trash2, CheckCheck, Loader2 } from 'lucide-react';
 import { Notification } from '@/types';
 import { useAuth } from '@/contexts/AuthContext';
@@ -73,9 +72,25 @@ const Notifications = () => {
     switch (type) {
       case 'pod_join': return <Users className="w-4 h-4" />;
       case 'post_like': return <Heart className="w-4 h-4" />;
-      case 'comment': case 'message': return <MessageCircle className="w-4 h-4" />;
-      case 'event': case 'pitch': return <Calendar className="w-4 h-4" />;
+      case 'comment': return <MessageCircle className="w-4 h-4" />;
+      case 'message': return <MessageCircle className="w-4 h-4" />;
+      case 'event': return <Calendar className="w-4 h-4" />;
+      case 'pitch': return <Calendar className="w-4 h-4" />;
+      case 'general': return <Bell className="w-4 h-4" />;
       default: return <Bell className="w-4 h-4" />;
+    }
+  };
+
+  const getIconColor = (type: Notification['type']) => {
+    switch (type) {
+      case 'pod_join': return 'bg-blue-500/10 text-blue-500';
+      case 'post_like': return 'bg-pink-500/10 text-pink-500';
+      case 'comment': return 'bg-green-500/10 text-green-500';
+      case 'message': return 'bg-purple-500/10 text-purple-500';
+      case 'event': return 'bg-orange-500/10 text-orange-500';
+      case 'pitch': return 'bg-amber-500/10 text-amber-500';
+      case 'general': return 'bg-cyan-500/10 text-cyan-500';
+      default: return 'bg-gray-500/10 text-gray-500';
     }
   };
 
@@ -109,7 +124,7 @@ const Notifications = () => {
           )}
         </div>
       </header>
-      <main className="container mx-auto px-4 py-4 max-w-2xl space-y-4">
+      <main className="container mx-auto max-w-2xl">
         {loading ? (
           <div className="flex items-center justify-center py-12">
             <Loader2 className="w-8 h-8 animate-spin text-primary" />
@@ -121,42 +136,38 @@ const Notifications = () => {
             <p className="text-sm text-muted-foreground">You're all caught up!</p>
           </div>
         ) : (
-          notifications.map((notif) => (
-          <Card key={notif.id} className={`${!notif.isRead ? 'border-primary/30 bg-primary/5' : ''}`}>
-            <CardContent className="p-3 flex items-start gap-3">
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${!notif.isRead ? 'bg-primary/10 text-primary' : 'bg-secondary text-muted-foreground'}`}>
-                {getIcon(notif.type)}
+          <div>
+            {notifications.map((notif) => (
+              <div 
+                key={notif.id} 
+                className={`px-4 py-3 flex items-start gap-3 ${!notif.isRead ? 'bg-primary/5' : ''}`}
+              >
+                <div className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 ${getIconColor(notif.type)}`}>
+                  {getIcon(notif.type)}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className={`text-sm font-bold ${!notif.isRead ? 'text-foreground' : 'text-muted-foreground'}`}>
+                    {notif.title}
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{notif.message}</p>
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  <p className="text-xs text-muted-foreground/70 whitespace-nowrap">{formatTime(notif.createdAt)}</p>
+                  {!notif.isRead && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8"
+                      onClick={() => handleMarkAsRead(notif.id)}
+                    >
+                      <CheckCheck className="w-4 h-4" />
+                    </Button>
+                  )}
+                </div>
               </div>
-              <div className="flex-1 min-w-0">
-                <p className={`text-sm font-medium ${!notif.isRead ? 'text-foreground' : 'text-muted-foreground'}`}>
-                  {notif.title}
-                </p>
-                <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{notif.message}</p>
-                <p className="text-xs text-muted-foreground mt-1">{formatTime(notif.createdAt)}</p>
-              </div>
-              <div className="flex items-center gap-0.5 shrink-0">
-                {!notif.isRead && (
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-7 w-7"
-                    onClick={() => handleMarkAsRead(notif.id)}
-                  >
-                    <CheckCheck className="w-3.5 h-3.5" />
-                  </Button>
-                )}
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-7 w-7 text-muted-foreground hover:text-destructive"
-                  onClick={() => handleDelete(notif.id)}
-                >
-                  <Trash2 className="w-3.5 h-3.5" />
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        )))}
+            ))}
+          </div>
+        )}
       </main>
     </div>
   );

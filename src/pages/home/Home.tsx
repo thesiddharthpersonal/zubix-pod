@@ -9,7 +9,7 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { Image, Video, Send, Heart, MessageCircle, Share2, MoreHorizontal, Plus, Info, Edit, Trash2, X, Building2, BadgeCheck } from 'lucide-react';
+import { Image, Video, Send, Heart, MessageCircle, Share2, MoreHorizontal, Plus, Info, Edit, Trash2, X, Building2, BadgeCheck, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Post, User, Pod } from '@/types';
 import BottomNav from '@/components/layout/BottomNav';
@@ -79,6 +79,63 @@ const Home = () => {
     return matchesPod && matchesFilter;
   });
 
+  const compressImage = async (file: File, maxSizeMB: number): Promise<File> => {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          let width = img.width;
+          let height = img.height;
+          
+          // Calculate dimensions to maintain aspect ratio
+          const maxDimension = 1920; // Max width or height
+          if (width > height && width > maxDimension) {
+            height = (height * maxDimension) / width;
+            width = maxDimension;
+          } else if (height > maxDimension) {
+            width = (width * maxDimension) / height;
+            height = maxDimension;
+          }
+          
+          canvas.width = width;
+          canvas.height = height;
+          
+          const ctx = canvas.getContext('2d');
+          ctx?.drawImage(img, 0, 0, width, height);
+          
+          // Start with high quality and reduce if needed
+          let quality = 0.9;
+          const tryCompress = () => {
+            canvas.toBlob(
+              (blob) => {
+                if (blob) {
+                  const sizeMB = blob.size / (1024 * 1024);
+                  if (sizeMB > maxSizeMB && quality > 0.1) {
+                    quality -= 0.1;
+                    tryCompress();
+                  } else {
+                    const compressedFile = new File([blob], file.name, {
+                      type: 'image/jpeg',
+                      lastModified: Date.now(),
+                    });
+                    resolve(compressedFile);
+                  }
+                }
+              },
+              'image/jpeg',
+              quality
+            );
+          };
+          tryCompress();
+        };
+        img.src = e.target?.result as string;
+      };
+      reader.readAsDataURL(file);
+    });
+  };
+
   const handleMediaSelect = async (e: React.ChangeEvent<HTMLInputElement>, type: 'image' | 'video') => {
     const files = Array.from(e.target.files || []);
     if (files.length === 0) return;
@@ -94,15 +151,30 @@ const Home = () => {
       return;
     }
 
-    // Validate file size (5MB for images, 50MB for videos)
     const maxSize = type === 'image' ? 5 * 1024 * 1024 : 50 * 1024 * 1024;
-    const oversizedFiles = files.filter(file => file.size > maxSize);
-    if (oversizedFiles.length > 0) {
-      toast.error(`File size exceeds ${type === 'image' ? '5MB' : '50MB'} limit`);
-      return;
+    const processedFiles: File[] = [];
+
+    // Process each file
+    for (const file of files) {
+      if (file.size > maxSize) {
+        if (type === 'image') {
+          // Compress images automatically
+          toast.info(`Compressing ${file.name}...`);
+          const compressed = await compressImage(file, 5);
+          processedFiles.push(compressed);
+          toast.success(`${file.name} compressed successfully`);
+        } else {
+          // Videos over 50MB are rejected (compression too complex for client-side)
+          toast.error(`${file.name} exceeds 50MB limit. Please use a video editing app to compress it first.`);
+        }
+      } else {
+        processedFiles.push(file);
+      }
     }
 
-    setMediaFiles([...mediaFiles, ...files]);
+    if (processedFiles.length > 0) {
+      setMediaFiles([...mediaFiles, ...processedFiles]);
+    }
   };
 
   const removeMediaFile = (index: number) => {
@@ -311,113 +383,21 @@ const Home = () => {
           </TabsList>
         </Tabs>
 
-        {/* Create Post */}
-        <Card className="mb-6">
+        {/* Create Post Button */}
+        <Card className="mb-6 cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate('/create-post')}>
           <CardContent className="p-4">
-            <div className="flex gap-3">
+            <div className="flex items-center gap-3">
               <Avatar className="w-10 h-10">
                 <AvatarImage src={user?.profilePhoto} />
                 <AvatarFallback>{user?.fullName?.charAt(0) || 'U'}</AvatarFallback>
               </Avatar>
-              <div className="flex-1">
-                {/* Pod Selector */}
-                <div className="mb-3">
-                  <Select value={postToPodId} onValueChange={setPostToPodId}>
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Select a pod to post in *" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {joinedPods.map((pod) => (
-                        <SelectItem key={pod.id} value={pod.id}>
-                          {pod.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <MentionInput
-                  value={newPostContent}
-                  onChange={setNewPostContent}
-                  placeholder="Share an update... (use @ to mention)"
-                  className="min-h-[80px] resize-none border-0 p-0 focus-visible:ring-0"
-                  rows={3}
-                />
-                {/* Media Preview */}
-                {mediaFiles.length > 0 && (
-                  <div className="grid grid-cols-2 gap-2 mt-3">
-                    {mediaFiles.map((file, index) => (
-                      <div key={index} className="relative">
-                        {file.type.startsWith('image/') ? (
-                          <img
-                            src={URL.createObjectURL(file)}
-                            alt="Preview"
-                            className="w-full h-32 object-cover rounded-lg"
-                          />
-                        ) : (
-                          <video
-                            src={URL.createObjectURL(file)}
-                            className="w-full h-32 object-cover rounded-lg"
-                          />
-                        )}
-                        <Button
-                          variant="ghost"
-                          size="icon-sm"
-                          className="absolute top-1 right-1 bg-black/50 hover:bg-black/70"
-                          onClick={() => removeMediaFile(index)}
-                        >
-                          <Plus className="w-4 h-4 text-white rotate-45" />
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-                <div className="flex items-center justify-between mt-3 pt-3 border-t border-border">
-                  <div className="flex gap-2">
-                    <Button variant="ghost" size="icon-sm" asChild>
-                      <label className="cursor-pointer">
-                        <Image className="w-5 h-5 text-muted-foreground" />
-                        <input
-                          type="file"
-                          accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
-                          multiple
-                          className="hidden"
-                          onChange={(e) => handleMediaSelect(e, 'image')}
-                        />
-                      </label>
-                    </Button>
-                    <Button variant="ghost" size="icon-sm" asChild>
-                      <label className="cursor-pointer">
-                        <Video className="w-5 h-5 text-muted-foreground" />
-                        <input
-                          type="file"
-                          accept="video/mp4,video/webm,video/ogg,video/quicktime,video/x-m4v,video/hevc"
-                          multiple
-                          className="hidden"
-                          onChange={(e) => handleMediaSelect(e, 'video')}
-                        />
-                      </label>
-                    </Button>
-                  </div>
-                  <Button
-                    variant="hero"
-                    size="sm"
-                    onClick={handleCreatePost}
-                    disabled={(!newPostContent.trim() && mediaFiles.length === 0) || uploadingMedia}
-                  >
-                    {uploadingMedia ? (
-                      <>
-                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                        Uploading...
-                      </>
-                    ) : (
-                      <>
-                        <Send className="w-4 h-4" />
-                        Post
-                      </>
-                    )}
-                  </Button>
-                </div>
+              <div className="flex-1 bg-secondary rounded-full px-4 py-2.5 text-muted-foreground">
+                Share an update...
               </div>
+              <Button variant="hero" size="sm">
+                <Send className="w-4 h-4 mr-2" />
+                Post
+              </Button>
             </div>
           </CardContent>
         </Card>
@@ -565,7 +545,51 @@ const PostCard = ({
   const [newComment, setNewComment] = useState('');
   const [loadingComments, setLoadingComments] = useState(false);
   const [submittingComment, setSubmittingComment] = useState(false);
+  const [activeMediaIndex, setActiveMediaIndex] = useState(0);
+  const [videoPoster, setVideoPoster] = useState<{ [key: string]: string }>({});
+  const videoRefs = useState<{ [key: string]: HTMLVideoElement | null }>({})[0];
   const timeAgo = getTimeAgo(post.createdAt);
+
+  // Pause videos when they're not visible
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          const videoId = entry.target.getAttribute('data-video-id');
+          if (videoId && videoRefs[videoId]) {
+            if (!entry.isIntersecting) {
+              videoRefs[videoId]?.pause();
+            }
+          }
+        });
+      },
+      { threshold: 0.5 } // Pause when less than 50% visible
+    );
+
+    // Observe all videos in this post
+    Object.values(videoRefs).forEach((video) => {
+      if (video) observer.observe(video);
+    });
+
+    return () => observer.disconnect();
+  }, [videoRefs]);
+
+  const generateVideoPoster = (videoUrl: string, index: number) => {
+    const video = document.createElement('video');
+    video.crossOrigin = 'anonymous';
+    video.src = videoUrl;
+    video.currentTime = 0.1;
+    
+    video.addEventListener('loadeddata', () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      const ctx = canvas.getContext('2d');
+      ctx?.drawImage(video, 0, 0, canvas.width, canvas.height);
+      const posterUrl = canvas.toDataURL('image/jpeg', 0.8);
+      setVideoPoster(prev => ({ ...prev, [`${post.id}-${index}`]: posterUrl }));
+    });
+  };
 
   // Get pod owner ID
   const pod = joinedPods.find(p => p.id === post.podId);
@@ -609,7 +633,7 @@ const PostCard = ({
   return (
     <Card>
       <CardContent className="p-4">
-        <div className="flex items-start gap-3">
+        <div className="flex items-start gap-3 mb-3">
           <Avatar 
             className="w-10 h-10 cursor-pointer hover:ring-2 hover:ring-primary/50 transition-all"
             onClick={() => post.postedByTeamMember && post.pod ? onPodClick(post.podId) : onUserClick(post.author)}
@@ -623,25 +647,24 @@ const PostCard = ({
               {post.postedByTeamMember && post.pod ? post.pod.name.charAt(0) : post.author.fullName.charAt(0)}
             </AvatarFallback>
           </Avatar>
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="flex items-center gap-2">
-                  <span 
-                    className="font-medium text-foreground cursor-pointer hover:text-primary hover:underline transition-colors"
-                    onClick={() => post.postedByTeamMember && post.pod ? onPodClick(post.podId) : onUserClick(post.author)}
-                  >
-                    {post.postedByTeamMember && post.pod ? post.pod.name : post.author.fullName}
-                  </span>
-                  {post.isOwnerPost && !post.postedByTeamMember && (
-                    <Badge variant="secondary" className="text-xs">Owner</Badge>
-                  )}
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  {timeAgo}
-                </p>
+          <div className="flex-1 min-w-0 flex items-center justify-between">
+            <div>
+              <div className="flex items-center gap-2">
+                <span 
+                  className="font-medium text-foreground cursor-pointer hover:text-primary hover:underline transition-colors"
+                  onClick={() => post.postedByTeamMember && post.pod ? onPodClick(post.podId) : onUserClick(post.author)}
+                >
+                  {post.postedByTeamMember && post.pod ? post.pod.name : post.author.fullName}
+                </span>
+                {post.isOwnerPost && !post.postedByTeamMember && (
+                  <Badge variant="secondary" className="text-xs">Owner</Badge>
+                )}
               </div>
-              {currentUser?.id === post.authorId && (
+              <p className="text-[11px] text-muted-foreground">
+                {timeAgo}
+              </p>
+            </div>
+            {currentUser?.id === post.authorId && (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" size="icon-sm">
@@ -670,39 +693,125 @@ const PostCard = ({
                   </DropdownMenuContent>
                 </DropdownMenu>
               )}
-            </div>
-            <MentionText 
-              content={post.content}
-              onMentionClick={onMentionClick}
-              className="mt-2 text-foreground whitespace-pre-wrap"
-            />
-            
-            {/* Media Display */}
-            {post.mediaUrls && post.mediaUrls.length > 0 && (
-              <div className={`mt-3 grid gap-2 ${post.mediaUrls.length === 1 ? 'grid-cols-1' : 'grid-cols-2'}`}>
-                {post.mediaUrls.map((url, index) => (
-                  <div key={`${post.id}-media-${index}`} className="rounded-lg overflow-hidden bg-secondary flex items-center justify-center" style={{ maxHeight: post.mediaUrls.length === 1 ? '60vh' : '40vh' }}>
-                    {url.match(/\.(jpg|jpeg|png|gif|webp)$/i) ? (
-                      <img 
-                        src={url} 
-                        alt={`Media ${index + 1}`} 
-                        className="w-full h-full object-contain"
-                        style={{ maxHeight: post.mediaUrls.length === 1 ? '60vh' : '40vh' }}
-                      />
-                    ) : (
-                      <video 
-                        src={url} 
-                        controls 
-                        className="w-full h-auto"
-                        style={{ maxHeight: post.mediaUrls.length === 1 ? '60vh' : '40vh' }}
-                      />
+          </div>
+        </div>
+        
+        <div>
+          <MentionText 
+            content={post.content}
+            onMentionClick={onMentionClick}
+            className="text-foreground whitespace-pre-wrap"
+          />
+          
+          {/* Media Display */}
+          {post.mediaUrls && post.mediaUrls.length > 0 && (
+              <div className="mt-3 relative group">
+                <div 
+                  id={`media-container-${post.id}`}
+                  className="flex gap-2 overflow-x-auto snap-x snap-mandatory scrollbar-hide"
+                  onScroll={(e) => {
+                    const container = e.currentTarget;
+                    const scrollLeft = container.scrollLeft;
+                    const itemWidth = container.offsetWidth;
+                    const newIndex = Math.round(scrollLeft / itemWidth);
+                    setActiveMediaIndex(newIndex);
+                  }}
+                >
+                  {post.mediaUrls.map((url, index) => (
+                    <div key={`${post.id}-media-${index}`} className="flex-shrink-0 snap-center w-full rounded-lg overflow-hidden bg-secondary flex items-center justify-center" style={{ maxHeight: '60vh' }}>
+                      {url.match(/\.(jpg|jpeg|png|gif|webp)$/i) ? (
+                        <img 
+                          src={url} 
+                          alt={`Media ${index + 1}`} 
+                          className="w-full h-full object-contain"
+                          style={{ maxHeight: '60vh' }}
+                        />
+                      ) : (
+                        <video 
+                          ref={(el) => {
+                            if (el) videoRefs[`${post.id}-${index}`] = el;
+                          }}
+                          data-video-id={`${post.id}-${index}`}
+                          src={url} 
+                          controls 
+                          preload="metadata"
+                          playsInline
+                          poster={videoPoster[`${post.id}-${index}`]}
+                          className="w-full h-auto bg-muted"
+                          style={{ maxHeight: '60vh' }}
+                          onLoadedMetadata={() => {
+                            if (!videoPoster[`${post.id}-${index}`]) {
+                              generateVideoPoster(url, index);
+                            }
+                          }}
+                        />
+                      )}
+                    </div>
+                  ))}
+                </div>
+                {post.mediaUrls.length > 1 && (
+                  <>
+                    {/* Previous Button */}
+                    {activeMediaIndex > 0 && (
+                      <button
+                        onClick={() => {
+                          const container = document.getElementById(`media-container-${post.id}`);
+                          if (container) {
+                            container.scrollTo({
+                              left: container.offsetWidth * (activeMediaIndex - 1),
+                              behavior: 'smooth'
+                            });
+                          }
+                        }}
+                        className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white rounded-full p-1.5 opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <ChevronLeft className="w-5 h-5" />
+                      </button>
                     )}
+                    {/* Next Button */}
+                    {activeMediaIndex < post.mediaUrls.length - 1 && (
+                      <button
+                        onClick={() => {
+                          const container = document.getElementById(`media-container-${post.id}`);
+                          if (container) {
+                            container.scrollTo({
+                              left: container.offsetWidth * (activeMediaIndex + 1),
+                              behavior: 'smooth'
+                            });
+                          }
+                        }}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white rounded-full p-1.5 opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <ChevronRight className="w-5 h-5" />
+                      </button>
+                    )}
+                  </>
+                )}
+                {post.mediaUrls.length > 1 && (
+                  <div className="flex justify-center gap-1.5 mt-2">
+                    {post.mediaUrls.map((_, index) => (
+                      <button
+                        key={`${post.id}-dot-${index}`}
+                        onClick={(e) => {
+                          const container = e.currentTarget.parentElement?.previousElementSibling as HTMLElement;
+                          if (container) {
+                            container.scrollTo({
+                              left: container.offsetWidth * index,
+                              behavior: 'smooth'
+                            });
+                          }
+                        }}
+                        className={`w-1.5 h-1.5 rounded-full transition-colors cursor-pointer hover:scale-125 ${
+                          index === activeMediaIndex ? 'bg-orange-500' : 'bg-muted-foreground/30 hover:bg-muted-foreground/50'
+                        }`}
+                      />
+                    ))}
                   </div>
-                ))}
+                )}
               </div>
             )}
 
-            <div className="flex items-center gap-6 mt-4">
+          <div className="flex items-center gap-6 mt-4">
               <button
                 onClick={onLike}
                 className={`flex items-center gap-1.5 text-sm transition-colors ${
@@ -725,11 +834,11 @@ const PostCard = ({
               >
                 <Share2 className="w-5 h-5" />
               </button>
-            </div>
+          </div>
 
-            {/* Comments Section */}
-            {showComments && (
-              <div className="mt-4 pt-4 border-t border-border">
+          {/* Comments Section */}
+          {showComments && (
+            <div className="mt-4 pt-4 border-t border-border">
                 {loadingComments ? (
                   <p className="text-sm text-muted-foreground">Loading comments...</p>
                 ) : (
@@ -768,8 +877,8 @@ const PostCard = ({
                     </div>
 
                     {/* Add Comment */}
-                    <div className="flex gap-2 items-end">
-                      <Avatar className="w-8 h-8 flex-shrink-0">
+                    <div className="flex gap-2 items-start">
+                      <Avatar className="w-8 h-8 shrink-0 mt-0">
                         <AvatarImage src={currentUser?.profilePhoto} />
                         <AvatarFallback>{currentUser?.fullName?.charAt(0) || 'U'}</AvatarFallback>
                       </Avatar>
@@ -777,17 +886,17 @@ const PostCard = ({
                         <MentionInput
                           value={newComment}
                           onChange={setNewComment}
-                          placeholder="Write a comment... (Type @ to mention)"
+                          placeholder="Write a comment..."
                           rows={1}
-                          className="w-full"
+                          className="min-h-[40px] h-[40px] w-full resize-none"
                           disabled={submittingComment}
                         />
                       </div>
                       <Button 
-                        size="sm" 
+                        size="icon" 
                         onClick={handleAddComment}
                         disabled={!newComment.trim() || submittingComment}
-                        className="flex-shrink-0 h-10"
+                        className="h-10 w-10 shrink-0 mt-0"
                       >
                         {submittingComment ? (
                           <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -798,9 +907,8 @@ const PostCard = ({
                     </div>
                   </>
                 )}
-              </div>
-            )}
-          </div>
+            </div>
+          )}
         </div>
       </CardContent>
 

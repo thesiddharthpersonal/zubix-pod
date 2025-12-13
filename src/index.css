@@ -237,4 +237,14 @@
   input[type="time"]:hover::-webkit-calendar-picker-indicator {
     filter: opacity(1);
   }
+
+  /* Hide scrollbar for swipeable elements */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
 }

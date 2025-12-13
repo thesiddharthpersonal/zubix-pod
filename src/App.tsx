@@ -21,6 +21,7 @@ import PodOwnerRegistration from "@/pages/register/PodOwnerRegistration";
 import PendingApproval from "@/pages/PendingApproval";
 import PodDiscovery from "@/pages/discover/PodDiscovery";
 import Home from "@/pages/home/Home";
+import CreatePost from "@/pages/CreatePost";
 import PostDetail from "@/pages/PostDetail";
 import Rooms from "@/pages/rooms/Rooms";
 import RoomChat from "@/pages/rooms/RoomChat";
@@ -123,6 +124,7 @@ const AppRoutes = () => {
       {/* Main App Routes */}
       <Route path="/discover" element={<ProtectedRoute><PodDiscovery /></ProtectedRoute>} />
       <Route path="/home" element={<ProtectedRoute><Home /></ProtectedRoute>} />
+      <Route path="/create-post" element={<ProtectedRoute><CreatePost /></ProtectedRoute>} />
       <Route path="/post/:postId" element={<ProtectedRoute><PostDetail /></ProtectedRoute>} />
       <Route path="/rooms" element={<ProtectedRoute><Rooms /></ProtectedRoute>} />
       <Route path="/rooms/:roomId/chat" element={<ProtectedRoute><RoomChat /></ProtectedRoute>} />

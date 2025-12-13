@@ -368,7 +368,7 @@ export interface CallBooking {
 export interface Notification {
   id: string;
   userId: string;
-  type: 'pod_join' | 'post_like' | 'comment' | 'message' | 'pitch' | 'event';
+  type: 'pod_join' | 'post_like' | 'comment' | 'message' | 'pitch' | 'event' | 'general';
   title: string;
   message: string;
   isRead: boolean;

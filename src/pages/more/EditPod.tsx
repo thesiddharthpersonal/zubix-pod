@@ -434,7 +434,8 @@ const EditPod = () => {
                   id="podName"
                   value={formData.podName}
                   onChange={(e) => setFormData({ ...formData, podName: e.target.value })}
-                  placeholder="Enter pod name"
+                  placeholder="Enter pod name (maximum 20 characters)"
+                  maxLength={20}
                   required
                 />
               </div>

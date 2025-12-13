@@ -202,4 +202,36 @@ export const podsApi = {
       throw new Error(handleApiError(error));
     }
   },
+
+  // Team Member Management
+  assignTeamMember: async (podId: string, userId: string): Promise<{ message: string; member: any }> => {
+    try {
+      const response = await apiClient.post<{ message: string; member: any }>(
+        `/api/pods/${podId}/members/${userId}/assign-team-member`
+      );
+      return response.data;
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
+  },
+
+  removeTeamMember: async (podId: string, userId: string): Promise<{ message: string; member: any }> => {
+    try {
+      const response = await apiClient.delete<{ message: string; member: any }>(
+        `/api/pods/${podId}/members/${userId}/remove-team-member`
+      );
+      return response.data;
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
+  },
+
+  getTeamMembers: async (podId: string): Promise<any[]> => {
+    try {
+      const response = await apiClient.get<{ teamMembers: any[] }>(`/api/pods/${podId}/team-members`);
+      return response.data.teamMembers;
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
+  },
 };

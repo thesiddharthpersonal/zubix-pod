@@ -30,6 +30,7 @@ import RoomMembers from "@/pages/rooms/RoomMembers";
 import Events from "@/pages/events/Events";
 import More from "@/pages/more/More";
 import EditPod from "@/pages/more/EditPod";
+import PodMembers from "@/pages/more/PodMembers";
 import Chat from "@/pages/chat/Chat";
 import MessageRequests from "@/pages/chat/MessageRequests";
 import BookCall from "@/pages/calls/BookCall";
@@ -130,6 +131,7 @@ const AppRoutes = () => {
       <Route path="/events" element={<ProtectedRoute><Events /></ProtectedRoute>} />
       <Route path="/more" element={<ProtectedRoute><More /></ProtectedRoute>} />
       <Route path="/pods/:podId/edit" element={<ProtectedRoute><EditPod /></ProtectedRoute>} />
+      <Route path="/pods/members" element={<ProtectedRoute><PodMembers /></ProtectedRoute>} />
       <Route path="/startup-ideas" element={<ProtectedRoute><StartupIdeas /></ProtectedRoute>} />
       <Route path="/jobs-internships" element={<ProtectedRoute><JobsInternships /></ProtectedRoute>} />
       <Route path="/idol-pitch-decks" element={<ProtectedRoute><IdolPitchDecks /></ProtectedRoute>} />

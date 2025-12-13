@@ -603,8 +603,11 @@ const PostCard = ({
                 >
                   {post.author.fullName}
                 </span>
-                {post.isOwnerPost && (
+                {post.isOwnerPost && !post.postedByTeamMember && (
                   <Badge variant="secondary" className="ml-2 text-xs">Owner</Badge>
+                )}
+                {post.postedByTeamMember && (
+                  <Badge className="ml-2 text-xs bg-purple-100 text-purple-700 hover:bg-purple-200">Team Member</Badge>
                 )}
                 <p className="text-sm text-muted-foreground">
                   <span 

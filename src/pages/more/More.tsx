@@ -4,7 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Rocket, ChevronRight, ArrowLeft, Settings, HelpCircle, FileText, Users, PhoneCall, Lightbulb, Briefcase } from 'lucide-react';
+import { Rocket, ChevronRight, ArrowLeft, Settings, HelpCircle, FileText, Users, PhoneCall, Lightbulb, Briefcase, UserCog } from 'lucide-react';
 import TopNav from '@/components/layout/TopNav';
 import BottomNav from '@/components/layout/BottomNav';
 import { getManagedPods } from '@/lib/utils';
@@ -16,6 +16,7 @@ const FEATURES = [
   { id: 'jobs-internships', name: 'Jobs & Internships', description: 'Post availability and discover opportunities', icon: Briefcase, available: true, forAll: true, path: '/jobs-internships' },
   { id: 'idol-pitch-decks', name: 'Idol Pitch Decks', description: 'Learn from successful pitch decks', icon: FileText, available: true, forAll: true, path: '/idol-pitch-decks' },
   { id: 'pitch', name: 'Pitch', description: 'Submit your startup pitch to investors', icon: Rocket, available: true, forAll: true, path: '/pitch' },
+  { id: 'manage-members', name: 'Manage Members', description: 'Assign team members and manage roles', icon: UserCog, available: true, forPodOwner: true, path: '/pods/members' },
   { id: 'edit-pod', name: 'Edit Pod Details', description: 'Update your pod information and settings', icon: Settings, available: true, forPodOwner: true },
   { id: 'mentors', name: 'Mentors', description: 'Connect with experienced mentors', icon: Users, available: false, forAll: true },
   { id: 'support', name: 'Support', description: 'Get help and support', icon: HelpCircle, available: false, forAll: true },

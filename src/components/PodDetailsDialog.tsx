@@ -45,7 +45,8 @@ const PodDetailsDialog = ({ pod, isOpen, onClose, isJoined, onJoin, onLeave, onU
 
   const isOwner = currentUserId && pod.ownerId === currentUserId;
   const coOwners = members.filter(m => m.isCoOwner && m.id !== pod.ownerId);
-  const regularMembers = members.filter(m => !m.isCoOwner && m.id !== pod.ownerId);
+  const teamMembers = members.filter(m => m.isTeamMember && !m.isCoOwner && m.id !== pod.ownerId);
+  const regularMembers = members.filter(m => !m.isCoOwner && !m.isTeamMember && m.id !== pod.ownerId);
 
   const handleJoin = () => {
     onJoin();
@@ -198,6 +199,37 @@ const PodDetailsDialog = ({ pod, isOpen, onClose, isJoined, onJoin, onLeave, onU
                       <p className="text-xs text-muted-foreground truncate">@{member.username}</p>
                     </div>
                     <Badge variant="secondary" className="bg-blue-100 text-blue-700 text-xs">Co-Owner</Badge>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Team Members */}
+          {teamMembers.length > 0 && (
+            <div>
+              <div className="flex items-center gap-2 mb-3">
+                <Briefcase className="w-4 h-4 text-purple-500" />
+                <span className="text-sm font-medium text-foreground">Team Members ({teamMembers.length})</span>
+              </div>
+              <div className="space-y-2">
+                {teamMembers.map(member => (
+                  <div 
+                    key={member.id}
+                    className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg cursor-pointer hover:bg-muted transition-colors"
+                    onClick={() => onUserClick?.(member)}
+                  >
+                    <Avatar className="w-10 h-10">
+                      <AvatarImage src={member.profilePhoto} />
+                      <AvatarFallback className="bg-purple-100 text-purple-700 font-semibold">
+                        {member.fullName.charAt(0)}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="min-w-0 flex-1">
+                      <p className="font-medium text-foreground truncate text-sm hover:text-primary transition-colors">{member.fullName}</p>
+                      <p className="text-xs text-muted-foreground truncate">@{member.username}</p>
+                    </div>
+                    <Badge variant="secondary" className="bg-purple-100 text-purple-700 text-xs">Team Member</Badge>
                   </div>
                 ))}
               </div>

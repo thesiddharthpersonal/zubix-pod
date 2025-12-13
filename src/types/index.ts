@@ -9,6 +9,7 @@ export interface User {
   role: 'user' | 'pod_owner' | 'USER' | 'POD_OWNER';
   createdAt: Date;
   isCoOwner?: boolean; // Available when fetched as pod member
+  isTeamMember?: boolean; // Available when fetched as pod member
   joinedAt?: Date; // Available when fetched as pod member
   acceptingCalls?: boolean; // Whether user is accepting call bookings
 }
@@ -68,6 +69,7 @@ export interface Pod {
   owner?: User;
   coOwnerIds: string[];
   coOwners?: User[];
+  teamMembers?: User[];
   memberIds: string[];
   isApproved: boolean;
   isVerified?: boolean;
@@ -75,7 +77,8 @@ export interface Pod {
   createdAt: Date;
   // User-specific fields (available when fetched as joined pods)
   isCoOwner?: boolean; // True if current user is a co-owner of this pod
-  userRole?: 'owner' | 'co-owner' | 'member'; // Current user's role in this pod
+  isTeamMember?: boolean; // True if current user is a team member of this pod
+  userRole?: 'owner' | 'co-owner' | 'team-member' | 'member'; // Current user's role in this pod
 }
 
 export type PodSubcategory =
@@ -123,12 +126,14 @@ export interface Post {
   authorId: string;
   author: User;
   podId: string;
+  pod?: { id: string; name: string };
   content: string;
   mediaUrls: string[];
   mediaType?: 'image' | 'video';
   likes: string[];
   comments: Comment[];
   isOwnerPost: boolean;
+  postedByTeamMember?: boolean;
   createdAt: Date;
 }
 

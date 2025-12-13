@@ -6,6 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Image, Video, Send, Heart, MessageCircle, Share2, MoreHorizontal, Plus, Info, Edit, Trash2, X, Building2, BadgeCheck } from 'lucide-react';
@@ -27,6 +28,7 @@ const Home = () => {
   const { user, joinedPods, joinPod, leavePod } = useAuth();
   const [selectedPod, setSelectedPod] = useState<string>('all');
   const [updateFilter, setUpdateFilter] = useState<'all' | 'owner' | 'members'>('all');
+  const [postToPodId, setPostToPodId] = useState<string>(''); // Pod to post in
   const [newPostContent, setNewPostContent] = useState('');
   const [posts, setPosts] = useState<Post[]>([]);
   const [mediaFiles, setMediaFiles] = useState<File[]>([]);
@@ -110,13 +112,12 @@ const Home = () => {
   const handleCreatePost = async () => {
     if (!newPostContent.trim() && mediaFiles.length === 0) return;
     
+    if (!postToPodId) {
+      toast.error('Please select a pod to post in');
+      return;
+    }
+    
     try {
-      const podId = selectedPod === 'all' ? joinedPods[0]?.id : selectedPod;
-      
-      if (!podId) {
-        toast.error('Please select a pod to post in');
-        return;
-      }
 
       let mediaUrls: string[] = [];
 
@@ -138,7 +139,7 @@ const Home = () => {
       }
 
       const newPost = await postsApi.createPost({
-        podId,
+        podId: postToPodId,
         content: newPostContent,
         mediaUrls,
       });
@@ -150,6 +151,7 @@ const Home = () => {
       });
       setNewPostContent('');
       setMediaFiles([]);
+      setPostToPodId(''); // Reset pod selection
       toast.success('Post created successfully!');
     } catch (error) {
       console.error('Failed to create post:', error);
@@ -318,6 +320,21 @@ const Home = () => {
                 <AvatarFallback>{user?.fullName?.charAt(0) || 'U'}</AvatarFallback>
               </Avatar>
               <div className="flex-1">
+                {/* Pod Selector */}
+                <div className="mb-3">
+                  <Select value={postToPodId} onValueChange={setPostToPodId}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select a pod to post in *" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {joinedPods.map((pod) => (
+                        <SelectItem key={pod.id} value={pod.id}>
+                          {pod.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
                 <MentionInput
                   value={newPostContent}
                   onChange={setNewPostContent}

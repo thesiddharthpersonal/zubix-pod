@@ -16,12 +16,24 @@ const Login = () => {
     password: '',
   });
 
-  // Show toast when loginError appears from AuthContext
+  // Show toast and clear error after a delay so it doesn't persist on refresh
   useEffect(() => {
     if (loginError) {
       toast.error(loginError, { duration: 5000 });
+      // Clear the error after 6 seconds so refresh doesn't show stale error
+      const timer = setTimeout(() => {
+        clearLoginError();
+      }, 6000);
+      return () => clearTimeout(timer);
     }
-  }, [loginError]);
+  }, [loginError, clearLoginError]);
+
+  // Clear error when component unmounts (user navigates away)
+  useEffect(() => {
+    return () => {
+      clearLoginError();
+    };
+  }, [clearLoginError]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -104,6 +116,7 @@ const Login = () => {
                     value={formData.emailOrMobileOrUsername}
                     onChange={(e) => {
                       setFormData({ ...formData, emailOrMobileOrUsername: e.target.value });
+                      if (loginError) clearLoginError(); // Clear error when user starts typing
                     }}
                   />
                 </div>

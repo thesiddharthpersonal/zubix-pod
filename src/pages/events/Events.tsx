@@ -332,16 +332,89 @@ const Events = () => {
           {canManageEvents && (
             <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
               <DialogTrigger asChild><Button variant="hero" size="sm"><Plus className="w-4 h-4" />Create</Button></DialogTrigger>
-              <DialogContent>
-                <DialogHeader><DialogTitle>Create Event</DialogTitle></DialogHeader>
+              <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle>Create Event</DialogTitle>
+                  <p className="text-sm text-muted-foreground mt-1">Fill in the details for your event</p>
+                </DialogHeader>
                 <div className="space-y-4 mt-4">
-                  <div className="space-y-2"><Label>Pod</Label><Select value={newEvent.podId} onValueChange={(v) => setNewEvent({ ...newEvent, podId: v })}><SelectTrigger><SelectValue placeholder="Select a pod" /></SelectTrigger><SelectContent>{managedPods.map(pod => <SelectItem key={pod.id} value={pod.id}>{pod.name}</SelectItem>)}</SelectContent></Select></div>
-                  <div className="space-y-2"><Label>Event Name</Label><Input value={newEvent.name} onChange={(e) => setNewEvent({ ...newEvent, name: e.target.value })} /></div>
-                  <div className="space-y-2"><Label>Type</Label><Select value={newEvent.type} onValueChange={(v) => setNewEvent({ ...newEvent, type: v })}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="ONLINE">Online</SelectItem><SelectItem value="OFFLINE">Offline</SelectItem></SelectContent></Select></div>
-                  <div className="grid grid-cols-2 gap-4"><div className="space-y-2"><Label>Date</Label><Input type="date" value={newEvent.date} onChange={(e) => setNewEvent({ ...newEvent, date: e.target.value })} /></div><div className="space-y-2"><Label>Time</Label><Input type="time" value={newEvent.time} onChange={(e) => setNewEvent({ ...newEvent, time: e.target.value })} /></div></div>
-                  {newEvent.type === 'OFFLINE' && <div className="space-y-2"><Label>Location</Label><Input value={newEvent.location} onChange={(e) => setNewEvent({ ...newEvent, location: e.target.value })} /></div>}
-                  <div className="space-y-2"><Label>Description</Label><Textarea value={newEvent.description} onChange={(e) => setNewEvent({ ...newEvent, description: e.target.value })} rows={3} /></div>
-                  <div className="space-y-2"><Label>Helpline (optional)</Label><Input value={newEvent.helpline} onChange={(e) => setNewEvent({ ...newEvent, helpline: e.target.value })} placeholder="Contact number" /></div>
+                  <div className="space-y-2">
+                    <Label>Pod *</Label>
+                    <Select value={newEvent.podId} onValueChange={(v) => setNewEvent({ ...newEvent, podId: v })}>
+                      <SelectTrigger><SelectValue placeholder="Select a pod" /></SelectTrigger>
+                      <SelectContent>{managedPods.map(pod => <SelectItem key={pod.id} value={pod.id}>{pod.name}</SelectItem>)}</SelectContent>
+                    </Select>
+                    <p className="text-xs text-muted-foreground">Required: Choose which pod is organizing this event</p>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label>Event Name *</Label>
+                    <Input 
+                      value={newEvent.name} 
+                      onChange={(e) => setNewEvent({ ...newEvent, name: e.target.value })} 
+                      placeholder="Enter event name"
+                    />
+                    <p className="text-xs text-muted-foreground">Required: Minimum 3 characters. Enter a clear, descriptive name</p>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label>Event Type *</Label>
+                    <Select value={newEvent.type} onValueChange={(v) => setNewEvent({ ...newEvent, type: v })}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="ONLINE">Online</SelectItem>
+                        <SelectItem value="OFFLINE">Offline</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-muted-foreground">Required: Select whether event is online or in-person</p>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>Date *</Label>
+                      <Input type="date" value={newEvent.date} onChange={(e) => setNewEvent({ ...newEvent, date: e.target.value })} />
+                      <p className="text-xs text-muted-foreground">Required</p>
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Time *</Label>
+                      <Input type="time" value={newEvent.time} onChange={(e) => setNewEvent({ ...newEvent, time: e.target.value })} />
+                      <p className="text-xs text-muted-foreground">Required</p>
+                    </div>
+                  </div>
+                  
+                  {newEvent.type === 'OFFLINE' && (
+                    <div className="space-y-2">
+                      <Label>Location</Label>
+                      <Input 
+                        value={newEvent.location} 
+                        onChange={(e) => setNewEvent({ ...newEvent, location: e.target.value })} 
+                        placeholder="Enter venue address"
+                      />
+                      <p className="text-xs text-muted-foreground">Optional: Add venue details for offline events</p>
+                    </div>
+                  )}
+                  
+                  <div className="space-y-2">
+                    <Label>Description</Label>
+                    <Textarea 
+                      value={newEvent.description} 
+                      onChange={(e) => setNewEvent({ ...newEvent, description: e.target.value })} 
+                      placeholder="Describe your event..."
+                      rows={3} 
+                    />
+                    <p className="text-xs text-muted-foreground">Optional: Provide event details, agenda, or additional information</p>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label>Helpline Number</Label>
+                    <Input 
+                      value={newEvent.helpline} 
+                      onChange={(e) => setNewEvent({ ...newEvent, helpline: e.target.value })} 
+                      placeholder="Contact number for inquiries"
+                    />
+                    <p className="text-xs text-muted-foreground">Optional: Add contact number for event-related queries</p>
+                  </div>
+                  
                   <Button variant="hero" className="w-full" onClick={handleCreate}>Create Event</Button>
                 </div>
               </DialogContent>
@@ -717,14 +790,17 @@ const Events = () => {
           <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Edit Event</DialogTitle>
+              <p className="text-sm text-muted-foreground mt-1">Update your event details</p>
             </DialogHeader>
             <div className="space-y-4 mt-4">
-              <div>
+              <div className="space-y-2">
                 <Label>Event Name *</Label>
                 <Input value={newEvent.name} onChange={(e) => setNewEvent({ ...newEvent, name: e.target.value })} placeholder="Enter event name" />
+                <p className="text-xs text-muted-foreground">Required: Minimum 3 characters</p>
               </div>
-              <div>
-                <Label>Type *</Label>
+              
+              <div className="space-y-2">
+                <Label>Event Type *</Label>
                 <Select value={newEvent.type} onValueChange={(v) => setNewEvent({ ...newEvent, type: v })}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
@@ -732,29 +808,42 @@ const Events = () => {
                     <SelectItem value="OFFLINE">Offline</SelectItem>
                   </SelectContent>
                 </Select>
+                <p className="text-xs text-muted-foreground">Required: Select event type</p>
               </div>
-              <div>
-                <Label>Date *</Label>
-                <Input type="date" value={newEvent.date} onChange={(e) => setNewEvent({ ...newEvent, date: e.target.value })} />
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Date *</Label>
+                  <Input type="date" value={newEvent.date} onChange={(e) => setNewEvent({ ...newEvent, date: e.target.value })} />
+                  <p className="text-xs text-muted-foreground">Required</p>
+                </div>
+                <div className="space-y-2">
+                  <Label>Time *</Label>
+                  <Input type="time" value={newEvent.time} onChange={(e) => setNewEvent({ ...newEvent, time: e.target.value })} />
+                  <p className="text-xs text-muted-foreground">Required</p>
+                </div>
               </div>
-              <div>
-                <Label>Time *</Label>
-                <Input type="time" value={newEvent.time} onChange={(e) => setNewEvent({ ...newEvent, time: e.target.value })} />
-              </div>
+              
               {newEvent.type === 'OFFLINE' && (
-                <div>
+                <div className="space-y-2">
                   <Label>Location</Label>
-                  <Input value={newEvent.location} onChange={(e) => setNewEvent({ ...newEvent, location: e.target.value })} placeholder="Enter location" />
+                  <Input value={newEvent.location} onChange={(e) => setNewEvent({ ...newEvent, location: e.target.value })} placeholder="Enter venue address" />
+                  <p className="text-xs text-muted-foreground">Optional: Venue details for offline events</p>
                 </div>
               )}
-              <div>
+              
+              <div className="space-y-2">
                 <Label>Description</Label>
-                <Textarea value={newEvent.description} onChange={(e) => setNewEvent({ ...newEvent, description: e.target.value })} placeholder="Event description" rows={3} />
+                <Textarea value={newEvent.description} onChange={(e) => setNewEvent({ ...newEvent, description: e.target.value })} placeholder="Describe your event..." rows={3} />
+                <p className="text-xs text-muted-foreground">Optional: Event details and agenda</p>
               </div>
-              <div>
-                <Label>Helpline</Label>
-                <Input value={newEvent.helpline} onChange={(e) => setNewEvent({ ...newEvent, helpline: e.target.value })} placeholder="Contact number" />
+              
+              <div className="space-y-2">
+                <Label>Helpline Number</Label>
+                <Input value={newEvent.helpline} onChange={(e) => setNewEvent({ ...newEvent, helpline: e.target.value })} placeholder="Contact number for inquiries" />
+                <p className="text-xs text-muted-foreground">Optional: Contact for queries</p>
               </div>
+              
               <Button variant="hero" className="w-full" onClick={handleUpdate}>Update Event</Button>
             </div>
           </DialogContent>

@@ -89,6 +89,16 @@ const SubmitPitch = () => {
       return;
     }
 
+    if (!formData.website.trim()) {
+      toast.error('Please provide your website');
+      return;
+    }
+
+    if (!pitchDeckFile) {
+      toast.error('Please upload your pitch deck (PDF)');
+      return;
+    }
+
     try {
       setLoading(true);
       const pitch = await pitchesApi.createPitch({
@@ -196,7 +206,7 @@ const SubmitPitch = () => {
               </div>
 
               <div className="space-y-2">
-                <Label>Pitch Deck (PDF)</Label>
+                <Label>Pitch Deck (PDF) *</Label>
                 <div
                   className="border-2 border-dashed border-border rounded-lg p-6 text-center cursor-pointer hover:border-primary transition-colors"
                   onClick={() => document.getElementById('pitch-deck-upload')?.click()}
@@ -307,12 +317,13 @@ const SubmitPitch = () => {
               </div>
 
               <div className="space-y-2">
-                <Label>Website</Label>
+                <Label>Website *</Label>
                 <Input
                   value={formData.website}
                   onChange={(e) => setFormData({ ...formData, website: e.target.value })}
                   placeholder="e.g., yourwebsite.com or https://yourwebsite.com"
                   type="text"
+                  required
                 />
               </div>
 

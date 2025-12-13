@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import TopNav from '@/components/layout/TopNav';
@@ -36,14 +36,10 @@ const ReceivedPitches = () => {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
-  const managedPods = getManagedPods(joinedPods, user?.id);
+  const managedPods = useMemo(() => getManagedPods(joinedPods, user?.id), [joinedPods, user?.id]);
   const canManage = managedPods.length > 0;
 
-  useEffect(() => {
-    loadPitches();
-  }, [canManage, managedPods]);
-
-  const loadPitches = async () => {
+  const loadPitches = useCallback(async () => {
     if (!user || !canManage) return;
     
     try {
@@ -59,7 +55,11 @@ const ReceivedPitches = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user, canManage, managedPods]);
+
+  useEffect(() => {
+    loadPitches();
+  }, [loadPitches]);
 
   const updateStatus = async (pitchId: string, status: PitchStatus) => {
     try {

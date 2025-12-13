@@ -284,6 +284,37 @@ const Events = () => {
     }
   };
 
+  const handleDownloadCSV = async (eventId: string) => {
+    try {
+      const response = await eventsApi.downloadParticipantsCSV(eventId);
+      
+      // Create a blob from the response
+      const blob = new Blob([response], { type: 'text/csv;charset=utf-8;' });
+      
+      // Create download link
+      const link = document.createElement('a');
+      const url = URL.createObjectURL(blob);
+      link.setAttribute('href', url);
+      
+      // Generate filename
+      const event = events.find(e => e.id === eventId);
+      const eventName = event?.name.replace(/[^a-z0-9]/gi, '_') || 'event';
+      const date = new Date().toISOString().split('T')[0];
+      link.setAttribute('download', `${eventName}_participants_${date}.csv`);
+      
+      // Trigger download
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      
+      toast.success('CSV downloaded successfully!');
+    } catch (error: any) {
+      console.error('Failed to download CSV:', error);
+      toast.error(error.response?.data?.error || 'Failed to download CSV');
+    }
+  };
+
   const canManageEvent = (event: PodEvent) => {
     if (!user) return false;
     const eventPod = joinedPods.find(p => p.id === event.podId);
@@ -545,10 +576,22 @@ const Events = () => {
                   </CardContent>
                 </Card>
 
-                <h4 className="font-semibold mb-3 flex items-center gap-2">
-                  <Users className="w-4 h-4" />
-                  Registered Users ({getRegisteredUsers(selectedEvent.id).length})
-                </h4>
+                <div className="flex items-center justify-between mb-3">
+                  <h4 className="font-semibold flex items-center gap-2">
+                    <Users className="w-4 h-4" />
+                    Registered Users ({getRegisteredUsers(selectedEvent.id).length})
+                  </h4>
+                  {getRegisteredUsers(selectedEvent.id).length > 0 && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleDownloadCSV(selectedEvent.id)}
+                    >
+                      <ClipboardList className="w-4 h-4 mr-2" />
+                      Download CSV
+                    </Button>
+                  )}
+                </div>
 
                 {getRegisteredUsers(selectedEvent.id).length === 0 ? (
                   <div className="text-center py-8 bg-muted/20 rounded-lg">

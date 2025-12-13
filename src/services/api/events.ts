@@ -101,4 +101,16 @@ export const eventsApi = {
       throw new Error(handleApiError(error));
     }
   },
+
+  // Download event participants as CSV (pod owner/co-owner only)
+  downloadParticipantsCSV: async (eventId: string): Promise<string> => {
+    try {
+      const response = await apiClient.get(`/api/events/${eventId}/participants/download`, {
+        responseType: 'text'
+      });
+      return response.data;
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
+  },
 };

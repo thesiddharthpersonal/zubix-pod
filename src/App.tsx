@@ -40,6 +40,10 @@ import Notifications from "@/pages/Notifications";
 import StartupIdeas from "@/pages/StartupIdeas";
 import JobsInternships from "@/pages/JobsInternships";
 import IdolPitchDecks from "@/pages/IdolPitchDecks";
+import PitchOptions from "@/pages/pitch/PitchOptions";
+import SubmitPitch from "@/pages/pitch/SubmitPitch";
+import MyPitches from "@/pages/pitch/MyPitches";
+import ReceivedPitches from "@/pages/pitch/ReceivedPitches";
 import Admin from "@/pages/admin/Admin";
 import AdminUsers from "@/pages/admin/AdminUsers";
 import AdminPods from "@/pages/admin/AdminPods";
@@ -129,6 +133,10 @@ const AppRoutes = () => {
       <Route path="/startup-ideas" element={<ProtectedRoute><StartupIdeas /></ProtectedRoute>} />
       <Route path="/jobs-internships" element={<ProtectedRoute><JobsInternships /></ProtectedRoute>} />
       <Route path="/idol-pitch-decks" element={<ProtectedRoute><IdolPitchDecks /></ProtectedRoute>} />
+      <Route path="/pitch" element={<ProtectedRoute><PitchOptions /></ProtectedRoute>} />
+      <Route path="/pitch/submit" element={<ProtectedRoute><SubmitPitch /></ProtectedRoute>} />
+      <Route path="/pitch/my-pitches" element={<ProtectedRoute><MyPitches /></ProtectedRoute>} />
+      <Route path="/pitch/received" element={<ProtectedRoute><ReceivedPitches /></ProtectedRoute>} />
       <Route path="/chat" element={<ProtectedRoute><Chat /></ProtectedRoute>} />
       <Route path="/chat/:chatId" element={<ProtectedRoute><Chat /></ProtectedRoute>} />
       <Route path="/message-requests" element={<ProtectedRoute><MessageRequests /></ProtectedRoute>} />

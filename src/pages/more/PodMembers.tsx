@@ -5,10 +5,11 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-import { ArrowLeft, Crown, ShieldCheck, Briefcase, Users, UserPlus, UserMinus } from 'lucide-react';
+import { ArrowLeft, Crown, ShieldCheck, Briefcase, Users, UserPlus, UserMinus, Search } from 'lucide-react';
 import { User, Pod } from '@/types';
 import { toast } from 'sonner';
 import { podsApi } from '@/services/api/pods';
@@ -25,6 +26,7 @@ const PodMembers = () => {
   const [actionMember, setActionMember] = useState<User | null>(null);
   const [removeDialogOpen, setRemoveDialogOpen] = useState(false);
   const [actionType, setActionType] = useState<'team' | 'coowner'>('team');
+  const [searchQuery, setSearchQuery] = useState('');
 
   // Get pods managed by current user (owner or co-owner)
   const managedPods = useMemo(() => getManagedPods(joinedPods, user?.id), [joinedPods, user?.id]);
@@ -68,6 +70,16 @@ const PodMembers = () => {
   // Available members for team assignment (regular members only)
   const availableForTeam = regularMembers;
 
+  // Filter members based on search query
+  const filteredMembers = useMemo(() => {
+    if (!searchQuery.trim()) return availableForTeam;
+    const query = searchQuery.toLowerCase();
+    return availableForTeam.filter(m => 
+      m.fullName.toLowerCase().includes(query) || 
+      m.username.toLowerCase().includes(query)
+    );
+  }, [availableForTeam, searchQuery]);
+
   const handleAssignTeamMember = async () => {
     if (!selectedMemberId || !selectedPodId) return;
 
@@ -82,6 +94,7 @@ const PodMembers = () => {
       
       setAssignDialogOpen(false);
       setSelectedMemberId('');
+      setSearchQuery('');
     } catch (error: any) {
       console.error('Failed to assign team member:', error);
       toast.error(error.message || 'Failed to assign team member');
@@ -328,8 +341,14 @@ const PodMembers = () => {
       </main>
 
       {/* Assign Team Member Dialog */}
-      <Dialog open={assignDialogOpen} onOpenChange={setAssignDialogOpen}>
-        <DialogContent>
+      <Dialog open={assignDialogOpen} onOpenChange={(open) => {
+        setAssignDialogOpen(open);
+        if (!open) {
+          setSearchQuery('');
+          setSelectedMemberId('');
+        }
+      }}>
+        <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>Assign Team Member</DialogTitle>
             <DialogDescription>
@@ -338,20 +357,54 @@ const PodMembers = () => {
           </DialogHeader>
 
           <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Select Member</label>
-              <Select value={selectedMemberId} onValueChange={setSelectedMemberId}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Choose a member" />
-                </SelectTrigger>
-                <SelectContent>
-                  {availableForTeam.map(member => (
-                    <SelectItem key={member.id} value={member.id}>
-                      {member.fullName} (@{member.username})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            {/* Search Input */}
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input
+                placeholder="Search by name or username..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-9"
+              />
+            </div>
+
+            {/* Member List */}
+            <div className="space-y-2 max-h-[300px] overflow-y-auto">
+              {filteredMembers.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-4">
+                  {searchQuery ? 'No members found' : 'No available members'}
+                </p>
+              ) : (
+                filteredMembers.map(member => (
+                  <Card 
+                    key={member.id}
+                    className={`cursor-pointer transition-all ${
+                      selectedMemberId === member.id 
+                        ? 'border-primary bg-primary/5' 
+                        : 'hover:border-primary/50'
+                    }`}
+                    onClick={() => setSelectedMemberId(member.id)}
+                  >
+                    <CardContent className="p-3">
+                      <div className="flex items-center gap-3">
+                        <Avatar className="w-10 h-10">
+                          <AvatarImage src={member.profilePhoto} />
+                          <AvatarFallback>{member.fullName.charAt(0)}</AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-sm truncate">{member.fullName}</p>
+                          <p className="text-xs text-muted-foreground truncate">@{member.username}</p>
+                        </div>
+                        {selectedMemberId === member.id && (
+                          <div className="w-5 h-5 rounded-full bg-primary flex items-center justify-center flex-shrink-0">
+                            <div className="w-2 h-2 rounded-full bg-white" />
+                          </div>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))
+              )}
             </div>
           </div>
 

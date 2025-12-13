@@ -126,7 +126,7 @@ export interface Post {
   authorId: string;
   author: User;
   podId: string;
-  pod?: { id: string; name: string };
+  pod?: { id: string; name: string; logo?: string };
   content: string;
   mediaUrls: string[];
   mediaType?: 'image' | 'video';

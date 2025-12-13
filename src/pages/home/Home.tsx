@@ -422,6 +422,10 @@ const Home = () => {
                   onLike={() => handleLike(post.id)}
                   isLiked={post.likes?.includes(user?.id || '') || false}
                   onUserClick={(user) => setSelectedUserForProfile(user)}
+                  onPodClick={(podId) => {
+                    const pod = joinedPods.find(p => p.id === podId);
+                    if (pod) setSelectedPodForDetails(pod);
+                  }}
                   onMentionClick={async (username) => {
                     console.log('Home: Mention clicked on username:', username);
                     try {
@@ -518,6 +522,7 @@ const PostCard = ({
   onLike,
   isLiked,
   onUserClick,
+  onPodClick,
   onMentionClick,
   onShare,
   onPostUpdate,
@@ -529,6 +534,7 @@ const PostCard = ({
   onLike: () => void;
   isLiked: boolean;
   onUserClick: (user: User) => void;
+  onPodClick: (podId: string) => void;
   onMentionClick: (username: string) => void;
   onShare: () => void;
   onPostUpdate: (postId: string, newContent: string) => void;
@@ -589,10 +595,16 @@ const PostCard = ({
         <div className="flex items-start gap-3">
           <Avatar 
             className="w-10 h-10 cursor-pointer hover:ring-2 hover:ring-primary/50 transition-all"
-            onClick={() => onUserClick(post.author)}
+            onClick={() => post.postedByTeamMember && post.pod ? onPodClick(post.podId) : onUserClick(post.author)}
           >
-            <AvatarImage src={post.author.profilePhoto} />
-            <AvatarFallback>{post.author.fullName.charAt(0)}</AvatarFallback>
+            {post.postedByTeamMember && post.pod?.logo ? (
+              <AvatarImage src={post.pod.logo} />
+            ) : (
+              <AvatarImage src={post.author.profilePhoto} />
+            )}
+            <AvatarFallback>
+              {post.postedByTeamMember && post.pod ? post.pod.name.charAt(0) : post.author.fullName.charAt(0)}
+            </AvatarFallback>
           </Avatar>
           <div className="flex-1 min-w-0">
             <div className="flex items-center justify-between">
@@ -600,15 +612,12 @@ const PostCard = ({
                 <div className="flex items-center gap-2">
                   <span 
                     className="font-medium text-foreground cursor-pointer hover:text-primary hover:underline transition-colors"
-                    onClick={() => onUserClick(post.author)}
+                    onClick={() => post.postedByTeamMember && post.pod ? onPodClick(post.podId) : onUserClick(post.author)}
                   >
-                    {post.author.fullName}
+                    {post.postedByTeamMember && post.pod ? post.pod.name : post.author.fullName}
                   </span>
                   {post.isOwnerPost && !post.postedByTeamMember && (
                     <Badge variant="secondary" className="text-xs">Owner</Badge>
-                  )}
-                  {post.postedByTeamMember && (
-                    <Badge className="text-xs bg-purple-100 text-purple-700 hover:bg-purple-200">Team Member</Badge>
                   )}
                 </div>
                 <p className="text-sm text-muted-foreground">

@@ -7,13 +7,14 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Heart, MessageCircle, Share2, MoreHorizontal, Send, ArrowLeft } from 'lucide-react';
-import { Post, User } from '@/types';
+import { Post, User, Pod } from '@/types';
 import { postsApi, reactionsApi, commentsApi, Comment, usersApi } from '@/services/api';
 import { toast } from 'sonner';
 import TopNav from '@/components/layout/TopNav';
 import BottomNav from '@/components/layout/BottomNav';
 import UserProfileDialog from '@/components/UserProfileDialog';
 import SendMessageDialog from '@/components/SendMessageDialog';
+import PodDetailsDialog from '@/components/PodDetailsDialog';
 import MentionInput from '@/components/MentionInput';
 import MentionText from '@/components/MentionText';
 
@@ -28,6 +29,7 @@ const PostDetail = () => {
   const [submittingComment, setSubmittingComment] = useState(false);
   const [selectedUserForProfile, setSelectedUserForProfile] = useState<User | null>(null);
   const [showSendMessageDialog, setShowSendMessageDialog] = useState(false);
+  const [selectedPodForDetails, setSelectedPodForDetails] = useState<Pod | null>(null);
 
   useEffect(() => {
     const fetchPost = async () => {
@@ -180,10 +182,23 @@ const PostDetail = () => {
             <div className="flex items-start gap-3">
               <Avatar 
                 className="w-10 h-10 cursor-pointer hover:ring-2 hover:ring-primary/50 transition-all"
-                onClick={() => setSelectedUserForProfile(post.author)}
+                onClick={() => {
+                  if (post.postedByTeamMember && post.pod) {
+                    const pod = joinedPods.find(p => p.id === post.podId);
+                    if (pod) setSelectedPodForDetails(pod);
+                  } else {
+                    setSelectedUserForProfile(post.author);
+                  }
+                }}
               >
-                <AvatarImage src={post.author.profilePhoto} />
-                <AvatarFallback>{post.author.fullName.charAt(0)}</AvatarFallback>
+                {post.postedByTeamMember && post.pod?.logo ? (
+                  <AvatarImage src={post.pod.logo} />
+                ) : (
+                  <AvatarImage src={post.author.profilePhoto} />
+                )}
+                <AvatarFallback>
+                  {post.postedByTeamMember && post.pod ? post.pod.name.charAt(0) : post.author.fullName.charAt(0)}
+                </AvatarFallback>
               </Avatar>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between">
@@ -191,15 +206,19 @@ const PostDetail = () => {
                     <div className="flex items-center gap-2">
                       <span 
                         className="font-medium text-foreground cursor-pointer hover:text-primary hover:underline transition-colors"
-                        onClick={() => setSelectedUserForProfile(post.author)}
+                        onClick={() => {
+                          if (post.postedByTeamMember && post.pod) {
+                            const pod = joinedPods.find(p => p.id === post.podId);
+                            if (pod) setSelectedPodForDetails(pod);
+                          } else {
+                            setSelectedUserForProfile(post.author);
+                          }
+                        }}
                       >
-                        {post.author.fullName}
+                        {post.postedByTeamMember && post.pod ? post.pod.name : post.author.fullName}
                       </span>
                       {post.isOwnerPost && !post.postedByTeamMember && (
                         <Badge variant="secondary" className="text-xs">Owner</Badge>
-                      )}
-                      {post.postedByTeamMember && (
-                        <Badge className="text-xs bg-purple-100 text-purple-700 hover:bg-purple-200">Team Member</Badge>
                       )}
                     </div>
                     <p className="text-sm text-muted-foreground">
@@ -357,6 +376,21 @@ const PostDetail = () => {
       </main>
 
       <BottomNav />
+
+      {/* Pod Details Dialog */}
+      <PodDetailsDialog
+        pod={selectedPodForDetails}
+        isOpen={!!selectedPodForDetails}
+        onClose={() => setSelectedPodForDetails(null)}
+        isJoined={selectedPodForDetails ? joinedPods.some(p => p.id === selectedPodForDetails.id) : false}
+        onJoin={() => selectedPodForDetails && navigate('/home')}
+        onLeave={() => selectedPodForDetails && navigate('/home')}
+        currentUserId={user?.id}
+        onUserClick={(user) => {
+          setSelectedPodForDetails(null);
+          setSelectedUserForProfile(user);
+        }}
+      />
 
       {/* User Profile Dialog */}
       <UserProfileDialog

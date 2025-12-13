@@ -609,7 +609,7 @@ const Chat = () => {
               </Button>
             </div>
           )}
-          <div className="flex gap-2 items-end">
+          <div className="flex gap-2 items-start w-full">
             <input
               ref={fileInputRef}
               type="file"
@@ -620,22 +620,28 @@ const Chat = () => {
             <Button
               variant="ghost"
               size="icon"
-              className="h-10 w-10"
+              className="h-10 w-10 shrink-0 mt-0"
               onClick={() => fileInputRef.current?.click()}
               disabled={isUploading}
             >
               <Paperclip className="w-5 h-5" />
             </Button>
-            <div className="flex-1">
+            <div className="flex-1 min-w-0">
               <MentionInput
                 value={newMessage}
                 onChange={setNewMessage}
-                placeholder="Type a message... (use @ to mention)"
+                placeholder="Type a message..."
                 rows={1}
-                className="min-h-[40px]"
+                className="min-h-[40px] h-[40px] w-full resize-none"
               />
             </div>
-            <Button variant="hero" size="icon" onClick={handleSend} className="h-10 w-10" disabled={isUploading}>
+            <Button 
+              variant="hero" 
+              size="icon" 
+              onClick={handleSend} 
+              disabled={isUploading || !newMessage.trim()}
+              className="h-10 w-10 shrink-0 mt-0"
+            >
               {isUploading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
             </Button>
           </div>

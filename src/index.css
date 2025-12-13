@@ -206,4 +206,35 @@
   .stagger-3 { animation-delay: 0.3s; }
   .stagger-4 { animation-delay: 0.4s; }
   .stagger-5 { animation-delay: 0.5s; }
+
+  /* Date and Time Input Styling */
+  input[type="date"],
+  input[type="time"] {
+    position: relative;
+    color-scheme: light;
+  }
+
+  .dark input[type="date"],
+  .dark input[type="time"] {
+    color-scheme: dark;
+  }
+
+  /* Show placeholder-like text for empty date/time inputs */
+  input[type="date"]:not(:focus):invalid,
+  input[type="time"]:not(:focus):invalid {
+    color: hsl(var(--muted-foreground));
+  }
+
+  /* Ensure calendar icon is always visible */
+  input[type="date"]::-webkit-calendar-picker-indicator,
+  input[type="time"]::-webkit-calendar-picker-indicator {
+    opacity: 1;
+    cursor: pointer;
+    filter: opacity(0.6);
+  }
+
+  input[type="date"]:hover::-webkit-calendar-picker-indicator,
+  input[type="time"]:hover::-webkit-calendar-picker-indicator {
+    filter: opacity(1);
+  }
 }

@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -10,11 +11,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Search, Bell, MessageCircle, LogOut, User, Settings } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Search, Bell, MessageCircle, LogOut, User, HelpCircle, Phone, Mail } from 'lucide-react';
 
 const TopNav = () => {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
+  const [isHelpDialogOpen, setIsHelpDialogOpen] = useState(false);
 
   const handleLogout = () => {
     logout();
@@ -78,9 +81,9 @@ const TopNav = () => {
                   <User className="w-4 h-4 mr-2" />
                   Profile
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => navigate('/settings')}>
-                  <Settings className="w-4 h-4 mr-2" />
-                  Settings
+                <DropdownMenuItem onClick={() => setIsHelpDialogOpen(true)}>
+                  <HelpCircle className="w-4 h-4 mr-2" />
+                  Help & Support
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleLogout} className="text-destructive">
@@ -92,6 +95,46 @@ const TopNav = () => {
           </div>
         </div>
       </div>
+
+      {/* Help & Support Dialog */}
+      <Dialog open={isHelpDialogOpen} onOpenChange={setIsHelpDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Help & Support</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 mt-4">
+            <div className="flex items-start gap-3 p-3 rounded-lg bg-secondary/50">
+              <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                <Phone className="w-5 h-5 text-primary" />
+              </div>
+              <div className="flex-1">
+                <p className="font-medium text-foreground">Contact Support</p>
+                <p className="text-sm text-muted-foreground">95099 19001</p>
+              </div>
+            </div>
+
+            <div className="flex items-start gap-3 p-3 rounded-lg bg-secondary/50">
+              <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                <Mail className="w-5 h-5 text-primary" />
+              </div>
+              <div className="flex-1">
+                <p className="font-medium text-foreground">Email Support</p>
+                <p className="text-sm text-muted-foreground">contact@zubixapp.com</p>
+              </div>
+            </div>
+
+            <div className="flex items-start gap-3 p-3 rounded-lg bg-secondary/50">
+              <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                <MessageCircle className="w-5 h-5 text-primary" />
+              </div>
+              <div className="flex-1">
+                <p className="font-medium text-foreground">WhatsApp</p>
+                <p className="text-sm text-muted-foreground">95099 19001</p>
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </header>
   );
 };

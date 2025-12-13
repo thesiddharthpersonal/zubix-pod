@@ -542,119 +542,121 @@ const RoomChat = () => {
       </main>
 
       {/* Input */}
-      <div className="sticky bottom-0 bg-background border-t border-border p-4">
-        {replyingTo && (
-          <div className="mb-2 bg-secondary/50 rounded-lg p-2 flex items-start justify-between max-w-2xl mx-auto">
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 mb-1">
-                <Reply className="w-3 h-3 text-muted-foreground" />
-                <p className="text-xs font-medium text-muted-foreground">Replying to {replyingTo.sender.fullName}</p>
+      <div className="sticky bottom-0 bg-background border-t border-border p-3 sm:p-4">
+        <div className="max-w-2xl mx-auto w-full">
+          {replyingTo && (
+            <div className="mb-2 bg-secondary/50 rounded-lg p-2 flex items-start justify-between">
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-1">
+                  <Reply className="w-3 h-3 text-muted-foreground shrink-0" />
+                  <p className="text-xs font-medium text-muted-foreground truncate">Replying to {replyingTo.sender.fullName}</p>
+                </div>
+                <MentionText 
+                  content={replyingTo.content}
+                  onMentionClick={async (username) => {
+                    try {
+                      const user = await usersApi.getUserByUsername(username);
+                      console.log('RoomChat replying: User found:', user);
+                      setSelectedUserForProfile(user);
+                    } catch (error: any) {
+                      console.error('RoomChat replying: Error fetching user:', error);
+                      toast({ title: 'Error', description: 'User not found', variant: 'destructive' });
+                    }
+                  }}
+                  className="text-sm truncate text-foreground block"
+                />
               </div>
-              <MentionText 
-                content={replyingTo.content}
-                onMentionClick={async (username) => {
-                  try {
-                    const user = await usersApi.getUserByUsername(username);
-                    console.log('RoomChat replying: User found:', user);
-                    setSelectedUserForProfile(user);
-                  } catch (error: any) {
-                    console.error('RoomChat replying: Error fetching user:', error);
-                    toast({ title: 'Error', description: 'User not found', variant: 'destructive' });
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-6 w-6 shrink-0"
+                onClick={() => setReplyingTo(null)}
+              >
+                <X className="w-4 h-4" />
+              </Button>
+            </div>
+          )}
+          
+          {/* File Preview */}
+          {selectedFile && (
+            <div className="flex items-center gap-2 p-2 bg-muted rounded-lg mb-2">
+              {selectedFile.type.startsWith('image/') ? (
+                <img 
+                  src={URL.createObjectURL(selectedFile)} 
+                  alt="Preview" 
+                  className="w-12 h-12 sm:w-16 sm:h-16 object-cover rounded shrink-0"
+                />
+              ) : (
+                <div className="w-12 h-12 sm:w-16 sm:h-16 bg-primary/10 rounded flex items-center justify-center shrink-0">
+                  <Paperclip className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
+                </div>
+              )}
+              <div className="flex-1 min-w-0">
+                <p className="text-xs sm:text-sm font-medium truncate">{selectedFile.name}</p>
+                <p className="text-xs text-muted-foreground">
+                  {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
+                </p>
+              </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 shrink-0"
+                onClick={() => {
+                  setSelectedFile(null);
+                  if (fileInputRef.current) {
+                    fileInputRef.current.value = '';
                   }
                 }}
-                className="text-sm truncate text-foreground block"
-              />
+              >
+                <X className="w-4 h-4" />
+              </Button>
             </div>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-6 w-6 shrink-0"
-              onClick={() => setReplyingTo(null)}
-            >
-              <X className="w-4 h-4" />
-            </Button>
-          </div>
-        )}
-        
-        {/* File Preview */}
-        {selectedFile && (
-          <div className="flex items-center gap-2 p-2 bg-muted rounded-lg max-w-2xl mx-auto mb-2">
-            {selectedFile.type.startsWith('image/') ? (
-              <img 
-                src={URL.createObjectURL(selectedFile)} 
-                alt="Preview" 
-                className="w-16 h-16 object-cover rounded"
-              />
-            ) : (
-              <div className="w-16 h-16 bg-primary/10 rounded flex items-center justify-center">
-                <Paperclip className="w-6 h-6 text-primary" />
-              </div>
-            )}
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium truncate">{selectedFile.name}</p>
-              <p className="text-xs text-muted-foreground">
-                {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
-              </p>
-            </div>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8 shrink-0"
-              onClick={() => {
-                setSelectedFile(null);
-                if (fileInputRef.current) {
-                  fileInputRef.current.value = '';
-                }
-              }}
-            >
-              <X className="w-4 h-4" />
-            </Button>
-          </div>
-        )}
-        
-        <div className="flex gap-2 max-w-2xl mx-auto items-end">
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*,video/*"
-            onChange={handleFileSelect}
-            className="hidden"
-          />
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-10 w-10 shrink-0"
-            onClick={() => fileInputRef.current?.click()}
-            disabled={isUploading || sending}
-          >
-            <Paperclip className="w-5 h-5" />
-          </Button>
-          <div className="flex-1">
-            <MentionInput
-              ref={inputRef}
-              value={newMessage}
-              onChange={setNewMessage}
-              placeholder="Type a message... (use @ to mention)"
-              rows={1}
-              className="min-h-[40px]"
-              disabled={sending}
+          )}
+          
+          <div className="flex gap-2 items-start w-full">
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*,video/*"
+              onChange={handleFileSelect}
+              className="hidden"
             />
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-10 w-10 shrink-0 mt-0"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isUploading || sending}
+            >
+              <Paperclip className="w-5 h-5" />
+            </Button>
+            <div className="flex-1 min-w-0">
+              <MentionInput
+                ref={inputRef}
+                value={newMessage}
+                onChange={setNewMessage}
+                placeholder="Type a message..."
+                rows={1}
+                className="min-h-[40px] h-[40px] w-full resize-none"
+                disabled={sending}
+              />
+            </div>
+            <Button 
+              variant="hero" 
+              size="icon" 
+              onClick={handleSend} 
+              disabled={isUploading || (!newMessage.trim() && !selectedFile) || sending}
+              className="h-10 w-10 shrink-0 mt-0"
+            >
+              {isUploading ? (
+                <Loader2 className="w-5 h-5 animate-spin" />
+              ) : sending ? (
+                <Loader2 className="w-5 h-5 animate-spin" />
+              ) : (
+                <Send className="w-5 h-5" />
+              )}
+            </Button>
           </div>
-          <Button 
-            variant="hero" 
-            size="icon" 
-            onClick={handleSend} 
-            disabled={isUploading || (!newMessage.trim() && !selectedFile) || sending}
-            className="h-10 w-10"
-          >
-            {isUploading ? (
-              <Loader2 className="w-5 h-5 animate-spin" />
-            ) : sending ? (
-              <Loader2 className="w-5 h-5 animate-spin" />
-            ) : (
-              <Send className="w-5 h-5" />
-            )}
-          </Button>
         </div>
       </div>
 

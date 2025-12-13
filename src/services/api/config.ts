@@ -4,7 +4,12 @@ import axios, { AxiosInstance, AxiosError, InternalAxiosRequestConfig } from 'ax
 const APP_ENV = import.meta.env.VITE_APP_ENV || 'development';
 console.log(`App Environment: ${APP_ENV}`);
 const PRODUCTION_API_URL = 'https://podapi.zoobalo.com';
-const DEVELOPMENT_API_URL = 'http://localhost:3000';
+
+// Auto-detect if accessing from mobile device (not localhost)
+const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+const NETWORK_API_URL = 'http://192.168.1.4:3000';
+const LOCALHOST_API_URL = 'http://localhost:3000';
+const DEVELOPMENT_API_URL = isLocalhost ? LOCALHOST_API_URL : NETWORK_API_URL;
 
 // Automatically set API URL based on environment
 export const API_BASE_URL = APP_ENV === 'production' 
@@ -14,6 +19,9 @@ export const API_BASE_URL = APP_ENV === 'production'
 export const WS_URL = APP_ENV === 'production'
   ? PRODUCTION_API_URL
   : (import.meta.env.VITE_WS_URL || DEVELOPMENT_API_URL);
+
+console.log(`API Base URL: ${API_BASE_URL}`);
+console.log(`WebSocket URL: ${WS_URL}`);
 
 // Token management
 const TOKEN_KEY = 'zubix_auth_token';

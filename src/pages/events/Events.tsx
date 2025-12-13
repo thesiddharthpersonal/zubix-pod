@@ -36,6 +36,8 @@ const Events = () => {
   const [editingEvent, setEditingEvent] = useState<PodEvent | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [deletingEvent, setDeletingEvent] = useState<PodEvent | null>(null);
+  const [isDetailOpen, setIsDetailOpen] = useState(false);
+  const [detailEvent, setDetailEvent] = useState<PodEvent | null>(null);
 
   // Check if user owns or co-owns any pods
   const managedPods = useMemo(() => getManagedPods(joinedPods, user?.id), [joinedPods, user?.id]);
@@ -113,6 +115,11 @@ const Events = () => {
 
     fetchSelectedEventParticipants();
   }, [selectedEvent]);
+
+  const openEventDetail = (event: PodEvent) => {
+    setDetailEvent(event);
+    setIsDetailOpen(true);
+  };
 
   const openRegisterDialog = (event: PodEvent) => {
     setRegisteringEvent(event);
@@ -329,97 +336,138 @@ const Events = () => {
       <main className="container mx-auto px-4 py-4 max-w-2xl">
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-2xl font-bold text-foreground">Events</h1>
-          {canManageEvents && (
+          <div className="flex items-center gap-2">
+            {canManageEvents && (
             <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
               <DialogTrigger asChild><Button variant="hero" size="sm"><Plus className="w-4 h-4" />Create</Button></DialogTrigger>
-              <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
-                <DialogHeader>
-                  <DialogTitle>Create Event</DialogTitle>
-                  <p className="text-sm text-muted-foreground mt-1">Fill in the details for your event</p>
+              <DialogContent className="max-w-md w-[calc(100vw-2rem)] max-h-[90vh] overflow-y-auto overflow-x-hidden p-4 sm:p-6">
+                <DialogHeader className="pr-8">
+                  <DialogTitle className="text-lg break-words">Create Event</DialogTitle>
+                  <p className="text-sm text-muted-foreground mt-1 break-words">Fill in the details for your event</p>
                 </DialogHeader>
-                <div className="space-y-4 mt-4">
-                  <div className="space-y-2">
-                    <Label>Pod *</Label>
+                <div className="space-y-3 sm:space-y-4 mt-4 w-full overflow-x-hidden">
+                  <div className="space-y-2 w-full">
+                    <Label className="text-sm">Pod *</Label>
                     <Select value={newEvent.podId} onValueChange={(v) => setNewEvent({ ...newEvent, podId: v })}>
-                      <SelectTrigger><SelectValue placeholder="Select a pod" /></SelectTrigger>
+                      <SelectTrigger className="w-full"><SelectValue placeholder="Select a pod" /></SelectTrigger>
                       <SelectContent>{managedPods.map(pod => <SelectItem key={pod.id} value={pod.id}>{pod.name}</SelectItem>)}</SelectContent>
                     </Select>
-                    <p className="text-xs text-muted-foreground">Required: Choose which pod is organizing this event</p>
+                    <p className="text-xs text-muted-foreground break-words">Required: Choose which pod is organizing this event</p>
                   </div>
                   
-                  <div className="space-y-2">
-                    <Label>Event Name *</Label>
+                  <div className="space-y-2 w-full">
+                    <Label className="text-sm">Event Name *</Label>
                     <Input 
                       value={newEvent.name} 
                       onChange={(e) => setNewEvent({ ...newEvent, name: e.target.value })} 
                       placeholder="Enter event name"
+                      className="w-full"
                     />
-                    <p className="text-xs text-muted-foreground">Required: Minimum 3 characters. Enter a clear, descriptive name</p>
+                    <p className="text-xs text-muted-foreground break-words">Required: Minimum 3 characters. Enter a clear, descriptive name</p>
                   </div>
                   
-                  <div className="space-y-2">
-                    <Label>Event Type *</Label>
+                  <div className="space-y-2 w-full">
+                    <Label className="text-sm">Event Type *</Label>
                     <Select value={newEvent.type} onValueChange={(v) => setNewEvent({ ...newEvent, type: v })}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
                       <SelectContent>
                         <SelectItem value="ONLINE">Online</SelectItem>
                         <SelectItem value="OFFLINE">Offline</SelectItem>
                       </SelectContent>
                     </Select>
-                    <p className="text-xs text-muted-foreground">Required: Select whether event is online or in-person</p>
+                    <p className="text-xs text-muted-foreground break-words">Required: Select whether event is online or in-person</p>
                   </div>
                   
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label>Date *</Label>
-                      <Input type="date" value={newEvent.date} onChange={(e) => setNewEvent({ ...newEvent, date: e.target.value })} />
-                      <p className="text-xs text-muted-foreground">Required</p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 w-full">
+                    <div className="space-y-2 w-full min-w-0">
+                      <Label className="text-sm">Date *</Label>
+                      <Input 
+                        type="date" 
+                        value={newEvent.date} 
+                        onChange={(e) => setNewEvent({ ...newEvent, date: e.target.value })} 
+                        className="w-full [&::-webkit-calendar-picker-indicator]:cursor-pointer"
+                        placeholder="Select date"
+                      />
+                      <p className="text-xs text-muted-foreground break-words">Required</p>
                     </div>
-                    <div className="space-y-2">
-                      <Label>Time *</Label>
-                      <Input type="time" value={newEvent.time} onChange={(e) => setNewEvent({ ...newEvent, time: e.target.value })} />
-                      <p className="text-xs text-muted-foreground">Required</p>
+                    <div className="space-y-2 w-full min-w-0">
+                      <Label className="text-sm">Time *</Label>
+                      <Input 
+                        type="time" 
+                        value={newEvent.time} 
+                        onChange={(e) => setNewEvent({ ...newEvent, time: e.target.value })} 
+                        className="w-full [&::-webkit-calendar-picker-indicator]:cursor-pointer"
+                        placeholder="Select time"
+                      />
+                      <p className="text-xs text-muted-foreground break-words">Required</p>
                     </div>
                   </div>
                   
                   {newEvent.type === 'OFFLINE' && (
-                    <div className="space-y-2">
-                      <Label>Location</Label>
+                    <div className="space-y-2 w-full">
+                      <Label className="text-sm">Location</Label>
                       <Input 
                         value={newEvent.location} 
                         onChange={(e) => setNewEvent({ ...newEvent, location: e.target.value })} 
                         placeholder="Enter venue address"
+                        className="w-full"
                       />
-                      <p className="text-xs text-muted-foreground">Optional: Add venue details for offline events</p>
+                      <p className="text-xs text-muted-foreground break-words">Optional: Add venue details for offline events</p>
                     </div>
                   )}
                   
-                  <div className="space-y-2">
-                    <Label>Description</Label>
+                  <div className="space-y-2 w-full">
+                    <Label className="text-sm">Description</Label>
                     <Textarea 
                       value={newEvent.description} 
                       onChange={(e) => setNewEvent({ ...newEvent, description: e.target.value })} 
                       placeholder="Describe your event..."
                       rows={3} 
+                      className="w-full resize-none"
                     />
-                    <p className="text-xs text-muted-foreground">Optional: Provide event details, agenda, or additional information</p>
+                    <p className="text-xs text-muted-foreground break-words">Optional: Provide event details, agenda, or additional information</p>
                   </div>
                   
-                  <div className="space-y-2">
-                    <Label>Helpline Number</Label>
+                  <div className="space-y-2 w-full">
+                    <Label className="text-sm">Helpline Number</Label>
                     <Input 
                       value={newEvent.helpline} 
                       onChange={(e) => setNewEvent({ ...newEvent, helpline: e.target.value })} 
                       placeholder="Contact number for inquiries"
+                      className="w-full"
                     />
-                    <p className="text-xs text-muted-foreground">Optional: Add contact number for event-related queries</p>
+                    <p className="text-xs text-muted-foreground break-words">Optional: Add contact number for event-related queries</p>
                   </div>
                   
-                  <Button variant="hero" className="w-full" onClick={handleCreate}>Create Event</Button>
+                  <Button variant="hero" className="w-full mt-2" onClick={handleCreate}>Create Event</Button>
                 </div>
               </DialogContent>
             </Dialog>
-          )}
+            )}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm">
+                  <MoreVertical className="w-4 h-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => setActiveTab('all')}>
+                  <Calendar className="w-4 h-4 mr-2" />
+                  All Events
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setActiveTab('registered')}>
+                  <Ticket className="w-4 h-4 mr-2" />
+                  My Registrations ({registeredEvents.length})
+                </DropdownMenuItem>
+                {canManageEvents && (
+                  <DropdownMenuItem onClick={() => setActiveTab('registrations')}>
+                    <ClipboardList className="w-4 h-4 mr-2" />
+                    Event Registrations
+                  </DropdownMenuItem>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </div>
 
         {loading ? (
@@ -458,34 +506,15 @@ const Events = () => {
           </Badge>
         </div>
 
-        {/* Tabs */}
-        <div className="flex gap-2 mb-6 flex-wrap">
-          <Badge
-            variant={activeTab === 'all' ? 'default' : 'outline'}
-            className="cursor-pointer rounded-lg px-4 py-2"
-            onClick={() => setActiveTab('all')}
-          >
-            All Events
-          </Badge>
-          <Badge
-            variant={activeTab === 'registered' ? 'default' : 'outline'}
-            className="cursor-pointer rounded-lg px-4 py-2 flex items-center gap-1"
-            onClick={() => setActiveTab('registered')}
-          >
-            <Ticket className="w-3.5 h-3.5" />
-            My Registrations ({registeredEvents.length})
-          </Badge>
-          {canManageEvents && (
-            <Badge
-              variant={activeTab === 'registrations' ? 'default' : 'outline'}
-              className="cursor-pointer px-4 py-2 flex items-center gap-1"
-              onClick={() => setActiveTab('registrations')}
-            >
-              <ClipboardList className="w-3.5 h-3.5" />
-              Event Registrations
+        {/* Active Tab Indicator */}
+        {activeTab !== 'all' && (
+          <div className="mb-4">
+            <Badge variant="secondary" className="text-sm">
+              {activeTab === 'registered' && `My Registrations (${registeredEvents.length})`}
+              {activeTab === 'registrations' && 'Event Registrations'}
             </Badge>
-          )}
-        </div>
+          </div>
+        )}
 
         {/* My Registered Events */}
         {activeTab === 'registered' && (
@@ -497,7 +526,7 @@ const Events = () => {
               </div>
             ) : (
               registeredEvents.map((event) => (
-                <Card key={event.id} className="card-hover border-primary/20 bg-primary/5">
+                <Card key={event.id} className="card-hover border-primary/20 bg-primary/5 cursor-pointer" onClick={() => openEventDetail(event)}>
                   <CardContent className="p-4">
                     <div className="flex items-start gap-3">
                       <div className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 ${event.type.toUpperCase() === 'ONLINE' ? 'bg-info/10 text-info' : 'bg-accent/10 text-accent'}`}>
@@ -530,25 +559,27 @@ const Events = () => {
               {groupedEvents.map(({ date, dateKey, events: dayEvents }) => (
                 <div key={dateKey}>
                   {/* Date Header */}
-                  <div className="flex items-center gap-3 mb-3">
-                    <div className="bg-primary text-primary-foreground rounded-lg px-3 py-2 text-center min-w-[60px]">
-                      <div className="text-lg font-bold">{format(date, 'd')}</div>
-                      <div className="text-xs uppercase">{format(date, 'MMM')}</div>
-                    </div>
-                    <div>
-                      <div className="font-semibold text-foreground">{format(date, 'EEEE')}</div>
-                      <div className="text-sm text-muted-foreground">{format(date, 'MMMM yyyy')}</div>
+                  <div className="mb-3">
+                    <div className="bg-secondary rounded-lg px-4 py-3 inline-flex items-center gap-3">
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-foreground">{format(date, 'd')}</div>
+                        <div className="text-xs uppercase text-muted-foreground">{format(date, 'MMM')}</div>
+                      </div>
+                      <div className="border-l border-border pl-3">
+                        <div className="font-semibold text-foreground">{format(date, 'EEEE')}</div>
+                        <div className="text-sm text-muted-foreground">{format(date, 'MMMM yyyy')}</div>
+                      </div>
                     </div>
                   </div>
 
                   {/* Events for this date */}
-                  <div className="space-y-3 ml-[72px]">
+                  <div className="space-y-3">
                     {dayEvents.map((event) => {
                       const isRegistered = event.participants?.some(p => p.userId === user?.id);
                       const isCreator = event.createdBy === user?.id;
                       const participantCount = event.participants?.length || 0;
                       return (
-                        <Card key={event.id} className="card-hover">
+                        <Card key={event.id} className="card-hover cursor-pointer" onClick={() => openEventDetail(event)}>
                           <CardContent className="p-4">
                             <div className="flex items-start gap-3">
                               <div className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 ${event.type.toUpperCase() === 'ONLINE' ? 'bg-info/10 text-info' : 'bg-accent/10 text-accent'}`}>
@@ -559,7 +590,7 @@ const Events = () => {
                                   <div className="flex-1">
                                     <h3 className="font-semibold text-foreground">{event.name}</h3>
                                   </div>
-                                  <div className="flex items-center gap-2 shrink-0">
+                                  <div className="flex items-center gap-2 shrink-0" onClick={(e) => e.stopPropagation()}>
                                     <Badge variant="secondary">{event.type}</Badge>
                                     {canManageEvent(event) && (
                                       <DropdownMenu>
@@ -591,7 +622,7 @@ const Events = () => {
                                   {event.location && <span className="flex items-center gap-1"><MapPin className="w-3.5 h-3.5" />{event.location}</span>}
                                   <span className="flex items-center gap-1"><Users className="w-3.5 h-3.5" />{participantCount}</span>
                                 </div>
-                                <div className="mt-3">
+                                <div className="mt-3" onClick={(e) => e.stopPropagation()}>
                                   {isCreator ? (
                                     <Badge variant="outline">Event Creator</Badge>
                                   ) : isRegistered ? (
@@ -787,12 +818,12 @@ const Events = () => {
 
         {/* Edit Event Dialog */}
         <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
-          <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>Edit Event</DialogTitle>
-              <p className="text-sm text-muted-foreground mt-1">Update your event details</p>
+          <DialogContent className="max-w-md w-[calc(100vw-2rem)] max-h-[90vh] overflow-y-auto overflow-x-hidden p-4 sm:p-6">
+            <DialogHeader className="pr-8">
+              <DialogTitle className="text-lg break-words">Edit Event</DialogTitle>
+              <p className="text-sm text-muted-foreground mt-1 break-words">Update your event details</p>
             </DialogHeader>
-            <div className="space-y-4 mt-4">
+            <div className="space-y-3 sm:space-y-4 mt-4 w-full overflow-x-hidden">
               <div className="space-y-2">
                 <Label>Event Name *</Label>
                 <Input value={newEvent.name} onChange={(e) => setNewEvent({ ...newEvent, name: e.target.value })} placeholder="Enter event name" />
@@ -811,40 +842,52 @@ const Events = () => {
                 <p className="text-xs text-muted-foreground">Required: Select event type</p>
               </div>
               
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                 <div className="space-y-2">
                   <Label>Date *</Label>
-                  <Input type="date" value={newEvent.date} onChange={(e) => setNewEvent({ ...newEvent, date: e.target.value })} />
+                  <Input 
+                    type="date" 
+                    value={newEvent.date} 
+                    onChange={(e) => setNewEvent({ ...newEvent, date: e.target.value })} 
+                    className="[&::-webkit-calendar-picker-indicator]:cursor-pointer"
+                    placeholder="Select date"
+                  />
                   <p className="text-xs text-muted-foreground">Required</p>
                 </div>
                 <div className="space-y-2">
                   <Label>Time *</Label>
-                  <Input type="time" value={newEvent.time} onChange={(e) => setNewEvent({ ...newEvent, time: e.target.value })} />
+                  <Input 
+                    type="time" 
+                    value={newEvent.time} 
+                    onChange={(e) => setNewEvent({ ...newEvent, time: e.target.value })} 
+                    className="[&::-webkit-calendar-picker-indicator]:cursor-pointer"
+                    placeholder="Select time"
+                  />
                   <p className="text-xs text-muted-foreground">Required</p>
                 </div>
               </div>
               
               {newEvent.type === 'OFFLINE' && (
-                <div className="space-y-2">
-                  <Label>Location</Label>
-                  <Input value={newEvent.location} onChange={(e) => setNewEvent({ ...newEvent, location: e.target.value })} placeholder="Enter venue address" />
-                  <p className="text-xs text-muted-foreground">Optional: Venue details for offline events</p>
+                <div className="space-y-2 w-full">
+                  <Label className="text-sm">Location</Label>
+                  <Input value={newEvent.location} onChange={(e) => setNewEvent({ ...newEvent, location: e.target.value })} placeholder="Enter venue address" className="w-full" />
+                  <p className="text-xs text-muted-foreground break-words">Optional: Venue details for offline events</p>
                 </div>
               )}
               
-              <div className="space-y-2">
-                <Label>Description</Label>
-                <Textarea value={newEvent.description} onChange={(e) => setNewEvent({ ...newEvent, description: e.target.value })} placeholder="Describe your event..." rows={3} />
-                <p className="text-xs text-muted-foreground">Optional: Event details and agenda</p>
+              <div className="space-y-2 w-full">
+                <Label className="text-sm">Description</Label>
+                <Textarea value={newEvent.description} onChange={(e) => setNewEvent({ ...newEvent, description: e.target.value })} placeholder="Describe your event..." rows={3} className="w-full resize-none" />
+                <p className="text-xs text-muted-foreground break-words">Optional: Event details and agenda</p>
               </div>
               
-              <div className="space-y-2">
-                <Label>Helpline Number</Label>
-                <Input value={newEvent.helpline} onChange={(e) => setNewEvent({ ...newEvent, helpline: e.target.value })} placeholder="Contact number for inquiries" />
-                <p className="text-xs text-muted-foreground">Optional: Contact for queries</p>
+              <div className="space-y-2 w-full">
+                <Label className="text-sm">Helpline Number</Label>
+                <Input value={newEvent.helpline} onChange={(e) => setNewEvent({ ...newEvent, helpline: e.target.value })} placeholder="Contact number for inquiries" className="w-full" />
+                <p className="text-xs text-muted-foreground break-words">Optional: Contact for queries</p>
               </div>
               
-              <Button variant="hero" className="w-full" onClick={handleUpdate}>Update Event</Button>
+              <Button variant="hero" className="w-full mt-2" onClick={handleUpdate}>Update Event</Button>
             </div>
           </DialogContent>
         </Dialog>
@@ -866,6 +909,111 @@ const Events = () => {
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
+
+        {/* Event Detail Dialog */}
+        <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
+          <DialogContent className="max-w-2xl w-[calc(100vw-2rem)] max-h-[90vh] overflow-y-auto">
+            {detailEvent && (
+              <>
+                <DialogHeader>
+                  <DialogTitle className="text-xl">{detailEvent.name}</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-6">
+                  {/* Event Type Badge */}
+                  <div className="flex items-center gap-2">
+                    <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${detailEvent.type.toUpperCase() === 'ONLINE' ? 'bg-info/10 text-info' : 'bg-accent/10 text-accent'}`}>
+                      {detailEvent.type.toUpperCase() === 'ONLINE' ? <Video className="w-6 h-6" /> : <Building2 className="w-6 h-6" />}
+                    </div>
+                    <div>
+                      <Badge variant="secondary" className="text-sm">{detailEvent.type}</Badge>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {detailEvent.type.toUpperCase() === 'ONLINE' ? 'Online Event' : 'In-Person Event'}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Event Details */}
+                  <div className="space-y-4">
+                    <div className="flex items-start gap-3">
+                      <Calendar className="w-5 h-5 text-muted-foreground mt-0.5" />
+                      <div>
+                        <p className="font-medium">Date</p>
+                        <p className="text-sm text-muted-foreground">{format(new Date(detailEvent.date), 'EEEE, MMMM d, yyyy')}</p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-start gap-3">
+                      <Clock className="w-5 h-5 text-muted-foreground mt-0.5" />
+                      <div>
+                        <p className="font-medium">Time</p>
+                        <p className="text-sm text-muted-foreground">{detailEvent.time}</p>
+                      </div>
+                    </div>
+
+                    {detailEvent.location && (
+                      <div className="flex items-start gap-3">
+                        <MapPin className="w-5 h-5 text-muted-foreground mt-0.5" />
+                        <div>
+                          <p className="font-medium">Location</p>
+                          <p className="text-sm text-muted-foreground">{detailEvent.location}</p>
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="flex items-start gap-3">
+                      <Users className="w-5 h-5 text-muted-foreground mt-0.5" />
+                      <div>
+                        <p className="font-medium">Participants</p>
+                        <p className="text-sm text-muted-foreground">{detailEvent.participants?.length || 0} registered</p>
+                      </div>
+                    </div>
+
+                    {detailEvent.helpline && (
+                      <div className="flex items-start gap-3">
+                        <Phone className="w-5 h-5 text-muted-foreground mt-0.5" />
+                        <div>
+                          <p className="font-medium">Helpline</p>
+                          <p className="text-sm text-muted-foreground">{detailEvent.helpline}</p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Description */}
+                  {detailEvent.description && (
+                    <div>
+                      <h3 className="font-semibold mb-2">About this event</h3>
+                      <p className="text-sm text-muted-foreground whitespace-pre-wrap leading-relaxed">
+                        {detailEvent.description}
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Action Button */}
+                  <div className="pt-4 border-t">
+                    {detailEvent.createdBy === user?.id ? (
+                      <div className="flex gap-2">
+                        <Badge variant="outline" className="flex-1 justify-center py-2">Event Creator</Badge>
+                        <Button variant="outline" size="sm" onClick={(e) => { e.stopPropagation(); setIsDetailOpen(false); openEditDialog(detailEvent); }}>
+                          <Pencil className="w-4 h-4 mr-2" />
+                          Edit
+                        </Button>
+                      </div>
+                    ) : detailEvent.participants?.some(p => p.userId === user?.id) ? (
+                      <Button variant="secondary" size="lg" className="w-full" disabled>
+                        ✓ Already Registered
+                      </Button>
+                    ) : (
+                      <Button variant="hero" size="lg" className="w-full" onClick={() => { setIsDetailOpen(false); openRegisterDialog(detailEvent); }}>
+                        Register for Event
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              </>
+            )}
+          </DialogContent>
+        </Dialog>
         </>
         )}
       </main>

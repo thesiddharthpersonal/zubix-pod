@@ -91,17 +91,6 @@ const PitchOptions = () => {
             );
           })}
         </div>
-
-        {!isPodOwner && (
-          <Card className="mt-6 border-muted">
-            <CardContent className="py-4">
-              <p className="text-sm text-muted-foreground text-center">
-                <Inbox className="w-4 h-4 inline mr-1" />
-                Received Pitches option is available for Pod Owners and Co-Owners only
-              </p>
-            </CardContent>
-          </Card>
-        )}
       </main>
 
       <BottomNav />

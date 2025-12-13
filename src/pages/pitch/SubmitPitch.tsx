@@ -36,13 +36,56 @@ const SubmitPitch = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.startupName || !formData.summary || !formData.podId) {
-      toast.error('Please fill in all required fields');
+    // Validate all required fields
+    if (!formData.podId) {
+      toast.error('Please select a pod');
       return;
     }
 
-    if (!formData.stage || !formData.sector) {
-      toast.error('Please select sector and stage');
+    if (!formData.startupName.trim()) {
+      toast.error('Please enter your startup name');
+      return;
+    }
+
+    if (!formData.summary.trim()) {
+      toast.error('Please provide a pitch summary');
+      return;
+    }
+
+    if (!formData.sector) {
+      toast.error('Please select a sector');
+      return;
+    }
+
+    if (!formData.stage) {
+      toast.error('Please select startup stage');
+      return;
+    }
+
+    if (!formData.ask.trim()) {
+      toast.error('Please specify what you are asking for');
+      return;
+    }
+
+    if (!formData.operatingCity.trim()) {
+      toast.error('Please enter operating city');
+      return;
+    }
+
+    if (!formData.contactEmail.trim()) {
+      toast.error('Please provide contact email');
+      return;
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.contactEmail)) {
+      toast.error('Please enter a valid email address');
+      return;
+    }
+
+    if (!formData.contactPhone.trim()) {
+      toast.error('Please provide contact phone number');
       return;
     }
 
@@ -114,6 +157,9 @@ const SubmitPitch = () => {
               <Send className="w-5 h-5" />
               Pitch Details
             </CardTitle>
+            <p className="text-xs text-muted-foreground mt-2">
+              Fields marked with * are required
+            </p>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -241,20 +287,22 @@ const SubmitPitch = () => {
               </div>
 
               <div className="space-y-2">
-                <Label>Ask (Funding Amount)</Label>
+                <Label>Ask (Funding Amount) *</Label>
                 <Input
                   value={formData.ask}
                   onChange={(e) => setFormData({ ...formData, ask: e.target.value })}
                   placeholder="e.g., $500K"
+                  required
                 />
               </div>
 
               <div className="space-y-2">
-                <Label>Operating City</Label>
+                <Label>Operating City *</Label>
                 <Input
                   value={formData.operatingCity}
                   onChange={(e) => setFormData({ ...formData, operatingCity: e.target.value })}
                   placeholder="City where your startup operates"
+                  required
                 />
               </div>
 
@@ -270,21 +318,23 @@ const SubmitPitch = () => {
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label>Contact Email</Label>
+                  <Label>Contact Email *</Label>
                   <Input
                     value={formData.contactEmail}
                     onChange={(e) => setFormData({ ...formData, contactEmail: e.target.value })}
                     placeholder="your@email.com"
                     type="email"
+                    required
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>Contact Phone</Label>
+                  <Label>Contact Phone *</Label>
                   <Input
                     value={formData.contactPhone}
                     onChange={(e) => setFormData({ ...formData, contactPhone: e.target.value })}
                     placeholder="+91 1234567890"
                     type="tel"
+                    required
                   />
                 </div>
               </div>

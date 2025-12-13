@@ -11,6 +11,7 @@ interface AuthContextType {
   selectedRole: 'user' | 'pod_owner' | null;
   pendingPodOwner: Partial<Pod> | null;
   joinedPods: Pod[];
+  loginError: string | null;
   login: (emailOrMobileOrUsername: string, password: string) => Promise<UserProfile | null>;
   signup: (data: SignupData) => Promise<void>;
   logout: () => Promise<void>;
@@ -20,6 +21,7 @@ interface AuthContextType {
   joinPod: (pod: Pod) => void;
   leavePod: (podId: string) => void;
   refreshUser: () => Promise<void>;
+  clearLoginError: () => void;
 }
 
 interface SignupData {
@@ -37,6 +39,19 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [selectedRole, setSelectedRole] = useState<'user' | 'pod_owner' | null>(null);
   const [pendingPodOwner, setPendingPodOwner] = useState<Partial<Pod> | null>(null);
   const [joinedPods, setJoinedPods] = useState<Pod[]>([]);
+  const [loginError, setLoginError] = useState<string | null>(() => {
+    // Initialize from sessionStorage to survive navigation remounts
+    return sessionStorage.getItem('authLoginError');
+  });
+
+  // Persist loginError to sessionStorage
+  useEffect(() => {
+    if (loginError) {
+      sessionStorage.setItem('authLoginError', loginError);
+    } else {
+      sessionStorage.removeItem('authLoginError');
+    }
+  }, [loginError]);
 
   // Check for existing auth token on mount
   useEffect(() => {
@@ -118,10 +133,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       }
       
       toast.success('Login successful!');
+      setLoginError(null); // Clear any previous error
       return userProfile;
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Login failed';
-      toast.error(message);
+      setLoginError(message);
       throw error;
     } finally {
       setIsLoading(false);
@@ -254,6 +270,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         selectedRole,
         pendingPodOwner,
         joinedPods,
+        loginError,
         login,
         signup,
         logout,
@@ -263,6 +280,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         joinPod,
         leavePod,
         refreshUser,
+        clearLoginError: () => setLoginError(null),
       }}
     >
       {children}

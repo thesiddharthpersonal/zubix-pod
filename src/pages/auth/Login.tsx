@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -10,51 +10,54 @@ import { toast } from 'sonner';
 
 const Login = () => {
   const navigate = useNavigate();
-  const { login, isLoading } = useAuth();
+  const { login, isLoading, loginError, clearLoginError } = useAuth();
   const [formData, setFormData] = useState({
     emailOrMobileOrUsername: '',
     password: '',
   });
-  const [errorMessage, setErrorMessage] = useState('');
+
+  // Show toast when loginError appears from AuthContext
+  useEffect(() => {
+    if (loginError) {
+      toast.error(loginError, { duration: 5000 });
+    }
+  }, [loginError]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setErrorMessage(''); // Clear previous errors
+    clearLoginError(); // Clear previous errors
     
     if (!formData.emailOrMobileOrUsername || !formData.password) {
-      const error = 'Please fill in all fields';
-      setErrorMessage(error);
-      toast.error(error);
+      toast.error('Please fill in all fields');
       return;
     }
 
+    let userData;
     try {
-      const userData = await login(formData.emailOrMobileOrUsername, formData.password);
-      
-      if (!userData) {
-        return; // Error already shown by AuthContext
-      }
-      
-      // Check if pod owner has unapproved pods
-      if (userData && (userData as any).role === 'POD_OWNER' && (userData as any).ownedPods?.length > 0) {
-        const hasUnapprovedPod = (userData as any).ownedPods.some((pod: any) => !pod.isApproved);
-        if (hasUnapprovedPod) {
-          navigate('/pending-approval');
-          return;
-        }
-      }
-      
-      // Check if first time login (by checking if user has lastLoginAt field)
-      const isFirstLogin = !(userData as any).lastLoginAt;
-      
-      // First time users go to discover, returning users go to home
-      navigate(isFirstLogin ? '/discover' : '/home');
+      userData = await login(formData.emailOrMobileOrUsername, formData.password);
     } catch (error: any) {
-      console.error('Login error:', error);
-      const errorMsg = error?.message || 'Login failed. Please check your credentials and try again.';
-      setErrorMessage(errorMsg);
-      toast.error(errorMsg);
+      // Error is already set in AuthContext
+      return;
     }
+    
+    if (!userData) {
+      return;
+    }
+    
+    // Check if pod owner has unapproved pods
+    if (userData && (userData as any).role === 'POD_OWNER' && (userData as any).ownedPods?.length > 0) {
+      const hasUnapprovedPod = (userData as any).ownedPods.some((pod: any) => !pod.isApproved);
+      if (hasUnapprovedPod) {
+        navigate('/pending-approval');
+        return;
+      }
+    }
+    
+    // Check if first time login (by checking if user has lastLoginAt field)
+    const isFirstLogin = !(userData as any).lastLoginAt;
+    
+    // First time users go to discover, returning users go to home
+    navigate(isFirstLogin ? '/discover' : '/home');
   };
 
   return (
@@ -86,9 +89,9 @@ const Login = () => {
               <CardDescription>Enter your credentials to access your account</CardDescription>
             </CardHeader>
             <CardContent>
-              {errorMessage && (
+              {loginError && (
                 <div className="mb-4 p-3 rounded-lg bg-destructive/10 border border-destructive/20">
-                  <p className="text-sm text-destructive">{errorMessage}</p>
+                  <p className="text-sm text-destructive">{loginError}</p>
                 </div>
               )}
               <form onSubmit={handleSubmit} className="space-y-4">
@@ -101,7 +104,6 @@ const Login = () => {
                     value={formData.emailOrMobileOrUsername}
                     onChange={(e) => {
                       setFormData({ ...formData, emailOrMobileOrUsername: e.target.value });
-                      setErrorMessage(''); // Clear error on input change
                     }}
                   />
                 </div>
@@ -120,12 +122,16 @@ const Login = () => {
                     value={formData.password}
                     onChange={(e) => {
                       setFormData({ ...formData, password: e.target.value });
-                      setErrorMessage(''); // Clear error on input change
                     }}
                   />
                 </div>
 
-                <Button type="submit" variant="hero" className="w-full" disabled={isLoading}>
+                <Button 
+                  type="submit" 
+                  variant="hero" 
+                  className="w-full" 
+                  disabled={isLoading}
+                >
                   {isLoading ? (
                     <>
                       <Loader2 className="w-4 h-4 animate-spin" />

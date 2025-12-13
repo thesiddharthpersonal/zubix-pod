@@ -85,7 +85,7 @@ const Home = () => {
 
     // Validate file types
     const validImageTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
-    const validVideoTypes = ['video/mp4', 'video/webm', 'video/ogg'];
+    const validVideoTypes = ['video/mp4', 'video/webm', 'video/ogg', 'video/quicktime', 'video/x-m4v', 'video/hevc'];
     const validTypes = type === 'image' ? validImageTypes : validVideoTypes;
 
     const invalidFiles = files.filter(file => !validTypes.includes(file.type));

@@ -15,17 +15,25 @@ const Login = () => {
     emailOrMobileOrUsername: '',
     password: '',
   });
+  const [errorMessage, setErrorMessage] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setErrorMessage(''); // Clear previous errors
     
     if (!formData.emailOrMobileOrUsername || !formData.password) {
-      toast.error('Please fill in all fields');
+      const error = 'Please fill in all fields';
+      setErrorMessage(error);
+      toast.error(error);
       return;
     }
 
     try {
       const userData = await login(formData.emailOrMobileOrUsername, formData.password);
+      
+      if (!userData) {
+        return; // Error already shown by AuthContext
+      }
       
       // Check if pod owner has unapproved pods
       if (userData && (userData as any).role === 'POD_OWNER' && (userData as any).ownedPods?.length > 0) {
@@ -41,9 +49,11 @@ const Login = () => {
       
       // First time users go to discover, returning users go to home
       navigate(isFirstLogin ? '/discover' : '/home');
-    } catch (error) {
-      // Error message already shown by AuthContext
+    } catch (error: any) {
       console.error('Login error:', error);
+      const errorMsg = error?.message || 'Login failed. Please check your credentials and try again.';
+      setErrorMessage(errorMsg);
+      toast.error(errorMsg);
     }
   };
 
@@ -76,6 +86,11 @@ const Login = () => {
               <CardDescription>Enter your credentials to access your account</CardDescription>
             </CardHeader>
             <CardContent>
+              {errorMessage && (
+                <div className="mb-4 p-3 rounded-lg bg-destructive/10 border border-destructive/20">
+                  <p className="text-sm text-destructive">{errorMessage}</p>
+                </div>
+              )}
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="emailOrMobileOrUsername">Email, Mobile, or Username</Label>
@@ -84,7 +99,10 @@ const Login = () => {
                     type="text"
                     placeholder="Enter email, mobile, or username"
                     value={formData.emailOrMobileOrUsername}
-                    onChange={(e) => setFormData({ ...formData, emailOrMobileOrUsername: e.target.value })}
+                    onChange={(e) => {
+                      setFormData({ ...formData, emailOrMobileOrUsername: e.target.value });
+                      setErrorMessage(''); // Clear error on input change
+                    }}
                   />
                 </div>
 
@@ -100,7 +118,10 @@ const Login = () => {
                     type="password"
                     placeholder="Enter your password"
                     value={formData.password}
-                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                    onChange={(e) => {
+                      setFormData({ ...formData, password: e.target.value });
+                      setErrorMessage(''); // Clear error on input change
+                    }}
                   />
                 </div>
 

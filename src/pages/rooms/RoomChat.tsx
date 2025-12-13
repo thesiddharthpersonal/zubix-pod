@@ -32,6 +32,38 @@ import EditRoomDialog from '@/components/EditRoomDialog';
 import MentionInput from '@/components/MentionInput';
 import MentionText from '@/components/MentionText';
 import UserProfileDialog from '@/components/UserProfileDialog';
+import { useSwipe } from '@/hooks/use-swipe';
+
+// SwipeableMessage component for individual messages
+const SwipeableMessage = ({ message, onReply, children }: { message: Message; onReply: () => void; children: React.ReactNode }) => {
+  const { swipeOffset, handlers } = useSwipe({
+    onSwipeLeft: onReply,
+    onSwipeRight: onReply,
+    threshold: 50,
+  });
+
+  return (
+    <div
+      {...handlers}
+      style={{
+        transform: `translateX(${swipeOffset}px)`,
+        transition: swipeOffset === 0 ? 'transform 0.2s ease-out' : 'none',
+      }}
+      className="relative"
+    >
+      {children}
+      {swipeOffset !== 0 && (
+        <div className="absolute top-1/2 -translate-y-1/2 pointer-events-none">
+          <Reply className={`w-5 h-5 text-primary ${swipeOffset > 0 ? 'left-2' : 'right-2'}`} style={{
+            position: 'absolute',
+            [swipeOffset > 0 ? 'left' : 'right']: '8px',
+            opacity: Math.min(Math.abs(swipeOffset) / 50, 1),
+          }} />
+        </div>
+      )}
+    </div>
+  );
+};
 
 const RoomChat = () => {
   const { roomId } = useParams();
@@ -414,7 +446,12 @@ const RoomChat = () => {
             const messageDate = new Date(message.createdAt);
             
             return (
-              <div key={message.id} className={`flex gap-3 ${isOwn ? 'flex-row-reverse' : ''} group`}>
+              <SwipeableMessage 
+                key={message.id} 
+                message={message} 
+                onReply={() => setReplyingTo(message)}
+              >
+                <div className={`flex gap-3 ${isOwn ? 'flex-row-reverse' : ''} group`}>
                 {!isOwn && (
                   <Avatar className="w-8 h-8 shrink-0">
                     <AvatarImage src={message.sender.profilePhoto} />
@@ -497,6 +534,7 @@ const RoomChat = () => {
                   </div>
                 </div>
               </div>
+              </SwipeableMessage>
             );
           })
         )}

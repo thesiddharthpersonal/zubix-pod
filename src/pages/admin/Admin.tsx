@@ -78,6 +78,49 @@ const Admin = () => {
           <p className="text-muted-foreground">Manage your platform from here</p>
         </div>
 
+        {/* Active Users Metrics - Highlighted Section */}
+        <Card className="mb-6 border-primary/50 bg-gradient-to-br from-primary/5 to-primary/10">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <TrendingUp className="w-5 h-5 text-primary" />
+              Active Users Metrics
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="bg-background rounded-lg p-4 border border-border">
+                <div className="text-sm text-muted-foreground mb-1">Daily Active Users (DAU)</div>
+                <div className="text-3xl font-bold text-primary">{stats?.users.dau || 0}</div>
+                <div className="text-xs text-muted-foreground mt-1">Last 24 hours</div>
+              </div>
+              <div className="bg-background rounded-lg p-4 border border-border">
+                <div className="text-sm text-muted-foreground mb-1">Weekly Active Users (WAU)</div>
+                <div className="text-3xl font-bold text-primary">{stats?.users.wau || 0}</div>
+                <div className="text-xs text-muted-foreground mt-1">Last 7 days</div>
+              </div>
+              <div className="bg-background rounded-lg p-4 border border-border">
+                <div className="text-sm text-muted-foreground mb-1">Monthly Active Users (MAU)</div>
+                <div className="text-3xl font-bold text-primary">{stats?.users.mau || 0}</div>
+                <div className="text-xs text-muted-foreground mt-1">Last 30 days</div>
+              </div>
+            </div>
+            {stats?.users.total && stats?.users.mau ? (
+              <div className="mt-4 pt-4 border-t border-border">
+                <div className="flex items-center justify-between">
+                  <div className="text-sm text-muted-foreground">
+                    Engagement Rate: <span className="font-semibold text-foreground">{((stats.users.mau / stats.users.total) * 100).toFixed(1)}%</span>
+                    <span className="text-xs ml-2">(MAU / Total Users)</span>
+                  </div>
+                  <Button variant="outline" size="sm" onClick={() => navigate('/admin/metrics')}>
+                    <TrendingUp className="w-4 h-4 mr-2" />
+                    View Detailed Metrics
+                  </Button>
+                </div>
+              </div>
+            ) : null}
+          </CardContent>
+        </Card>
+
         {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
           <StatCard
@@ -99,13 +142,14 @@ const Admin = () => {
             icon={FileText}
             title="Total Posts"
             value={stats?.posts.total || 0}
-            subtitle={`${stats?.posts.recent || 0} new this week`}
+            subtitle={`${stats?.posts.today || 0} today • ${stats?.posts.thisWeek || 0} this week`}
             onClick={() => navigate('/admin/posts')}
           />
           <StatCard
             icon={Calendar}
             title="Total Events"
             value={stats?.events.total || 0}
+            subtitle={`${stats?.events.thisWeek || 0} this week • ${stats?.events.thisMonth || 0} this month`}
             onClick={() => navigate('/admin/events')}
           />
           <StatCard

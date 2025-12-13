@@ -19,7 +19,8 @@ const AdminPods = () => {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
-  const [total, setTotal] = useState(0);
+  const [pendingTotal, setPendingTotal] = useState(0);
+  const [allPodsTotal, setAllPodsTotal] = useState(0);
   const [deletePodId, setDeletePodId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'all' | 'pending'>('pending');
   const limit = 20;
@@ -36,12 +37,33 @@ const AdminPods = () => {
     }
   }, [admin, page, search, activeTab]);
 
+  // Fetch counts for both tabs on initial load to show accurate badges
+  useEffect(() => {
+    if (!admin) return;
+    
+    const fetchCounts = async () => {
+      try {
+        // Fetch pending count
+        const pendingData = await adminApi.getPendingPods({ page: 1, limit: 1 });
+        setPendingTotal(pendingData.total);
+        
+        // Fetch all pods count
+        const allData = await adminApi.getPods({ page: 1, limit: 1, search: '' });
+        setAllPodsTotal(allData.total);
+      } catch (error) {
+        console.error('Error fetching pod counts:', error);
+      }
+    };
+    
+    fetchCounts();
+  }, [admin]);
+
   const fetchPods = async () => {
     try {
       setLoading(true);
       const data = await adminApi.getPods({ page, limit, search });
       setPods(data.pods);
-      setTotal(data.total);
+      setAllPodsTotal(data.total);
     } catch (error) {
       console.error('Error fetching pods:', error);
       toast({ title: 'Error', description: 'Failed to load pods', variant: 'destructive' });
@@ -55,7 +77,7 @@ const AdminPods = () => {
       setLoading(true);
       const data = await adminApi.getPendingPods({ page, limit });
       setPendingPods(data.pods);
-      setTotal(data.total);
+      setPendingTotal(data.total);
     } catch (error) {
       console.error('Error fetching pending pods:', error);
       toast({ title: 'Error', description: 'Failed to load pending pods', variant: 'destructive' });
@@ -118,13 +140,13 @@ const AdminPods = () => {
             variant={activeTab === 'pending' ? 'default' : 'outline'}
             onClick={() => { setActiveTab('pending'); setPage(1); }}
           >
-            Pending Approval ({total})
+            Pending Approval ({pendingTotal})
           </Button>
           <Button
             variant={activeTab === 'all' ? 'default' : 'outline'}
             onClick={() => { setActiveTab('all'); setPage(1); }}
           >
-            All Pods
+            All Pods ({allPodsTotal})
           </Button>
         </div>
 
@@ -205,13 +227,13 @@ const AdminPods = () => {
 
             <div className="flex items-center justify-between mt-6">
               <p className="text-sm text-muted-foreground">
-                Showing {(page - 1) * limit + 1} to {Math.min(page * limit, total)} of {total} pods
+                Showing {(page - 1) * limit + 1} to {Math.min(page * limit, activeTab === 'pending' ? pendingTotal : allPodsTotal)} of {activeTab === 'pending' ? pendingTotal : allPodsTotal} pods
               </p>
               <div className="flex gap-2">
                 <Button variant="outline" size="icon" onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}>
                   <ChevronLeft className="w-4 h-4" />
                 </Button>
-                <Button variant="outline" size="icon" onClick={() => setPage(p => p + 1)} disabled={page * limit >= total}>
+                <Button variant="outline" size="icon" onClick={() => setPage(p => p + 1)} disabled={page * limit >= (activeTab === 'pending' ? pendingTotal : allPodsTotal)}>
                   <ChevronRight className="w-4 h-4" />
                 </Button>
               </div>

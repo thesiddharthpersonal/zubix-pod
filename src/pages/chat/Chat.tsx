@@ -15,6 +15,7 @@ import { toast } from 'sonner';
 import MentionInput from '@/components/MentionInput';
 import MentionText from '@/components/MentionText';
 import UserProfileDialog from '@/components/UserProfileDialog';
+import { useSwipe } from '@/hooks/use-swipe';
 import {
   Dialog,
   DialogContent,
@@ -23,6 +24,37 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+
+// SwipeableMessage component for individual messages
+const SwipeableMessage = ({ message, onReply, children }: { message: Message; onReply: () => void; children: React.ReactNode }) => {
+  const { swipeOffset, handlers } = useSwipe({
+    onSwipeLeft: onReply,
+    onSwipeRight: onReply,
+    threshold: 50,
+  });
+
+  return (
+    <div
+      {...handlers}
+      style={{
+        transform: `translateX(${swipeOffset}px)`,
+        transition: swipeOffset === 0 ? 'transform 0.2s ease-out' : 'none',
+      }}
+      className="relative"
+    >
+      {children}
+      {swipeOffset !== 0 && (
+        <div className="absolute top-1/2 -translate-y-1/2 pointer-events-none">
+          <Reply className={`w-5 h-5 text-primary ${swipeOffset > 0 ? 'left-2' : 'right-2'}`} style={{
+            position: 'absolute',
+            [swipeOffset > 0 ? 'left' : 'right']: '8px',
+            opacity: Math.min(Math.abs(swipeOffset) / 50, 1),
+          }} />
+        </div>
+      )}
+    </div>
+  );
+};
 
 const Chat = () => {
   const navigate = useNavigate();
@@ -448,7 +480,12 @@ const Chat = () => {
                 const isOwn = msg.senderId === user?.id;
                 const messageDate = new Date(msg.createdAt);
                 return (
-                  <div key={msg.id} className={`flex ${isOwn ? 'justify-end' : 'justify-start'} group`}>
+                  <SwipeableMessage 
+                    key={msg.id} 
+                    message={msg} 
+                    onReply={() => setReplyingTo(msg)}
+                  >
+                    <div className={`flex ${isOwn ? 'justify-end' : 'justify-start'} group`}>
                     <div className={`max-w-[75%]`}>
                       <div className={`rounded-2xl px-4 py-2 ${isOwn ? 'bg-primary text-primary-foreground rounded-br-md' : 'bg-secondary text-secondary-foreground rounded-bl-md'}`}>
                         {msg.replyTo && (
@@ -521,6 +558,7 @@ const Chat = () => {
                       </div>
                     </div>
                   </div>
+                  </SwipeableMessage>
                 );
               })}
               <div ref={messagesEndRef} />

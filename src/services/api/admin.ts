@@ -43,10 +43,26 @@ adminApiClient.interceptors.response.use(
 );
 
 export interface AdminStats {
-  users: { total: number; recent: number };
+  users: { 
+    total: number; 
+    recent: number;
+    dau: number; // Daily Active Users
+    wau: number; // Weekly Active Users
+    mau: number; // Monthly Active Users
+  };
   pods: { total: number; pending: number };
-  posts: { total: number; recent: number };
-  events: { total: number };
+  posts: { 
+    total: number; 
+    recent: number;
+    today: number;
+    thisWeek: number;
+    thisMonth: number;
+  };
+  events: { 
+    total: number;
+    thisWeek: number;
+    thisMonth: number;
+  };
   rooms: { total: number };
   chats: { total: number };
 }
@@ -73,12 +89,42 @@ export interface PaginatedResponse<T> {
   limit: number;
 }
 
+export interface DailyMetric {
+  date: string;
+  dau: number;
+  posts: number;
+  newUsers: number;
+  events: number;
+}
+
+export interface DetailedMetrics {
+  metrics: DailyMetric[];
+  summary: {
+    dauGrowth: number;
+    avgDauLastWeek: number;
+    totalPostsLast30Days: number;
+    totalNewUsersLast30Days: number;
+  };
+}
+
 export const adminApi = {
   // Dashboard Stats
   getStats: async (): Promise<AdminStats> => {
     try {
       const response = await adminApiClient.get<{ stats: AdminStats }>('/api/admin/stats');
       return response.data.stats;
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
+  },
+
+  // Detailed Metrics
+  getDetailedMetrics: async (days: number = 30): Promise<DetailedMetrics> => {
+    try {
+      const response = await adminApiClient.get<DetailedMetrics>('/api/admin/metrics/detailed', {
+        params: { days }
+      });
+      return response.data;
     } catch (error) {
       throw new Error(handleApiError(error));
     }

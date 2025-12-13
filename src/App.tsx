@@ -48,6 +48,7 @@ import ReceivedPitches from "@/pages/pitch/ReceivedPitches";
 import Admin from "@/pages/admin/Admin";
 import AdminUsers from "@/pages/admin/AdminUsers";
 import AdminPods from "@/pages/admin/AdminPods";
+import AdminMetrics from "@/pages/admin/AdminMetrics";
 import AdminNotifications from "@/pages/admin/AdminNotifications";
 import AdminLogin from "@/pages/admin/AdminLogin";
 import NotFound from "@/pages/NotFound";
@@ -153,6 +154,7 @@ const AppRoutes = () => {
       {/* Admin Routes */}
       <Route path="/admin/login" element={<AdminLogin />} />
       <Route path="/admin" element={<AdminProtectedRoute><Admin /></AdminProtectedRoute>} />
+      <Route path="/admin/metrics" element={<AdminProtectedRoute><AdminMetrics /></AdminProtectedRoute>} />
       <Route path="/admin/users" element={<AdminProtectedRoute><AdminUsers /></AdminProtectedRoute>} />
       <Route path="/admin/pods" element={<AdminProtectedRoute><AdminPods /></AdminProtectedRoute>} />
       <Route path="/admin/notifications" element={<AdminProtectedRoute><AdminNotifications /></AdminProtectedRoute>} />

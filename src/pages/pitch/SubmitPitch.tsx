@@ -70,7 +70,10 @@ const SubmitPitch = () => {
       navigate('/pitch/my-pitches');
     } catch (error: any) {
       console.error('Failed to create pitch:', error);
-      if (error.response?.data?.error) {
+      if (error.response?.data?.message) {
+        // Show the detailed message from backend
+        toast.error(error.response.data.message);
+      } else if (error.response?.data?.error) {
         toast.error(error.response.data.error);
       } else {
         toast.error('Failed to submit pitch');
@@ -122,10 +125,18 @@ const SubmitPitch = () => {
                   </SelectTrigger>
                   <SelectContent>
                     {joinedPods.map((p) => (
-                      <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+                      <SelectItem key={p.id} value={p.id} disabled={p.acceptingPitches === false}>
+                        {p.name}
+                        {p.acceptingPitches === false && ' (Not accepting pitches)'}
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
+                {formData.podId && joinedPods.find(p => p.id === formData.podId)?.acceptingPitches === false && (
+                  <p className="text-xs text-destructive">
+                    This pod is currently not accepting pitches
+                  </p>
+                )}
               </div>
 
               <div className="space-y-2">
@@ -278,7 +289,12 @@ const SubmitPitch = () => {
                 </div>
               </div>
 
-              <Button type="submit" variant="hero" className="w-full" disabled={loading}>
+              <Button 
+                type="submit" 
+                variant="hero" 
+                className="w-full" 
+                disabled={loading || (formData.podId && joinedPods.find(p => p.id === formData.podId)?.acceptingPitches === false)}
+              >
                 <Send className="w-4 h-4 mr-2" />
                 {loading ? 'Submitting...' : 'Submit Pitch'}
               </Button>

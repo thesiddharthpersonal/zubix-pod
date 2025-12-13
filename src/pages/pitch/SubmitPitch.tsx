@@ -311,8 +311,8 @@ const SubmitPitch = () => {
                 <Input
                   value={formData.website}
                   onChange={(e) => setFormData({ ...formData, website: e.target.value })}
-                  placeholder="https://yourwebsite.com"
-                  type="url"
+                  placeholder="e.g., yourwebsite.com or https://yourwebsite.com"
+                  type="text"
                 />
               </div>
 

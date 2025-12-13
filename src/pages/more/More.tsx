@@ -33,6 +33,8 @@ const More = () => {
 
   // Filter features based on user role
   const visibleFeatures = FEATURES.filter(f => f.forAll || (f.forPodOwner && canManagePods) || (f.forAdmin && (user?.role === 'admin' || user?.role === 'ADMIN')));
+  
+  console.log('More page - canManagePods:', canManagePods, 'visibleFeatures:', visibleFeatures.map(f => f.name));
 
   // Feature List View
   if (!selectedFeature) {

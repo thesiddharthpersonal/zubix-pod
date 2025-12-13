@@ -188,26 +188,22 @@ const PostDetail = () => {
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between">
                   <div>
-                    <span 
-                      className="font-medium text-foreground cursor-pointer hover:text-primary hover:underline transition-colors"
-                      onClick={() => setSelectedUserForProfile(post.author)}
-                    >
-                      {post.author.fullName}
-                    </span>
-                    {post.isOwnerPost && !post.postedByTeamMember && (
-                      <Badge variant="secondary" className="ml-2 text-xs">Owner</Badge>
-                    )}
-                    {post.postedByTeamMember && (
-                      <Badge className="ml-2 text-xs bg-purple-100 text-purple-700 hover:bg-purple-200">Team Member</Badge>
-                    )}
-                    <p className="text-sm text-muted-foreground">
+                    <div className="flex items-center gap-2">
                       <span 
-                        className="cursor-pointer hover:text-primary transition-colors"
+                        className="font-medium text-foreground cursor-pointer hover:text-primary hover:underline transition-colors"
                         onClick={() => setSelectedUserForProfile(post.author)}
                       >
-                        @{post.author.username}
+                        {post.author.fullName}
                       </span>
-                      {' '}· {timeAgo}
+                      {post.isOwnerPost && !post.postedByTeamMember && (
+                        <Badge variant="secondary" className="text-xs">Owner</Badge>
+                      )}
+                      {post.postedByTeamMember && (
+                        <Badge className="text-xs bg-purple-100 text-purple-700 hover:bg-purple-200">Team Member</Badge>
+                      )}
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      {timeAgo}
                     </p>
                   </div>
                   <Button variant="ghost" size="icon-sm">

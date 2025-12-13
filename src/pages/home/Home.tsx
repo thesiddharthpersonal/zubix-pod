@@ -597,26 +597,22 @@ const PostCard = ({
           <div className="flex-1 min-w-0">
             <div className="flex items-center justify-between">
               <div>
-                <span 
-                  className="font-medium text-foreground cursor-pointer hover:text-primary hover:underline transition-colors"
-                  onClick={() => onUserClick(post.author)}
-                >
-                  {post.author.fullName}
-                </span>
-                {post.isOwnerPost && !post.postedByTeamMember && (
-                  <Badge variant="secondary" className="ml-2 text-xs">Owner</Badge>
-                )}
-                {post.postedByTeamMember && (
-                  <Badge className="ml-2 text-xs bg-purple-100 text-purple-700 hover:bg-purple-200">Team Member</Badge>
-                )}
-                <p className="text-sm text-muted-foreground">
+                <div className="flex items-center gap-2">
                   <span 
-                    className="cursor-pointer hover:text-primary transition-colors"
+                    className="font-medium text-foreground cursor-pointer hover:text-primary hover:underline transition-colors"
                     onClick={() => onUserClick(post.author)}
                   >
-                    @{post.author.username}
+                    {post.author.fullName}
                   </span>
-                  {' '}· {timeAgo}
+                  {post.isOwnerPost && !post.postedByTeamMember && (
+                    <Badge variant="secondary" className="text-xs">Owner</Badge>
+                  )}
+                  {post.postedByTeamMember && (
+                    <Badge className="text-xs bg-purple-100 text-purple-700 hover:bg-purple-200">Team Member</Badge>
+                  )}
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  {timeAgo}
                 </p>
               </div>
               {currentUser?.id === post.authorId && (
@@ -752,16 +748,12 @@ const PostCard = ({
                         <AvatarFallback>{currentUser?.fullName?.charAt(0) || 'U'}</AvatarFallback>
                       </Avatar>
                       <div className="flex-1 flex gap-2">
-                        <Input
+                        <MentionInput
                           value={newComment}
-                          onChange={(e) => setNewComment(e.target.value)}
-                          placeholder="Write a comment..."
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter' && !e.shiftKey) {
-                              e.preventDefault();
-                              handleAddComment();
-                            }
-                          }}
+                          onChange={setNewComment}
+                          placeholder="Write a comment... (Type @ to mention)"
+                          rows={1}
+                          className="flex-1"
                           disabled={submittingComment}
                         />
                         <Button 

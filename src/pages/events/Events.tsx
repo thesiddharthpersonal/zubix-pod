@@ -142,10 +142,11 @@ const Events = () => {
     }
   };
 
-  // Get owner's events with registrations
+  // Get owner's events with registrations (includes events from pods user owns or co-owns)
   const ownerEvents = useMemo(() => {
-    return events.filter((e) => e.createdBy === user?.id);
-  }, [events, user?.id]);
+    const managedPodIds = managedPods.map(pod => pod.id);
+    return events.filter((e) => managedPodIds.includes(e.podId));
+  }, [events, managedPods]);
 
   const getRegisteredUsers = (eventId: string) => {
     return eventParticipants[eventId] || [];

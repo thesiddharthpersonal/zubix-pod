@@ -150,4 +150,16 @@ export const usersApi = {
       throw new Error(handleApiError(error));
     }
   },
+
+  toggleAcceptingCalls: async (acceptingCalls: boolean): Promise<{ message: string; user: any }> => {
+    try {
+      const response = await apiClient.patch<{ message: string; user: any }>(
+        '/api/users/accepting-calls',
+        { acceptingCalls }
+      );
+      return response.data;
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
+  },
 };

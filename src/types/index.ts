@@ -10,6 +10,7 @@ export interface User {
   createdAt: Date;
   isCoOwner?: boolean; // Available when fetched as pod member
   joinedAt?: Date; // Available when fetched as pod member
+  acceptingCalls?: boolean; // Whether user is accepting call bookings
 }
 
 export interface UserProfile extends User {

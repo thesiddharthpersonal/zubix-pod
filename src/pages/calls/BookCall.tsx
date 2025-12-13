@@ -11,8 +11,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ArrowLeft, Phone, Send, Check, X, MessageSquare } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
 import { CallBooking, User, Pod } from '@/types';
 import { toast } from 'sonner';
+import { usersApi } from '@/services/api/users';
 import {
   Dialog,
   DialogContent,
@@ -38,6 +40,8 @@ const BookCall = () => {
   const [pods, setPods] = useState<(Pod & { coOwners: User[] })[]>([]);
   const [userBookings, setUserBookings] = useState<CallBooking[]>([]);
   const [receivedBookings, setReceivedBookings] = useState<CallBooking[]>([]);
+  const [acceptingCalls, setAcceptingCalls] = useState(user?.acceptingCalls ?? true);
+  const [togglingCalls, setTogglingCalls] = useState(false);
 
   const [respondDialog, setRespondDialog] = useState<{ open: boolean; booking: CallBooking | null; action: 'accept' | 'reject' }>({
     open: false,
@@ -92,6 +96,13 @@ const BookCall = () => {
     fetchUserBookings();
   }, [user]);
 
+  // Sync accepting calls with user state
+  useEffect(() => {
+    if (user?.acceptingCalls !== undefined) {
+      setAcceptingCalls(user.acceptingCalls);
+    }
+  }, [user?.acceptingCalls]);
+
   // Fetch received bookings for all users
   useEffect(() => {
     const fetchReceivedBookings = async () => {
@@ -115,7 +126,7 @@ const BookCall = () => {
     ? [
         { ...selectedPod.owner, role: 'owner' as const },
         ...selectedPod.coOwners.map(co => ({ ...co, role: 'co-owner' as const })),
-      ]
+      ].filter(person => person.acceptingCalls !== false) // Only show people accepting calls
     : [];
 
   const handleSubmitBooking = async () => {
@@ -185,6 +196,20 @@ const BookCall = () => {
       case 'ACCEPTED': return 'bg-success/10 text-success';
       case 'REJECTED': return 'bg-destructive/10 text-destructive';
       default: return 'bg-warning/10 text-warning';
+    }
+  };
+
+  const handleToggleAcceptingCalls = async (checked: boolean) => {
+    try {
+      setTogglingCalls(true);
+      await usersApi.toggleAcceptingCalls(checked);
+      setAcceptingCalls(checked);
+      toast.success(`You are now ${checked ? 'accepting' : 'not accepting'} call bookings`);
+    } catch (error: any) {
+      console.error('Failed to toggle accepting calls:', error);
+      toast.error(error.message || 'Failed to update call booking status');
+    } finally {
+      setTogglingCalls(false);
     }
   };
 
@@ -382,6 +407,25 @@ const BookCall = () => {
 
           {/* Received Requests */}
           <TabsContent value="received" className="space-y-3">
+            {/* Toggle for accepting calls */}
+            <Card className="bg-muted/50">
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-foreground">Accept Call Bookings</h3>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      {acceptingCalls ? 'You are currently accepting new call booking requests' : 'You are not accepting new call booking requests'}
+                    </p>
+                  </div>
+                  <Switch
+                    checked={acceptingCalls}
+                    onCheckedChange={handleToggleAcceptingCalls}
+                    disabled={togglingCalls}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
             {receivedBookings.length === 0 ? (
               <div className="text-center py-12">
                 <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">

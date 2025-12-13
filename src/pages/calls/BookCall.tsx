@@ -28,7 +28,7 @@ import { podsApi } from '@/services/api/pods';
 
 const BookCall = () => {
   const navigate = useNavigate();
-  const { user, joinedPods } = useAuth();
+  const { user, joinedPods, refreshUser } = useAuth();
   const isPodOwner = user?.role === 'pod_owner';
 
   const [activeTab, setActiveTab] = useState(isPodOwner ? 'received' : 'book');
@@ -205,6 +205,9 @@ const BookCall = () => {
       await usersApi.toggleAcceptingCalls(checked);
       setAcceptingCalls(checked);
       toast.success(`You are now ${checked ? 'accepting' : 'not accepting'} call bookings`);
+      
+      // Refresh user data to sync with backend
+      await refreshUser();
     } catch (error: any) {
       console.error('Failed to toggle accepting calls:', error);
       toast.error(error.message || 'Failed to update call booking status');
@@ -348,21 +351,33 @@ const BookCall = () => {
 
                   <div className="space-y-2">
                     <Label>Select Owner/Co-Owner *</Label>
-                    <Select value={selectedPerson} onValueChange={setSelectedPerson} disabled={!selectedPodId}>
+                    <Select value={selectedPerson} onValueChange={setSelectedPerson} disabled={!selectedPodId || availablePeople.length === 0}>
                       <SelectTrigger>
-                        <SelectValue placeholder={selectedPodId ? "Choose a person" : "Select a pod first"} />
+                        <SelectValue placeholder={
+                          !selectedPodId 
+                            ? "Select a pod first" 
+                            : availablePeople.length === 0 
+                              ? "No one is accepting call requests"
+                              : "Choose a person"
+                        } />
                       </SelectTrigger>
                       <SelectContent>
-                        {availablePeople.map(person => (
-                          <SelectItem key={person.id} value={`${person.id}:${person.role}`}>
-                            <div className="flex items-center gap-2">
-                              <span>{person.fullName}</span>
-                              <Badge variant="outline" className="text-xs">
-                                {person.role === 'owner' ? 'Owner' : 'Co-Owner'}
-                              </Badge>
-                            </div>
-                          </SelectItem>
-                        ))}
+                        {availablePeople.length === 0 ? (
+                          <div className="px-2 py-6 text-center text-sm text-muted-foreground">
+                            No one is accepting call requests
+                          </div>
+                        ) : (
+                          availablePeople.map(person => (
+                            <SelectItem key={person.id} value={`${person.id}:${person.role}`}>
+                              <div className="flex items-center gap-2">
+                                <span>{person.fullName}</span>
+                                <Badge variant="outline" className="text-xs">
+                                  {person.role === 'owner' ? 'Owner' : 'Co-Owner'}
+                                </Badge>
+                              </div>
+                            </SelectItem>
+                          ))
+                        )}
                       </SelectContent>
                     </Select>
                   </div>

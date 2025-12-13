@@ -742,32 +742,33 @@ const PostCard = ({
                     </div>
 
                     {/* Add Comment */}
-                    <div className="flex gap-2">
-                      <Avatar className="w-8 h-8">
+                    <div className="flex gap-2 items-end">
+                      <Avatar className="w-8 h-8 flex-shrink-0">
                         <AvatarImage src={currentUser?.profilePhoto} />
                         <AvatarFallback>{currentUser?.fullName?.charAt(0) || 'U'}</AvatarFallback>
                       </Avatar>
-                      <div className="flex-1 flex gap-2">
+                      <div className="flex-1 min-w-0">
                         <MentionInput
                           value={newComment}
                           onChange={setNewComment}
                           placeholder="Write a comment... (Type @ to mention)"
                           rows={1}
-                          className="flex-1"
+                          className="w-full"
                           disabled={submittingComment}
                         />
-                        <Button 
-                          size="sm" 
-                          onClick={handleAddComment}
-                          disabled={!newComment.trim() || submittingComment}
-                        >
-                          {submittingComment ? (
-                            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                          ) : (
-                            <Send className="w-4 h-4" />
-                          )}
-                        </Button>
                       </div>
+                      <Button 
+                        size="sm" 
+                        onClick={handleAddComment}
+                        disabled={!newComment.trim() || submittingComment}
+                        className="flex-shrink-0 h-10"
+                      >
+                        {submittingComment ? (
+                          <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        ) : (
+                          <Send className="w-4 h-4" />
+                        )}
+                      </Button>
                     </div>
                   </>
                 )}

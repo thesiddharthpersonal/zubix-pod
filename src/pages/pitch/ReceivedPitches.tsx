@@ -68,9 +68,26 @@ const ReceivedPitches = () => {
     }
   }, [user, canManage, managedPods, selectedPodId]);
 
+  // Refresh pod data to get latest acceptingPitches status
+  const refreshPodStatus = useCallback(async () => {
+    if (!selectedPodId) return;
+    
+    try {
+      const pod = await podsApi.getPodById(selectedPodId);
+      setAcceptingPitches(pod.acceptingPitches ?? true);
+    } catch (error) {
+      console.error('Failed to refresh pod status:', error);
+    }
+  }, [selectedPodId]);
+
   useEffect(() => {
     loadPitches();
   }, [loadPitches]);
+
+  // Refresh pod status when component mounts or comes back into view
+  useEffect(() => {
+    refreshPodStatus();
+  }, [refreshPodStatus]);
 
   const handleToggleAcceptingPitches = async (checked: boolean) => {
     if (!selectedPodId) return;
@@ -91,11 +108,19 @@ const ReceivedPitches = () => {
     }
   };
 
-  const handlePodChange = (podId: string) => {
+  const handlePodChange = async (podId: string) => {
     setSelectedPodId(podId);
-    const pod = managedPods.find(p => p.id === podId);
-    if (pod) {
+    // Fetch fresh pod data to get latest acceptingPitches status
+    try {
+      const pod = await podsApi.getPodById(podId);
       setAcceptingPitches(pod.acceptingPitches ?? true);
+    } catch (error) {
+      console.error('Failed to fetch pod details:', error);
+      // Fallback to cached data
+      const cachedPod = managedPods.find(p => p.id === podId);
+      if (cachedPod) {
+        setAcceptingPitches(cachedPod.acceptingPitches ?? true);
+      }
     }
   };
 

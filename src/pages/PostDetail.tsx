@@ -321,17 +321,17 @@ const PostDetail = () => {
                   {/* Add Comment */}
                   {user && (
                     <div className="flex gap-2 items-end">
-                      <Avatar className="w-8 h-8">
+                      <Avatar className="w-8 h-8 flex-shrink-0">
                         <AvatarImage src={user.profilePhoto} />
                         <AvatarFallback>{user.fullName?.charAt(0) || 'U'}</AvatarFallback>
                       </Avatar>
-                      <div className="flex-1">
+                      <div className="flex-1 min-w-0">
                         <MentionInput
                           value={newComment}
                           onChange={setNewComment}
                           placeholder="Write a comment... (use @ to mention)"
                           rows={1}
-                          className="min-h-[40px]"
+                          className="w-full min-h-[40px]"
                           disabled={submittingComment}
                         />
                       </div>
@@ -339,7 +339,7 @@ const PostDetail = () => {
                         size="sm" 
                         onClick={handleAddComment}
                         disabled={!newComment.trim() || submittingComment}
-                        className="h-10"
+                        className="flex-shrink-0 h-10"
                       >
                         {submittingComment ? (
                           <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />

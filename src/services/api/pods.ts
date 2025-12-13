@@ -190,4 +190,16 @@ export const podsApi = {
       throw new Error(handleApiError(error));
     }
   },
+
+  toggleAcceptingPitches: async (podId: string, acceptingPitches: boolean): Promise<{ pod: Pod; message: string }> => {
+    try {
+      const response = await apiClient.patch<{ pod: Pod; message: string }>(
+        `/api/pods/${podId}/accepting-pitches`,
+        { acceptingPitches }
+      );
+      return response.data;
+    } catch (error) {
+      throw new Error(handleApiError(error));
+    }
+  },
 };

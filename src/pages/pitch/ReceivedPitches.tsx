@@ -9,10 +9,12 @@ import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
 import { ArrowLeft, Eye, FileText, MessageCircle, ChevronRight, Send } from 'lucide-react';
 import { toast } from 'sonner';
 import { pitchesApi } from '@/services/api/pitches';
-import { Pitch, STARTUP_STAGE_DISPLAY, PITCH_STATUS_DISPLAY, PITCH_STATUSES, PitchStatus } from '@/types';
+import { podsApi } from '@/services/api/pods';
+import { Pitch, STARTUP_STAGE_DISPLAY, PITCH_STATUS_DISPLAY, PITCH_STATUSES, PitchStatus, Pod } from '@/types';
 import { getManagedPods } from '@/lib/utils';
 
 const getStatusColor = (status: string) => {
@@ -35,6 +37,9 @@ const ReceivedPitches = () => {
   const [replyText, setReplyText] = useState('');
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [selectedPodId, setSelectedPodId] = useState<string>('');
+  const [acceptingPitches, setAcceptingPitches] = useState<boolean>(true);
+  const [togglingPitches, setTogglingPitches] = useState(false);
 
   const managedPods = useMemo(() => getManagedPods(joinedPods, user?.id), [joinedPods, user?.id]);
   const canManage = managedPods.length > 0;
@@ -49,17 +54,50 @@ const ReceivedPitches = () => {
         managedPods.map(pod => pitchesApi.getPodPitches(pod.id))
       );
       setPitches(allPitches.flat());
+      
+      // Set first managed pod as selected and get its acceptingPitches status
+      if (managedPods.length > 0 && !selectedPodId) {
+        setSelectedPodId(managedPods[0].id);
+        setAcceptingPitches(managedPods[0].acceptingPitches ?? true);
+      }
     } catch (error) {
       console.error('Failed to fetch pod pitches:', error);
       toast.error('Failed to load pitches');
     } finally {
       setLoading(false);
     }
-  }, [user, canManage, managedPods]);
+  }, [user, canManage, managedPods, selectedPodId]);
 
   useEffect(() => {
     loadPitches();
   }, [loadPitches]);
+
+  const handleToggleAcceptingPitches = async (checked: boolean) => {
+    if (!selectedPodId) return;
+    
+    try {
+      setTogglingPitches(true);
+      const result = await podsApi.toggleAcceptingPitches(selectedPodId, checked);
+      setAcceptingPitches(checked);
+      toast.success(result.message);
+    } catch (error: any) {
+      console.error('Failed to toggle pitch acceptance:', error);
+      const errorMsg = error.message || 'Failed to update pitch acceptance settings';
+      toast.error(errorMsg);
+      // Revert the toggle on error
+      setAcceptingPitches(!checked);
+    } finally {
+      setTogglingPitches(false);
+    }
+  };
+
+  const handlePodChange = (podId: string) => {
+    setSelectedPodId(podId);
+    const pod = managedPods.find(p => p.id === podId);
+    if (pod) {
+      setAcceptingPitches(pod.acceptingPitches ?? true);
+    }
+  };
 
   const updateStatus = async (pitchId: string, status: PitchStatus) => {
     try {
@@ -318,6 +356,52 @@ const ReceivedPitches = () => {
             Review pitches received from startups
           </p>
         </div>
+
+        {/* Pod Selection and Toggle */}
+        {managedPods.length > 0 && (
+          <Card className="mb-6">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between gap-4">
+                <div className="flex-1">
+                  {managedPods.length > 1 ? (
+                    <Select value={selectedPodId} onValueChange={handlePodChange}>
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Select a pod" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {managedPods.map((pod) => (
+                          <SelectItem key={pod.id} value={pod.id}>
+                            {pod.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  ) : (
+                    <div>
+                      <Label className="text-sm font-medium">{managedPods[0].name}</Label>
+                    </div>
+                  )}
+                </div>
+                <div className="flex items-center gap-3">
+                  <Label htmlFor="accepting-pitches" className="text-sm font-medium cursor-pointer">
+                    {acceptingPitches ? 'Accepting Pitches' : 'Not Accepting'}
+                  </Label>
+                  <Switch
+                    id="accepting-pitches"
+                    checked={acceptingPitches}
+                    onCheckedChange={handleToggleAcceptingPitches}
+                    disabled={togglingPitches || !selectedPodId}
+                  />
+                </div>
+              </div>
+              {!acceptingPitches && (
+                <p className="text-xs text-muted-foreground mt-3">
+                  Your pod is currently not accepting new pitches. Turn on to start receiving pitches.
+                </p>
+              )}
+            </CardContent>
+          </Card>
+        )}
 
         {loading ? (
           <div className="text-center py-12">

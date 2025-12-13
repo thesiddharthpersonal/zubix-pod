@@ -70,6 +70,7 @@ export interface Pod {
   memberIds: string[];
   isApproved: boolean;
   isVerified?: boolean;
+  acceptingPitches?: boolean;
   createdAt: Date;
   // User-specific fields (available when fetched as joined pods)
   isCoOwner?: boolean; // True if current user is a co-owner of this pod

@@ -26,7 +26,6 @@ const Login = () => {
 
     try {
       const userData = await login(formData.emailOrMobileOrUsername, formData.password);
-      toast.success('Welcome back!');
       
       // Check if pod owner has unapproved pods
       if (userData && (userData as any).role === 'POD_OWNER' && (userData as any).ownedPods?.length > 0) {
@@ -43,7 +42,8 @@ const Login = () => {
       // First time users go to discover, returning users go to home
       navigate(isFirstLogin ? '/discover' : '/home');
     } catch (error) {
-      toast.error('Login failed. Please try again.');
+      // Error message already shown by AuthContext
+      console.error('Login error:', error);
     }
   };
 
